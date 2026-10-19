@@ -1,61 +1,189 @@
 /**
  * outline_to_hyperframes.js
- * Pure Mapper:
- * 1. outlineToScene: LessonOutline -> LessonSceneJSON
- * 2. sceneToHyperFramesHtml: LessonSceneJSON -> Full HyperFrames index.html
+ * Deep Module: Pure Mapper for HyperFrames Lecture Studio
+ * 
+ * Two Pure Steps:
+ * 1. outlineToScene(outline): LessonOutline -> LessonSceneJSON
+ * 2. sceneToHyperFramesHtml(scene): LessonSceneJSON -> Full HyperFrames index.html
+ * 
+ * Invariants:
+ * - Slide start times are strictly computed from durationSeconds: start[i] = sum(durationSeconds[0..i-1]).
+ * - Audio-first sync from Person A automatically scales timeline cues without code modification.
+ * - Fails loudly with SchemaValidationError on schema-invalid input.
  */
 
 import { TEMPLATES, renderSlide } from './templates/index.js';
 
+export class SchemaValidationError extends Error {
+  constructor(message, details = []) {
+    super(message);
+    this.name = 'SchemaValidationError';
+    this.details = details;
+  }
+}
+
+const VALID_TEMPLATES = new Set([
+  'title-slide',
+  'learning-objectives',
+  'concept-explain',
+  'bullet-breakdown',
+  'image-explain',
+  'comparison',
+  'timeline',
+  'formula-explain',
+  'quiz',
+  'summary'
+]);
+
 /**
- * Step 1: Map LessonOutline to LessonSceneJSON
+ * Validate LessonOutline according to schemas/lesson_outline.json
+ * @param {object} outline
+ * @throws {SchemaValidationError}
+ */
+export function validateOutline(outline) {
+  if (!outline || typeof outline !== 'object') {
+    throw new SchemaValidationError('Invalid outline: must be a non-null object');
+  }
+
+  const required = ['topic', 'targetAudience', 'estimatedDurationMinutes', 'learningObjectives', 'slides', 'summary'];
+  const missing = required.filter(k => outline[k] === undefined || outline[k] === null);
+  if (missing.length > 0) {
+    throw new SchemaValidationError(`Outline missing required top-level fields: ${missing.join(', ')}`, missing);
+  }
+
+  if (!Array.isArray(outline.learningObjectives) || outline.learningObjectives.length === 0) {
+    throw new SchemaValidationError('learningObjectives must be a non-empty array of strings');
+  }
+
+  if (!Array.isArray(outline.slides) || outline.slides.length === 0) {
+    throw new SchemaValidationError('slides must be a non-empty array of OutlineSlide objects');
+  }
+
+  outline.slides.forEach((s, idx) => {
+    if (!s || typeof s !== 'object') {
+      throw new SchemaValidationError(`Slide at index ${idx} must be an object`);
+    }
+    const slideReq = ['slideId', 'suggestedTemplateId', 'title', 'keyTakeaways', 'speakerNotesDraft', 'contentPayload'];
+    const sMissing = slideReq.filter(k => s[k] === undefined || s[k] === null);
+    if (sMissing.length > 0) {
+      throw new SchemaValidationError(`Slide [${s.slideId || idx}] missing required fields: ${sMissing.join(', ')}`, sMissing);
+    }
+    if (!VALID_TEMPLATES.has(s.suggestedTemplateId)) {
+      throw new SchemaValidationError(
+        `Slide [${s.slideId}] has unknown suggestedTemplateId: "${s.suggestedTemplateId}". Must be one of: ${Array.from(VALID_TEMPLATES).join(', ')}`
+      );
+    }
+    if (!Array.isArray(s.keyTakeaways)) {
+      throw new SchemaValidationError(`Slide [${s.slideId}] keyTakeaways must be an array`);
+    }
+    if (typeof s.contentPayload !== 'object') {
+      throw new SchemaValidationError(`Slide [${s.slideId}] contentPayload must be an object`);
+    }
+  });
+
+  return true;
+}
+
+/**
+ * Validate LessonSceneJSON according to schemas/lesson_scene.json
+ * @param {object} scene
+ * @throws {SchemaValidationError}
+ */
+export function validateScene(scene) {
+  if (!scene || typeof scene !== 'object') {
+    throw new SchemaValidationError('Invalid scene: must be a non-null object');
+  }
+
+  const required = ['projectId', 'title', 'slides'];
+  const missing = required.filter(k => scene[k] === undefined || scene[k] === null);
+  if (missing.length > 0) {
+    throw new SchemaValidationError(`Scene missing required top-level fields: ${missing.join(', ')}`, missing);
+  }
+
+  if (!Array.isArray(scene.slides) || scene.slides.length === 0) {
+    throw new SchemaValidationError('Scene slides must be a non-empty array');
+  }
+
+  scene.slides.forEach((s, idx) => {
+    if (!s || typeof s !== 'object') {
+      throw new SchemaValidationError(`Scene slide at index ${idx} must be an object`);
+    }
+    const slideReq = ['slideId', 'templateId', 'layoutVariant', 'title', 'elements', 'animations', 'voice', 'durationSeconds'];
+    const sMissing = slideReq.filter(k => s[k] === undefined || s[k] === null);
+    if (sMissing.length > 0) {
+      throw new SchemaValidationError(`Scene slide [${s.slideId || idx}] missing required fields: ${sMissing.join(', ')}`, sMissing);
+    }
+    if (!VALID_TEMPLATES.has(s.templateId)) {
+      throw new SchemaValidationError(
+        `Scene slide [${s.slideId}] has invalid templateId: "${s.templateId}". Must be one of: ${Array.from(VALID_TEMPLATES).join(', ')}`
+      );
+    }
+    if (typeof s.durationSeconds !== 'number' || s.durationSeconds <= 0) {
+      throw new SchemaValidationError(`Scene slide [${s.slideId}] durationSeconds must be a positive number`);
+    }
+    if (!s.voice || typeof s.voice !== 'object' || typeof s.voice.narration !== 'string') {
+      throw new SchemaValidationError(`Scene slide [${s.slideId}] voice must contain narration string`);
+    }
+  });
+
+  return true;
+}
+
+/**
+ * Step 1: Map LessonOutline to LessonSceneJSON using template registry
+ * Pure Function: returns a new, fully validated LessonSceneJSON object.
+ * 
  * @param {object} outline - Conforming to schemas/lesson_outline.json
  * @param {object} [options]
- * @returns {object} - Conforming to schemas/lesson_scene.json
+ * @returns {object} LessonSceneJSON
  */
 export function outlineToScene(outline, options = {}) {
-  if (!outline || !Array.isArray(outline.slides)) {
-    throw new Error('[Mapper] Invalid outline: slides array is required.');
-  }
+  // Fail loudly on invalid input
+  validateOutline(outline);
 
   const projectId = options.projectId || `proj-${Date.now().toString(36)}`;
   let cumulativeDuration = 0;
 
   const slides = outline.slides.map((s, idx) => {
-    const templateId = s.suggestedTemplateId || 'concept-explain';
-    const duration = s.durationSeconds || 16.0;
-    const start = cumulativeDuration;
-    cumulativeDuration += duration;
-
-    // Convert elements based on templateId and contentPayload
+    const templateId = s.suggestedTemplateId;
+    const duration = s.durationSeconds || (s.contentPayload?.durationSeconds) || 16.0;
+    
+    // Map elements from outline contentPayload and keyTakeaways
     const elements = buildElementsForTemplate(templateId, s);
 
-    // Build default animation timeline cues
+    // Build default GSAP animation presets
     const animations = buildDefaultAnimations(templateId, elements);
 
-    return {
+    // Audio narration configuration
+    const narrationText = s.speakerNotesDraft || s.keyTakeaways?.join('. ') || s.title;
+    const voiceDuration = Math.max(duration - 1.0, 4.0);
+
+    const slideObj = {
       slideId: s.slideId || `slide-${String(idx + 1).padStart(2, '0')}`,
       templateId: templateId,
-      layoutVariant: s.layoutVariant || 'default',
-      title: s.title || `Slide ${idx + 1}`,
+      layoutVariant: s.layoutVariant || s.contentPayload?.layoutVariant || 'default',
+      title: s.title,
       subtitle: s.subtitle || (outline.sections?.[0]?.sectionTitle || ''),
       elements: elements,
       animations: animations,
       voice: {
-        narration: s.speakerNotesDraft || '',
+        narration: narrationText,
         provider: 'vieneu',
         voiceId: 'MyDuyen',
         audioUrl: `storage/projects/${projectId}/audio/slide-${String(idx + 1).padStart(2, '0')}.wav`,
-        durationSeconds: Math.max(duration - 1.0, 5.0)
+        durationSeconds: voiceDuration
       },
       durationSeconds: duration,
       notes: s.speakerNotesDraft || ''
     };
+
+    cumulativeDuration += duration;
+    return slideObj;
   });
 
-  return {
+  const sceneResult = {
     projectId: projectId,
-    title: outline.topic || 'Bài Giảng Mẫu',
+    title: outline.topic,
     theme: {
       colorScheme: options.colorScheme || 'academic-ocean',
       fontFamily: 'Be Vietnam Pro, sans-serif',
@@ -64,18 +192,22 @@ export function outlineToScene(outline, options = {}) {
     totalDurationSeconds: Math.round(cumulativeDuration * 100) / 100,
     slides: slides
   };
+
+  validateScene(sceneResult);
+  return sceneResult;
 }
 
 /**
- * Step 2: Compile LessonSceneJSON to a full HyperFrames index.html composition
+ * Step 2: Compile LessonSceneJSON to a full HyperFrames root index.html
+ * Pure Function: computes exact cumulative data-start offsets and returns HTML string.
+ * 
  * @param {object} scene - Conforming to schemas/lesson_scene.json
  * @param {object} [options]
- * @returns {string} - Full HTML string conforming to HyperFrames specifications
+ * @returns {string} Fully valid HyperFrames index.html
  */
 export function sceneToHyperFramesHtml(scene, options = {}) {
-  if (!scene || !Array.isArray(scene.slides)) {
-    throw new Error('[Mapper] Invalid scene: slides array is required.');
-  }
+  // Fail loudly on invalid input
+  validateScene(scene);
 
   let currentStart = 0;
   const slideSections = [];
@@ -84,10 +216,11 @@ export function sceneToHyperFramesHtml(scene, options = {}) {
   const voiceCues = [];
 
   scene.slides.forEach((slide, idx) => {
-    const duration = slide.durationSeconds || 16.0;
+    // Start times strictly derived from durationSeconds (Audio-First Sync)
+    const duration = slide.durationSeconds;
     const start = Math.round(currentStart * 100) / 100;
     const end = Math.round((currentStart + duration) * 100) / 100;
-    const domId = slide.slideId || `slide-${idx + 1}`;
+    const domId = slide.slideId;
     const audioDomId = `audio-${idx + 1}`;
 
     slideTimingMetadata.push({
@@ -105,10 +238,10 @@ export function sceneToHyperFramesHtml(scene, options = {}) {
       });
     }
 
-    // Render section
+    // Render semantic section
     slideSections.push(renderSlide({ ...slide, start }, idx, start));
 
-    // Render corresponding audio tag
+    // Audio element
     const audioSrc = slide.voice?.audioUrl || `audio/slide${idx + 1}.wav`;
     audioTags.push(
       `<audio id="${audioDomId}" data-start="${start}" data-duration="${duration}" src="${audioSrc}" preload="auto"></audio>`
@@ -118,14 +251,15 @@ export function sceneToHyperFramesHtml(scene, options = {}) {
   });
 
   const totalDuration = Math.round(currentStart * 100) / 100;
+  const compositionId = scene.projectId || 'lecture-composition';
 
   return `<!DOCTYPE html>
 <html lang="vi">
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1920, height=1080">
-    <title>${escapeHtml(scene.title || 'Bài Giảng Học Thuật')}</title>
-    <!-- Google Fonts: Be Vietnam Pro -->
+    <title>${escapeHtml(scene.title || 'AI Lecture Studio')}</title>
+    <!-- Google Fonts: Be Vietnam Pro & JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -134,12 +268,7 @@ export function sceneToHyperFramesHtml(scene, options = {}) {
     <link rel="stylesheet" href="templates/tokens.css">
     <link rel="stylesheet" href="templates/templates.css">
     <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        user-select: none;
-      }
+      * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
       html, body {
         width: 1920px;
         height: 1080px;
@@ -170,11 +299,7 @@ export function sceneToHyperFramesHtml(scene, options = {}) {
         background: var(--hf-bg-header);
         backdrop-filter: blur(12px);
       }
-      .logo-area {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-      }
+      .logo-area { display: flex; align-items: center; gap: 16px; }
       .logo-badge {
         width: 48px;
         height: 48px;
@@ -230,12 +355,7 @@ export function sceneToHyperFramesHtml(scene, options = {}) {
         flex: 1;
         max-width: 1480px;
       }
-      .soundwave {
-        display: flex;
-        align-items: center;
-        gap: 3px;
-        height: 20px;
-      }
+      .soundwave { display: flex; align-items: center; gap: 3px; height: 20px; }
       .wave-bar {
         width: 3px;
         height: 100%;
@@ -258,18 +378,14 @@ export function sceneToHyperFramesHtml(scene, options = {}) {
         overflow: hidden;
         text-overflow: ellipsis;
       }
-      .slide-counter {
-        font-size: 14px;
-        font-weight: 700;
-        color: var(--hf-text-muted);
-      }
+      .slide-counter { font-size: 14px; font-weight: 700; color: var(--hf-text-muted); }
     </style>
   </head>
   <body>
     <div id="root">
       <div class="hf-bg-grid"></div>
 
-      <!-- Top Header -->
+      <!-- Header -->
       <header>
         <div class="logo-area">
           <div class="logo-badge">🎓</div>
@@ -284,7 +400,7 @@ export function sceneToHyperFramesHtml(scene, options = {}) {
         </div>
       </header>
 
-      <!-- Main Slides Container (.clip elements) -->
+      <!-- Slides: .clip elements with data-start and data-duration -->
       <main id="slides-container" style="position: relative; width: 100%; height: 916px;">
         ${slideSections.join('\n\n        ')}
       </main>
@@ -313,7 +429,7 @@ export function sceneToHyperFramesHtml(scene, options = {}) {
     <script>
       window.__timelines = window.__timelines || {};
       const rootTl = gsap.timeline({ paused: true });
-      window.__timelines["${escapeHtml(scene.projectId || 'lecture-composition')}"] = rootTl;
+      window.__timelines["${escapeHtml(compositionId)}"] = rootTl;
 
       const slides = ${JSON.stringify(slideTimingMetadata, null, 2)};
       const voiceCues = ${JSON.stringify(voiceCues, null, 2)};
@@ -321,7 +437,6 @@ export function sceneToHyperFramesHtml(scene, options = {}) {
 
       // Slide visibility transitions
       slides.forEach((s, idx) => {
-        // Activate slide
         rootTl.call(() => {
           document.querySelectorAll('.clip').forEach(el => el.classList.remove('active'));
           const target = document.getElementById(s.id);
@@ -347,7 +462,7 @@ export function sceneToHyperFramesHtml(scene, options = {}) {
 }
 
 /**
- * Helpers to build default elements from outline slide payload
+ * Elements mapping strategy based on templateId
  */
 function buildElementsForTemplate(templateId, slide) {
   const payload = slide.contentPayload || {};
@@ -440,7 +555,7 @@ function buildElementsForTemplate(templateId, slide) {
 }
 
 /**
- * Helpers to build default GSAP animations for template elements
+ * Animations mapping strategy based on templateId
  */
 function buildDefaultAnimations(templateId, elements) {
   const animations = [
