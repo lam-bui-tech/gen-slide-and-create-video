@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080">
+    <title>Khái luận về Triết học & Triết học Mác - Lênin</title>
+    <!-- Google Fonts: Be Vietnam Pro -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    <!-- GSAP for smooth animations -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+
+    <style>
+      :root {
+        --bg-main: #F5FAFF;
+        --bg-card: #FFFFFF;
+        --primary-blue: #0369A1;
+        --accent-dark: #075985;
+        --text-main: #0F172A;
+        --text-sub: #334155;
+        --border-card: #BAE6FD;
+        --border-subtle: rgba(186, 230, 253, 0.7);
+        --accent-emerald: #047857;
+        --accent-amber: #B45309;
+        --accent-rose: #B91C1C;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        user-select: none;
+      }
+
+      html, body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--bg-main);
+        font-family: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+        color: var(--text-main);
+      }
+
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        background: radial-gradient(circle at 12% 18%, rgba(14, 165, 233, 0.08) 0%, transparent 45%),
+                    radial-gradient(circle at 88% 82%, rgba(3, 105, 161, 0.06) 0%, transparent 50%),
+                    #F5FAFF;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      /* Background Grid Pattern */
+      .bg-grid {
+        position: absolute;
+        inset: 0;
+        background-image: linear-gradient(rgba(14, 165, 233, 0.07) 1px, transparent 1px),
+                          linear-gradient(90deg, rgba(14, 165, 233, 0.07) 1px, transparent 1px);
+        background-size: 48px 48px;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      /* Top Header */
+      header {
+        position: relative;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 24px 64px 18px 64px;
+        border-bottom: 1px solid var(--border-card);
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(12px);
+      }
+
+      .logo-area {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .logo-badge {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, var(--accent-dark), var(--primary-blue));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 14px rgba(14, 165, 233, 0.35);
+      }
+
+      .title-group h1 {
+        font-size: 24px;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        color: var(--accent-dark);
+      }
+
+      .title-group p {
+        font-size: 13px;
+        color: var(--text-sub);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 700;
+      }
+
+      .section-badge {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(14, 165, 233, 0.1);
+        border: 1px solid var(--border-card);
+        padding: 8px 22px;
+        border-radius: 9999px;
+        font-size: 15px;
+        font-weight: 800;
+        color: var(--accent-dark);
+      }
+
+      .section-badge .indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--primary-blue);
+        box-shadow: 0 0 10px rgba(14, 165, 233, 0.7);
+        animation: pulse 2s infinite ease-in-out;
+      }
+
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.3); opacity: 0.7; }
+      }
+
+      /* Main Stage Clips */
+      main.slide-stage {
+        position: relative;
+        z-index: 5;
+        flex: 1;
+        padding: 24px 64px 16px 64px;
+        overflow: hidden;
+      }
+
+      .clip {
+        position: absolute;
+        inset: 24px 64px 16px 64px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+
+      .clip.active {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+      }
+
+      /* Slide Typography */
+      .slide-header {
+        margin-bottom: 24px;
+      }
+
+      .slide-tag {
+        display: inline-block;
+        font-size: 13px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: #075985;
+        letter-spacing: 0.12em;
+        margin-bottom: 8px;
+        background: #E0F2FE;
+        padding: 4px 14px;
+        border-radius: 9999px;
+        border: 1px solid #BAE6FD;
+      }
+
+      .slide-title {
+        font-size: 42px;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        line-height: 1.25;
+        color: var(--text-main);
+      }
+
+      .slide-desc {
+        font-size: 18px;
+        color: var(--text-sub);
+        margin-top: 8px;
+        max-width: 1200px;
+        line-height: 1.55;
+        font-weight: 500;
+      }
+
+      /* Clean Academic Card */
+      .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-card);
+        border-radius: 24px;
+        box-shadow: 0 8px 30px rgba(14, 165, 233, 0.08), 0 2px 6px rgba(0, 0, 0, 0.02);
+      }
+
+      /* SPOTLIGHT CLASS FOR DYNAMIC KINETIC EFFECT */
+      .spotlight-active {
+        border-color: var(--primary-blue) !important;
+        box-shadow: 0 0 35px rgba(14, 165, 233, 0.45), 0 12px 30px rgba(14, 165, 233, 0.2) !important;
+        transform: scale(1.04) translateY(-4px);
+        z-index: 20;
+      }
+
+      /* Animated SVG Dash line */
+      @keyframes dash {
+        to { stroke-dashoffset: -40; }
+      }
+      .animated-dash {
+        stroke-dasharray: 6, 6;
+        animation: dash 2.5s linear infinite;
+      }
+
+      /* Voice Narration Subtitle Bar in Footer */
+      .voice-box {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        max-width: 950px;
+      }
+
+      .voiceover-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .voiceover-tag {
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: #075985;
+        letter-spacing: 0.08em;
+      }
+
+      .sound-wave {
+        display: flex;
+        align-items: flex-end;
+        gap: 3px;
+        height: 14px;
+      }
+
+      .sound-wave .bar {
+        width: 3px;
+        background: #0284C7;
+        border-radius: 9999px;
+        animation: soundBars 0.8s ease-in-out infinite alternate;
+      }
+
+      .sound-wave .bar:nth-child(1) { height: 6px; animation-delay: 0.1s; }
+      .sound-wave .bar:nth-child(2) { height: 14px; animation-delay: 0.25s; }
+      .sound-wave .bar:nth-child(3) { height: 9px; animation-delay: 0.4s; }
+      .sound-wave .bar:nth-child(4) { height: 12px; animation-delay: 0.15s; }
+
+      @keyframes soundBars {
+        0% { transform: scaleY(0.4); }
+        100% { transform: scaleY(1); }
+      }
+
+      .voiceover-text {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-main);
+        line-height: 1.4;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 920px;
+      }
+
+      /* Bottom Footer */
+      footer {
+        position: relative;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 64px 22px 64px;
+        border-top: 1px solid var(--border-card);
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(12px);
+      }
+
+      .progress-bar-wrap {
+        flex: 1;
+        max-width: 500px;
+        margin: 0 32px;
+        height: 8px;
+        background: rgba(14, 165, 233, 0.15);
+        border-radius: 9999px;
+        overflow: hidden;
+      }
+
+      .progress-bar-fill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, var(--accent-dark), var(--primary-blue));
+        border-radius: 9999px;
+      }
+    </style>
+  </head>
+  <body>
+    <div data-hf-id="hf-nvj4" id="root" data-composition-id="my-presentation" data-width="1920" data-height="1080">
+      <div data-hf-id="hf-yqqm" class="bg-grid"></div>
+
+      <!-- Top Header -->
+      <header data-hf-id="hf-0drs">
+        <div data-hf-id="hf-vim1" class="logo-area">
+          <div data-hf-id="hf-qdav" class="logo-badge">
+            <svg data-hf-id="hf-3tow" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path data-hf-id="hf-608j" d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path data-hf-id="hf-1cru" d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+          </div>
+          <div data-hf-id="hf-rupc" class="title-group">
+            <h1 data-hf-id="hf-aop7">Triết Học Mác - Lênin</h1>
+            <p data-hf-id="hf-tv2a">Học phần Lý luận Chính trị Cốt lõi</p>
+          </div>
+        </div>
+        <div data-hf-id="hf-4qgv" class="section-badge">
+          <span data-hf-id="hf-kgck" class="indicator"></span>
+          <span data-hf-id="hf-43uw" id="headerSectionTitle">Chương 1: Khái luận về Triết học</span>
+        </div>
+      </header>
+
+      <!-- Main Stage Clips -->
+      <main data-hf-id="hf-gvsa" class="slide-stage">
+
+        <!-- SLIDE 1: HERO / TITLE -->
+        <section data-hf-id="hf-73ca" id="slide-1" class="clip active" data-start="0" data-duration="16.08">
+          <div data-hf-id="hf-0tpb" style="display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 40px; align-items: center; flex: 1; margin-top: 8px;">
+            <!-- Left Column: Title & 3 Concept Pillars -->
+            <div data-hf-id="hf-g80v" style="display: flex; flex-direction: column; justify-content: center;">
+              <div data-hf-id="hf-meta-pill" style="display: inline-flex; align-items: center; gap: 12px; background: rgba(2, 132, 199, 0.08); border: 1px solid var(--border-card); padding: 6px 18px; border-radius: 9999px; margin-bottom: 12px; width: fit-content;">
+                <span data-hf-id="hf-fvi1" style="font-size: 13px; font-weight: 800; color: #075985;">🏛️ BỘ MÔN LÝ LUẬN CHÍNH TRỊ</span>
+                <span data-hf-id="hf-do79" style="color: #0369A1; font-weight: 900;">•</span>
+                <span data-hf-id="hf-6y3b" style="font-size: 13px; font-weight: 700; color: #1E293B;">HỌC PHẦN 3 TÍN CHỈ</span>
+              </div>
+              <h2 data-hf-id="hf-atar" id="s1-main-title" class="slide-title" style="font-size: 44px; line-height: 1.22; margin-bottom: 10px;">
+                Khái Luận Về Triết Học & Triết Học Mác - Lênin
+              </h2>
+              <p data-hf-id="hf-f4ew" class="slide-desc" style="font-size: 18px; margin-bottom: 20px; line-height: 1.5;">
+                Trang bị thế giới quan khoa học và phương pháp luận duy vật biện chứng cho sinh viên đại học
+              </p>
+
+              <!-- 3 Concept Cards -->
+              <div data-hf-id="hf-7vk1" style="display: flex; flex-direction: column; gap: 12px;">
+                <div data-hf-id="hf-3jzf" id="s1-card-1" class="card" style="padding: 16px 22px; display: flex; align-items: center; gap: 18px; border-left: 6px solid var(--primary-blue);">
+                  <span data-hf-id="hf-i7vl" style="font-size: 28px;">🌍</span>
+                  <div data-hf-id="hf-yeow">
+                    <h3 data-hf-id="hf-if0t" style="font-size: 18px; font-weight: 800; color: var(--text-main);">Thế Giới Quan Khoa Học</h3>
+                    <p data-hf-id="hf-bu8i" style="font-size: 14px; color: var(--text-sub); margin-top: 2px;">Định hướng nhận thức về bản chất thế giới và vị trí con người.</p>
+                  </div>
+                </div>
+
+                <div data-hf-id="hf-t5u3" id="s1-card-2" class="card" style="padding: 16px 22px; display: flex; align-items: center; gap: 18px; border-left: 6px solid var(--accent-emerald);">
+                  <span data-hf-id="hf-t5mt" style="font-size: 28px;">⚖️</span>
+                  <div data-hf-id="hf-y7yw">
+                    <h3 data-hf-id="hf-mj8i" style="font-size: 18px; font-weight: 800; color: var(--text-main);">Phương Pháp Luận Biện Chứng</h3>
+                    <p data-hf-id="hf-idey" style="font-size: 14px; color: var(--text-sub); margin-top: 2px;">Chỉ đạo tư duy và hành động thực tiễn theo các quy luật khách quan.</p>
+                  </div>
+                </div>
+
+                <div data-hf-id="hf-srj2" id="s1-card-3" class="card" style="padding: 16px 22px; display: flex; align-items: center; gap: 18px; border-left: 6px solid var(--accent-amber);">
+                  <span data-hf-id="hf-1rm4" style="font-size: 28px;">🔍</span>
+                  <div data-hf-id="hf-x11t">
+                    <h3 data-hf-id="hf-54eh" style="font-size: 18px; font-weight: 800; color: var(--text-main);">Tư Duy Biện Chứng Thực Tiễn</h3>
+                    <p data-hf-id="hf-rzyb" style="font-size: 14px; color: var(--text-sub); margin-top: 2px;">Nhìn nhận sự vật trong mối liên hệ và sự phát triển không ngừng.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Visual Artwork Frame -->
+            <div data-hf-id="hf-s1-img-wrap" class="card" style="overflow: hidden; height: 500px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between; background: #FFFFFF; border: 1px solid var(--border-card); box-shadow: 0 16px 40px rgba(14, 165, 233, 0.12);">
+              <div data-hf-id="hf-djp9" style="width: 100%; height: 410px; border-radius: 16px; overflow: hidden; position: relative;">
+                <img data-hf-id="hf-kqhw" src="images/students_study.png" alt="Sinh viên nghiên cứu triết học" style="width: 100%; height: 100%; object-fit: cover; display: block;" />
+                <div data-hf-id="hf-ngft" style="position: absolute; bottom: 12px; left: 12px; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(8px); padding: 6px 14px; border-radius: 9999px; font-size: 13px; font-weight: 700; color: #FFFFFF;">
+                  🎓 Giảng dạy đại học thế kỷ 21
+                </div>
+              </div>
+              <div data-hf-id="hf-w5un" style="display: flex; justify-content: space-between; align-items: center; padding: 4px 8px;">
+                <span data-hf-id="hf-a4mw" style="font-size: 13px; font-weight: 800; color: #075985;">ỨNG DỤNG THỰC TIỄN</span>
+                <span data-hf-id="hf-l5xq" style="font-size: 13px; font-weight: 600; color: var(--text-sub);">Thế giới quan • Phương pháp luận</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SLIDE 2: AGENDA / OBJECTIVES -->
+        <section data-hf-id="hf-q55l" id="slide-2" class="clip" data-start="16.08" data-duration="15.44">
+          <div data-hf-id="hf-x8kn" class="slide-header">
+            <span data-hf-id="hf-radz" class="slide-tag">MỞ ĐẦU • CHUẨN ĐẦU RA</span>
+            <h2 data-hf-id="hf-q73k" class="slide-title">Mục Tiêu & Mạch Nội Dung Bài Học</h2>
+            <p data-hf-id="hf-jfgr" class="slide-desc">Giáo trình trang 11 – Đề cương chi tiết học phần Triết học Mác - Lênin</p>
+          </div>
+
+          <div data-hf-id="hf-7v2j" style="display: grid; grid-template-columns: 1.3fr 1fr; gap: 36px; flex: 1; align-items: stretch; margin-bottom: 20px;">
+            <!-- Objectives -->
+            <div data-hf-id="hf-f86v" id="s2-obj-box" class="card" style="padding: 36px; display: flex; flex-direction: column; justify-content: space-between;">
+              <div data-hf-id="hf-puir" style="font-size: 15px; font-weight: 800; color: var(--primary-blue); text-transform: uppercase; margin-bottom: 16px;">
+                🎯 Mục tiêu chuẩn đầu ra
+              </div>
+              <div data-hf-id="hf-v451" style="display: flex; flex-direction: column; gap: 16px;">
+                <div data-hf-id="hf-uosu" id="s2-obj-1" class="card" style="display: flex; gap: 14px; font-size: 16px; line-height: 1.5; color: var(--text-main); font-weight: 600; padding: 14px 18px; border-radius: 16px;">
+                  <span data-hf-id="hf-usbi" style="width: 28px; height: 28px; border-radius: 50%; background: rgba(2, 132, 199, 0.15); color: var(--accent-dark); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; shrink: 0;">1</span>
+                  <span data-hf-id="hf-ylk2">Nắm vững những nét khái quát về triết học và vấn đề cơ bản của triết học.</span>
+                </div>
+                <div data-hf-id="hf-n5ea" id="s2-obj-2" class="card" style="display: flex; gap: 14px; font-size: 16px; line-height: 1.5; color: var(--text-main); font-weight: 600; padding: 14px 18px; border-radius: 16px;">
+                  <span data-hf-id="hf-v6mj" style="width: 28px; height: 28px; border-radius: 50%; background: rgba(2, 132, 199, 0.15); color: var(--accent-dark); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; shrink: 0;">2</span>
+                  <span data-hf-id="hf-u6v4">Hiểu rõ sự ra đời, các giai đoạn phát triển và cuộc cách mạng của C. Mác và Ph. Ăngghen.</span>
+                </div>
+                <div data-hf-id="hf-njpb" id="s2-obj-3" class="card" style="display: flex; gap: 14px; font-size: 16px; line-height: 1.5; color: var(--text-main); font-weight: 600; padding: 14px 18px; border-radius: 16px;">
+                  <span data-hf-id="hf-vkxk" style="width: 28px; height: 28px; border-radius: 50%; background: rgba(2, 132, 199, 0.15); color: var(--accent-dark); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; shrink: 0;">3</span>
+                  <span data-hf-id="hf-xtvx">Vận dụng sáng tạo thế giới quan và phương pháp luận duy vật biện chứng vào thực tiễn.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Agenda -->
+            <div data-hf-id="hf-mfml" style="display: flex; flex-direction: column; gap: 18px; justify-content: center;">
+              <div data-hf-id="hf-040m" id="s2-agenda-1" class="card" style="padding: 24px 32px; display: flex; align-items: center; gap: 20px;">
+                <span data-hf-id="hf-02iy" style="font-size: 28px; font-weight: 900; color: var(--primary-blue); font-family: monospace;">01</span>
+                <div data-hf-id="hf-xfcu">
+                  <div data-hf-id="hf-8656" style="font-size: 13px; font-weight: 700; color: var(--text-sub); text-transform: uppercase;">Phần I</div>
+                  <div data-hf-id="hf-ivzm" style="font-size: 18px; font-weight: 800; color: var(--text-main);">Triết học và vấn đề cơ bản</div>
+                </div>
+              </div>
+              <div data-hf-id="hf-qwxm" id="s2-agenda-2" class="card" style="padding: 24px 32px; display: flex; align-items: center; gap: 20px;">
+                <span data-hf-id="hf-hg5t" style="font-size: 28px; font-weight: 900; color: var(--accent-emerald); font-family: monospace;">02</span>
+                <div data-hf-id="hf-w8fr">
+                  <div data-hf-id="hf-ywfd" style="font-size: 13px; font-weight: 700; color: var(--text-sub); text-transform: uppercase;">Phần II</div>
+                  <div data-hf-id="hf-97s3" style="font-size: 18px; font-weight: 800; color: var(--text-main);">Sự hình thành Triết học Mác - Lênin</div>
+                </div>
+              </div>
+              <div data-hf-id="hf-rb8n" id="s2-agenda-3" class="card" style="padding: 24px 32px; display: flex; align-items: center; gap: 20px;">
+                <span data-hf-id="hf-9vln" style="font-size: 28px; font-weight: 900; color: var(--accent-amber); font-family: monospace;">03</span>
+                <div data-hf-id="hf-wmqs">
+                  <div data-hf-id="hf-49eo" style="font-size: 13px; font-weight: 700; color: var(--text-sub); text-transform: uppercase;">Phần III</div>
+                  <div data-hf-id="hf-g3lx" style="font-size: 18px; font-weight: 800; color: var(--text-main);">Vai trò trong đời sống xã hội</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SLIDE 3: TIMELINE / ORIGIN -->
+        <section data-hf-id="hf-4g1s" id="slide-3" class="clip" data-start="31.52" data-duration="16.32">
+          <div data-hf-id="hf-0fuv" class="slide-header" style="margin-bottom: 14px;">
+            <span data-hf-id="hf-7vps" class="slide-tag">LỊCH SỬ TƯ TƯỞNG</span>
+            <h2 data-hf-id="hf-kgu3" class="slide-title">Sự Ra Đời Của Triết Học Trong Lịch Sử</h2>
+            <p data-hf-id="hf-5f72" class="slide-desc">Bước ngoặt vĩ đại từ nhận thức thần thoại, huyền bí sang tư duy lý luận có hệ thống</p>
+          </div>
+
+          <!-- Panoramic Historical Artwork -->
+          <div data-hf-id="hf-s3-img" class="card" style="width: 100%; height: 210px; overflow: hidden; position: relative; margin-bottom: 18px; padding: 6px; border: 1px solid var(--border-card);">
+            <div data-hf-id="hf-77mw" style="width: 100%; height: 100%; border-radius: 18px; overflow: hidden; position: relative;">
+              <img data-hf-id="hf-vup9" src="images/ancient_philosophy.png" alt="Ba cái nôi triết học cổ đại" style="width: 100%; height: 100%; object-fit: cover; object-position: center 32%; display: block;" />
+              <div data-hf-id="hf-q1k4" style="position: absolute; inset: 0; background: linear-gradient(180deg, transparent 35%, rgba(15, 23, 42, 0.8) 100%);"></div>
+              <div data-hf-id="hf-bixg" style="position: absolute; bottom: 12px; left: 24px; display: flex; gap: 20px; align-items: center;">
+                <span data-hf-id="hf-tfms" style="font-size: 15px; font-weight: 800; color: #FFFFFF; text-shadow: 0 2px 4px rgba(0,0,0,0.6);">🏛️ Ba cái nôi triết học cổ đại của nhân loại:</span>
+                <span data-hf-id="hf-whvi" style="font-size: 13px; font-weight: 700; color: #BAE6FD; background: rgba(3, 105, 161, 0.7); padding: 4px 14px; border-radius: 9999px;">Hy Lạp Cổ Đại</span>
+                <span data-hf-id="hf-v6lq" style="font-size: 13px; font-weight: 700; color: #FEF3C7; background: rgba(180, 83, 9, 0.7); padding: 4px 14px; border-radius: 9999px;">Trung Hoa Cổ Đại</span>
+                <span data-hf-id="hf-llnu" style="font-size: 13px; font-weight: 700; color: #D1FAE5; background: rgba(4, 120, 87, 0.7); padding: 4px 14px; border-radius: 9999px;">Ấn Độ Cổ Đại</span>
+              </div>
+            </div>
+          </div>
+
+          <div data-hf-id="hf-zq0c" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; flex: 1; align-items: stretch;">
+            <div data-hf-id="hf-5uq6" id="s3-card-1" class="card" style="padding: 24px 28px; display: flex; flex-direction: column; justify-content: space-between;">
+              <div data-hf-id="hf-vftp">
+                <span data-hf-id="hf-0ono" style="font-size: 12px; font-weight: 800; color: #075985; background: #E0F2FE; padding: 4px 12px; border-radius: 9999px;">Thế kỷ VIII - VI TCN</span>
+                <h3 data-hf-id="hf-4nop" style="font-size: 20px; font-weight: 800; margin: 12px 0 8px 0;">Khởi Nguyên Đồng Thời</h3>
+                <p data-hf-id="hf-a92v" style="font-size: 15px; color: var(--text-sub); line-height: 1.55;">
+                  Xuất hiện gần như đồng thời ở cả phương Đông (Ấn Độ, Trung Hoa) và phương Tây (Hy Lạp cổ đại) gắn với các nền văn minh rực rỡ.
+                </p>
+              </div>
+              <div data-hf-id="hf-r1kd" style="font-size: 13px; font-weight: 800; color: #075985; border-top: 1px solid var(--border-card); padding-top: 12px;">
+                Giai đoạn 01 • Khởi nguyên
+              </div>
+            </div>
+
+            <div data-hf-id="hf-1exe" id="s3-card-2" class="card" style="padding: 24px 28px; display: flex; flex-direction: column; justify-content: space-between;">
+              <div data-hf-id="hf-vu4q">
+                <span data-hf-id="hf-4atp" style="font-size: 12px; font-weight: 800; color: #92400E; background: #FEF3C7; padding: 4px 12px; border-radius: 9999px;">Bước Chuyển Biến</span>
+                <h3 data-hf-id="hf-3t9d" style="font-size: 20px; font-weight: 800; margin: 12px 0 8px 0;">Thần Thoại Sang Lý Luận</h3>
+                <p data-hf-id="hf-rbbj" style="font-size: 15px; color: var(--text-sub); line-height: 1.55;">
+                  Con người dần thoát khỏi lối giải thích thần bí, tôn giáo nguyên thủy để tìm kiếm các quy luật khách quan chi phối tự nhiên và xã hội.
+                </p>
+              </div>
+              <div data-hf-id="hf-i9l8" style="font-size: 13px; font-weight: 800; color: #92400E; border-top: 1px solid var(--border-card); padding-top: 12px;">
+                Giai đoạn 02 • Khái quát hóa
+              </div>
+            </div>
+
+            <div data-hf-id="hf-1t8f" id="s3-card-3" class="card" style="padding: 24px 28px; display: flex; flex-direction: column; justify-content: space-between;">
+              <div data-hf-id="hf-1043">
+                <span data-hf-id="hf-85gt" style="font-size: 12px; font-weight: 800; color: #065F46; background: #D1FAE5; padding: 4px 12px; border-radius: 9999px;">Đỉnh Cao Đúc Kết</span>
+                <h3 data-hf-id="hf-3odd" style="font-size: 20px; font-weight: 800; margin: 12px 0 8px 0;">Luận Thuyết Hệ Thống</h3>
+                <p data-hf-id="hf-lm4v" style="font-size: 15px; color: var(--text-sub); line-height: 1.55;">
+                  Hình thành hệ thống khái niệm, phạm trù, quan điểm chỉnh thể và nhất quán để định vị con người trong toàn bộ vũ trụ.
+                </p>
+              </div>
+              <div data-hf-id="hf-71su" style="font-size: 13px; font-weight: 800; color: #065F46; border-top: 1px solid var(--border-card); padding-top: 12px;">
+                Giai đoạn 03 • Hệ thống lý luận
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SLIDE 4: KINETIC DIAGRAM / 3 NẤC THANG NHẬN THỨC -->
+        <section data-hf-id="hf-ozy0" id="slide-4" class="clip" data-start="47.84" data-duration="15.52">
+          <div data-hf-id="hf-01ju" class="slide-header">
+            <span data-hf-id="hf-uj1s" class="slide-tag">SƠ ĐỒ TƯ DUY BIỆN CHỨNG</span>
+            <h2 data-hf-id="hf-zcxb" class="slide-title">Nguồn Gốc Nhận Thức Của Triết Học</h2>
+            <p data-hf-id="hf-ztux" class="slide-desc">Ba nấc thang phát triển từ kinh nghiệm cảm tính đến năng lực tư duy trừu tượng hóa</p>
+          </div>
+
+          <!-- Kinetic Interactive Node Diagram -->
+          <div data-hf-id="hf-dsf3" style="position: relative; flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 36px; margin-bottom: 24px;">
+            <!-- SVG Connecting Lines -->
+            <svg data-hf-id="hf-0vwz" style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1;" xmlns="http://www.w3.org/2000/svg">
+              <defs data-hf-id="hf-mh0t">
+                <linearGradient data-hf-id="hf-74nq" id="gradFlow" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop data-hf-id="hf-e7kf" offset="0%" stop-color="#0284C7"></stop>
+                  <stop data-hf-id="hf-zttz" offset="100%" stop-color="#0EA5E9"></stop>
+                </linearGradient>
+              </defs>
+              <line data-hf-id="hf-zpz9" id="s4-arrow-1" x1="30%" y1="50%" x2="38%" y2="50%" stroke="url(#gradFlow)" stroke-width="4" class="animated-dash"></line>
+              <polygon data-hf-id="hf-hzz0" points="690,260 675,250 675,270" fill="#0284C7"></polygon>
+              <line data-hf-id="hf-rncm" id="s4-arrow-2" x1="63%" y1="50%" x2="71%" y2="50%" stroke="url(#gradFlow)" stroke-width="4" class="animated-dash"></line>
+            </svg>
+
+            <!-- Node 1 -->
+            <div data-hf-id="hf-qoj6" id="s4-node-1" class="card" style="position: relative; z-index: 2; width: 31%; height: 440px; padding: 36px; display: flex; flex-direction: column; justify-content: space-between; border-left: 6px solid var(--primary-blue);">
+              <div data-hf-id="hf-1ef4">
+                <div data-hf-id="hf-twfr" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                  <span data-hf-id="hf-vv5m" style="font-size: 16px; font-weight: 900; color: var(--primary-blue); font-family: monospace;">NẤC THANG 01</span>
+                  <span data-hf-id="hf-5e9b" style="font-size: 12px; font-weight: 800; color: var(--text-sub); text-transform: uppercase;">Cảm tính</span>
+                </div>
+                <h3 data-hf-id="hf-8ye6" style="font-size: 24px; font-weight: 800; color: var(--text-main); margin-bottom: 14px;">Kinh Nghiệm Ban Đầu</h3>
+                <p data-hf-id="hf-x4py" style="font-size: 17px; color: var(--text-sub); line-height: 1.6;">
+                  Thu thập những tri thức cụ thể, cảm tính, rời rạc về từng sự vật, hiện tượng riêng lẻ trong quá trình lao động và sinh tồn.
+                </p>
+              </div>
+              <div data-hf-id="hf-rusy" style="font-size: 13px; font-weight: 700; color: var(--primary-blue); background: rgba(2, 132, 199, 0.08); padding: 10px 16px; border-radius: 12px;">
+                👁️ Nhận biết hiện tượng bề ngoài
+              </div>
+            </div>
+
+            <!-- Node 2 -->
+            <div data-hf-id="hf-z2dx" id="s4-node-2" class="card" style="position: relative; z-index: 2; width: 31%; height: 440px; padding: 36px; display: flex; flex-direction: column; justify-content: space-between; border-left: 6px solid var(--accent-amber);">
+              <div data-hf-id="hf-c4s8">
+                <div data-hf-id="hf-1caf" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                  <span data-hf-id="hf-7un0" style="font-size: 16px; font-weight: 900; color: var(--accent-amber); font-family: monospace;">NẤC THANG 02</span>
+                  <span data-hf-id="hf-lzxf" style="font-size: 12px; font-weight: 800; color: var(--accent-amber); text-transform: uppercase;">Lý tính</span>
+                </div>
+                <h3 data-hf-id="hf-hc4d" style="font-size: 24px; font-weight: 800; color: var(--text-main); margin-bottom: 14px;">Tư Duy Khái Quát</h3>
+                <p data-hf-id="hf-vsu0" style="font-size: 17px; color: var(--text-sub); line-height: 1.6;">
+                  Hình thành năng lực trừu tượng hóa, khái quát hóa, so sánh và tìm kiếm mối liên hệ bản chất ẩn sâu giữa các sự vật.
+                </p>
+              </div>
+              <div data-hf-id="hf-4yus" style="font-size: 13px; font-weight: 700; color: var(--accent-amber); background: rgba(217, 119, 6, 0.08); padding: 10px 16px; border-radius: 12px;">
+                🧠 Rút ra cái chung từ cái riêng
+              </div>
+            </div>
+
+            <!-- Node 3 -->
+            <div data-hf-id="hf-yq38" id="s4-node-3" class="card" style="position: relative; z-index: 2; width: 31%; height: 440px; padding: 36px; display: flex; flex-direction: column; justify-content: space-between; border-left: 6px solid var(--accent-emerald);">
+              <div data-hf-id="hf-bqh7">
+                <div data-hf-id="hf-0xze" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                  <span data-hf-id="hf-8z06" style="font-size: 16px; font-weight: 900; color: var(--accent-emerald); font-family: monospace;">NẤC THANG 03</span>
+                  <span data-hf-id="hf-1dsj" style="font-size: 12px; font-weight: 800; color: var(--accent-emerald); text-transform: uppercase;">Hệ thống</span>
+                </div>
+                <h3 data-hf-id="hf-x7xa" style="font-size: 24px; font-weight: 800; color: var(--text-main); margin-bottom: 14px;">Luận Thuyết Triết Học</h3>
+                <p data-hf-id="hf-hwsn" style="font-size: 17px; color: var(--text-sub); line-height: 1.6;">
+                  Xây dựng hệ thống các khái niệm, phạm trù, quy luật chung nhất giải thích toàn bộ thế giới tự nhiên, xã hội và tư duy.
+                </p>
+              </div>
+              <div data-hf-id="hf-431g" style="font-size: 13px; font-weight: 700; color: var(--accent-emerald); background: rgba(5, 150, 105, 0.08); padding: 10px 16px; border-radius: 12px;">
+                ✅ Quy luật vận động phổ quát
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SLIDE 5: BALANCED 2-COLUMN COMPARISON -->
+        <section data-hf-id="hf-73zr" id="slide-5" class="clip" data-start="63.36" data-duration="16.56">
+          <div data-hf-id="hf-zn8t" class="slide-header">
+            <span data-hf-id="hf-sazb" class="slide-tag">ĐỐI SÁNH BIỆN CHỨNG</span>
+            <h2 data-hf-id="hf-t0mt" class="slide-title">Nguồn Gốc Xã Hội Của Triết Học</h2>
+            <p data-hf-id="hf-v7kt" class="slide-desc">Sự kết hợp giữa điều kiện phân hóa kinh tế - xã hội và tiền đề lao động trí óc</p>
+          </div>
+
+          <div data-hf-id="hf-4y5i" style="display: grid; grid-template-columns: 1.05fr 0.9fr 1.05fr; gap: 24px; flex: 1; align-items: stretch; margin-bottom: 16px;">
+            <!-- Column 1: Socio-economic conditions -->
+            <div data-hf-id="hf-r1da" id="s5-col-1" class="card" style="padding: 28px 24px; display: flex; flex-direction: column; justify-content: space-between; border-top: 5px solid var(--primary-blue);">
+              <div data-hf-id="hf-bc66">
+                <div data-hf-id="hf-zg2y" style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                  <div data-hf-id="hf-6isp" style="width: 40px; height: 40px; border-radius: 12px; background: rgba(2, 132, 199, 0.12); display: flex; align-items: center; justify-content: center; font-size: 20px;">🏛️</div>
+                  <h3 data-hf-id="hf-y7w0" style="font-size: 20px; font-weight: 800; color: var(--text-main);">Điều Kiện Kinh Tế - Xã Hội</h3>
+                </div>
+                <div data-hf-id="hf-h79v" style="display: flex; flex-direction: column; gap: 14px; font-size: 15px; color: var(--text-sub); line-height: 1.55;">
+                  <div data-hf-id="hf-t6rs" style="display: flex; gap: 10px; align-items: flex-start;">
+                    <span data-hf-id="hf-2a6e" style="color: var(--primary-blue); font-weight: 900; font-size: 18px;">✓</span>
+                    <span data-hf-id="hf-i7c6">Sản xuất xã hội phát triển đến trình độ nhất định có của cải dư thừa.</span>
+                  </div>
+                  <div data-hf-id="hf-alts" style="display: flex; gap: 10px; align-items: flex-start;">
+                    <span data-hf-id="hf-cnii" style="color: var(--primary-blue); font-weight: 900; font-size: 18px;">✓</span>
+                    <span data-hf-id="hf-0v1i">Phân công lao động xã hội hình thành và phát triển sâu rộng.</span>
+                  </div>
+                  <div data-hf-id="hf-5cxl" style="display: flex; gap: 10px; align-items: flex-start;">
+                    <span data-hf-id="hf-d1tj" style="color: var(--primary-blue); font-weight: 900; font-size: 18px;">✓</span>
+                    <span data-hf-id="hf-dwb0">Chế độ tư hữu xuất hiện, xã hội phân chia thành các giai cấp đối kháng.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Center Column: Marx & Engels Historical Artwork -->
+            <div data-hf-id="hf-s5-img-card" id="s5-artwork-wrap" class="card" style="padding: 10px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; border: 1px solid var(--border-card);">
+              <div data-hf-id="hf-wboj" style="width: 100%; height: 320px; border-radius: 16px; overflow: hidden; position: relative;">
+                <img data-hf-id="hf-8eh0" src="images/marx_engels.png" alt="C. Mác và Ph. Ăng-ghen" style="width: 100%; height: 100%; object-fit: cover; object-position: center; display: block;" />
+                <div data-hf-id="hf-c0mt" style="position: absolute; bottom: 10px; left: 10px; right: 10px; background: rgba(15, 23, 42, 0.82); backdrop-filter: blur(8px); padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 700; color: #FFFFFF; text-align: center;">
+                  C. Mác & Ph. Ăng-ghen • Thời kỳ công nghiệp
+                </div>
+              </div>
+              <div data-hf-id="hf-t0q1" style="padding: 6px 4px 2px 4px; text-align: center; font-size: 13px; font-weight: 800; color: #075985;">
+                TIỀN ĐỀ THỰC TIỄN & LÝ LUẬN
+              </div>
+            </div>
+
+            <!-- Column 3: Intellectual labor conditions -->
+            <div data-hf-id="hf-d1gg" id="s5-col-2" class="card" style="padding: 28px 24px; display: flex; flex-direction: column; justify-content: space-between; border-top: 5px solid var(--accent-emerald);">
+              <div data-hf-id="hf-axv5">
+                <div data-hf-id="hf-or8u" style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                  <div data-hf-id="hf-tm2z" style="width: 40px; height: 40px; border-radius: 12px; background: rgba(5, 150, 105, 0.12); display: flex; align-items: center; justify-content: center; font-size: 20px;">💡</div>
+                  <h3 data-hf-id="hf-8p7x" style="font-size: 20px; font-weight: 800; color: var(--text-main);">Tiền Đề Lao Động Trí Óc</h3>
+                </div>
+                <div data-hf-id="hf-rr77" style="display: flex; flex-direction: column; gap: 14px; font-size: 15px; color: var(--text-sub); line-height: 1.55;">
+                  <div data-hf-id="hf-5r8m" style="display: flex; gap: 10px; align-items: flex-start;">
+                    <span data-hf-id="hf-lmf4" style="color: var(--accent-emerald); font-weight: 900; font-size: 18px;">✓</span>
+                    <span data-hf-id="hf-4q19">Lao động trí óc tách biệt khỏi lao động chân tay thành lĩnh vực độc lập.</span>
+                  </div>
+                  <div data-hf-id="hf-4kbj" style="display: flex; gap: 10px; align-items: flex-start;">
+                    <span data-hf-id="hf-fdmg" style="color: var(--accent-emerald); font-weight: 900; font-size: 18px;">✓</span>
+                    <span data-hf-id="hf-z6gs">Tầng lớp trí thức chuyên nghiệp ra đời, có thời gian nghiên cứu chuyên sâu.</span>
+                  </div>
+                  <div data-hf-id="hf-4ymk" style="display: flex; gap: 10px; align-items: flex-start;">
+                    <span data-hf-id="hf-e6pd" style="color: var(--accent-emerald); font-weight: 900; font-size: 18px;">✓</span>
+                    <span data-hf-id="hf-5zp2">Năng lực hệ thống hóa và truyền thụ tri thức nhân loại được nâng tầm.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Conclusion Banner -->
+          <div data-hf-id="hf-s5-ban" id="s5-banner" class="card" style="padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(90deg, #F0F9FF, #FFFFFF); border-left: 6px solid #0369A1; margin-bottom: 16px;">
+            <span data-hf-id="hf-my5u" style="font-size: 16px; font-weight: 700; color: #075985;">⚖️ Đúc kết: Triết học chỉ ra đời khi cả hai điều kiện kinh tế - xã hội và tiền đề nhận thức cùng chín muồi.</span>
+            <span data-hf-id="hf-7tnw" style="font-size: 13px; font-weight: 800; color: #047857; background: #D1FAE5; padding: 4px 14px; border-radius: 9999px;">Tất yếu khách quan</span>
+          </div>
+        </section>
+
+        <!-- SLIDE 6: DEFINITION & 4 PILLARS -->
+        <section data-hf-id="hf-3h35" id="slide-6" class="clip" data-start="79.92" data-duration="15.6">
+          <div data-hf-id="hf-2fe0" class="slide-header">
+            <span data-hf-id="hf-kf45" class="slide-tag">ĐỊNH NGHĨA KHOA HỌC</span>
+            <h2 data-hf-id="hf-2rkr" class="slide-title">Khái Niệm Triết Học & Bốn Trụ Cột</h2>
+            <p data-hf-id="hf-4ot1" class="slide-desc">Hệ thống tri thức lý luận chung nhất của con người về thế giới</p>
+          </div>
+
+          <!-- Definition Callout Quote -->
+          <div data-hf-id="hf-ww4s" id="s6-core-box" class="card" style="padding: 24px 36px; border-left: 8px solid var(--accent-dark); margin-bottom: 24px; background: linear-gradient(90deg, rgba(2, 132, 199, 0.08), rgba(255, 255, 255, 0.9));">
+            <p data-hf-id="hf-shxm" style="font-size: 20px; font-weight: 700; color: var(--text-main); font-style: italic; line-height: 1.55;">
+              "Triết học là hệ thống tri thức lý luận chung nhất của con người về thế giới, về bản thân con người và vị trí của con người trong thế giới đó."
+            </p>
+          </div>
+
+          <!-- 4 Pillars Grid -->
+          <div data-hf-id="hf-qfss" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; flex: 1; margin-bottom: 20px;">
+            <div data-hf-id="hf-uc82" id="s6-pillar-1" class="card" style="padding: 24px; display: flex; flex-direction: column; justify-content: space-between;">
+              <div data-hf-id="hf-ajk4">
+                <div data-hf-id="hf-upzr" style="font-size: 13px; font-weight: 800; color: #075985; text-transform: uppercase; margin-bottom: 8px;">Trụ cột 01</div>
+                <h4 data-hf-id="hf-allz" style="font-size: 18px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">Hình Thái Ý Thức</h4>
+                <p data-hf-id="hf-ao42" style="font-size: 14px; color: var(--text-sub); line-height: 1.5;">Là một hình thái ý thức xã hội đặc thù mang tính lý luận cao.</p>
+              </div>
+            </div>
+
+            <div data-hf-id="hf-aczq" id="s6-pillar-2" class="card" style="padding: 24px; display: flex; flex-direction: column; justify-content: space-between;">
+              <div data-hf-id="hf-a593">
+                <div data-hf-id="hf-ibv7" style="font-size: 13px; font-weight: 800; color: #065F46; text-transform: uppercase; margin-bottom: 8px;">Trụ cột 02</div>
+                <h4 data-hf-id="hf-56gd" style="font-size: 18px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">Khách Thể Toàn Diện</h4>
+                <p data-hf-id="hf-jcvn" style="font-size: 14px; color: var(--text-sub); line-height: 1.5;">Nghiên cứu thế giới trong tính toàn vẹn cả bên ngoài và bên trong con người.</p>
+              </div>
+            </div>
+
+            <div data-hf-id="hf-arar" id="s6-pillar-3" class="card" style="padding: 24px; display: flex; flex-direction: column; justify-content: space-between;">
+              <div data-hf-id="hf-9qy2">
+                <div data-hf-id="hf-9l3d" style="font-size: 13px; font-weight: 800; color: #92400E; text-transform: uppercase; margin-bottom: 8px;">Trụ cột 03</div>
+                <h4 data-hf-id="hf-og9k" style="font-size: 18px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">Quy Luật Phổ Biến</h4>
+                <p data-hf-id="hf-a08j" style="font-size: 14px; color: var(--text-sub); line-height: 1.5;">Tìm ra những quy luật chi phối sự vận động của tự nhiên, xã hội và tư duy.</p>
+              </div>
+            </div>
+
+            <div data-hf-id="hf-b5ls" id="s6-pillar-4" class="card" style="padding: 24px; display: flex; flex-direction: column; justify-content: space-between;">
+              <div data-hf-id="hf-9cn1">
+                <div data-hf-id="hf-wpiw" style="font-size: 13px; font-weight: 800; color: #075985; text-transform: uppercase; margin-bottom: 8px;">Trụ cột 04</div>
+                <h4 data-hf-id="hf-yo3a" style="font-size: 18px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">Công Cụ Lý Tính</h4>
+                <p data-hf-id="hf-50tc" style="font-size: 14px; color: var(--text-sub); line-height: 1.5;">Dựa trên tư duy logic, lý tính và kinh nghiệm thực tiễn để luận giải.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- Audio Elements Synced to Durations -->
+      <audio data-hf-id="hf-h83r" id="audio-1" src="audio/slide1.wav" data-start="0" data-duration="16.08"></audio>
+      <audio data-hf-id="hf-aojf" id="audio-2" src="audio/slide2.wav" data-start="16.08" data-duration="15.44"></audio>
+      <audio data-hf-id="hf-7ks1" id="audio-3" src="audio/slide3.wav" data-start="31.52" data-duration="16.32"></audio>
+      <audio data-hf-id="hf-1x3e" id="audio-4" src="audio/slide4.wav" data-start="47.84" data-duration="15.52"></audio>
+      <audio data-hf-id="hf-bk7y" id="audio-5" src="audio/slide5.wav" data-start="63.36" data-duration="16.56"></audio>
+      <audio data-hf-id="hf-5gvj" id="audio-6" src="audio/slide6.wav" data-start="79.92" data-duration="15.6"></audio>
+
+      <!-- Bottom Footer with Synced Narration Voiceover Subtitle Bar -->
+      <footer data-hf-id="hf-d3ia">
+        <div data-hf-id="hf-voice-box" class="voice-box">
+          <div data-hf-id="hf-vh" class="voiceover-header">
+            <span data-hf-id="hf-vtag" class="voiceover-tag">Thuyết minh AI • Duyên Hà My (VieNeu-TTS)</span>
+            <div data-hf-id="hf-sw" class="sound-wave">
+              <span data-hf-id="hf-b1" class="bar"></span>
+              <span data-hf-id="hf-b2" class="bar"></span>
+              <span data-hf-id="hf-b3" class="bar"></span>
+              <span data-hf-id="hf-b4" class="bar"></span>
+            </div>
+          </div>
+          <div data-hf-id="hf-vvt" id="vVoiceText" class="voiceover-text" data-layout-allow-overflow="true" data-layout-allow-overlap="true">
+            "Chào mừng các bạn sinh viên đến với Chương 1: Khái luận về Triết học và Triết học Mác - Lênin..."
+          </div>
+        </div>
+
+        <div data-hf-id="hf-uvo2" class="progress-bar-wrap">
+          <div data-hf-id="hf-d2eq" id="progressBarFill" class="progress-bar-fill"></div>
+        </div>
+
+        <div data-hf-id="hf-f9gw" style="display: flex; align-items: center; gap: 16px;">
+          <span data-hf-id="hf-vtd" id="vTimeDisplay" style="font-size: 15px; font-weight: 700; color: #075985; font-variant-numeric: tabular-nums;">00:00 / 01:35</span>
+          <span data-hf-id="hf-ul4u" id="footerSlideNumber" style="font-size: 13px; font-weight: 800; color: #075985; background: #E0F2FE; padding: 4px 14px; border-radius: 9999px; border: 1px solid #BAE6FD;">Slide 01 / 06</span>
+        </div>
+      </footer>
+    </div>
+
+    <!-- GSAP HYPERFRAMES TIMELINE REGISTRATION -->
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      window.__timelines["my-presentation"] = tl;
+
+      // Exact slide boundaries from audio/durations.json
+      const slides = [
+        { id: "slide-1", start: 0, end: 16.08, duration: 16.08, title: "CHƯƠNG 1" },
+        { id: "slide-2", start: 16.08, end: 31.52, duration: 15.44, title: "MỞ ĐẦU" },
+        { id: "slide-3", start: 31.52, end: 47.84, duration: 16.32, title: "1. TRIẾT HỌC VÀ VẤN ĐỀ CƠ BẢN" },
+        { id: "slide-4", start: 47.84, end: 63.36, duration: 15.52, title: "1.1. KHÁI LƯỢC VỀ TRIẾT HỌC" },
+        { id: "slide-5", start: 63.36, end: 79.92, duration: 16.56, title: "1.1. KHÁI LƯỢC VỀ TRIẾT HỌC" },
+        { id: "slide-6", start: 79.92, end: 95.52, duration: 15.6, title: "1.1. KHÁI LƯỢC VỀ TRIẾT HỌC" }
+      ];
+
+      const totalDuration = 95.52;
+
+      // Synchronized Narration Voice Cues
+      const voiceCues = [
+        { t: 0, text: "Chào mừng quý vị và các bạn sinh viên đến với nội dung: CHƯƠNG 1. KHÁI LUẬN VỀ TRIẾT HỌC VÀ. Đây là bài giảng nền tảng trang bị thế giới quan và phương pháp luận khoa học." },
+        { t: 16.08, text: "Trong bài học này, chúng ta tập trung vào ba mạch nội dung chính: thứ nhất là triết học và vấn đề cơ bản; thứ hai là sự hình thành triết học Mác Lênin; và thứ ba là vai trò thực tiễn của nó trong đời sống xã hội hiện đại." },
+        { t: 31.52, text: "Triết học xuất hiện gần như đồng thời ở cả phương Đông và phương Tây vào khoảng thế kỷ thứ tám đến thế kỷ thứ sáu trước Công nguyên. Đây là bước ngoặt vĩ đại đánh dấu sự chuyển biến từ nhận thức thần thoại, huyền bí sang tư duy lý luận có hệ thống." },
+        { t: 47.84, text: "Tóm lại, triết học chính là hệ thống tri thức lý luận chung nhất của con người về thế giới và vị trí của con người trong thế giới đó. Nó cung cấp cho chúng ta hệ thống quy luật phổ biến chi phối cả tự nhiên, xã hội và tư duy nhân loại." },
+        { t: 63.36, text: "Về nguồn gốc xã hội, triết học đòi hỏi hai tiền đề then chốt: sản xuất xã hội phát triển dẫn đến phân hóa giai cấp, và sự xuất hiện của tầng lớp trí thức khi lao động trí óc tách khỏi lao động chân tay, tạo điều kiện cho việc nghiên cứu lý luận chuyên sâu." },
+        { t: 79.92, text: "Tóm lại, triết học chính là hệ thống tri thức lý luận chung nhất của con người về thế giới và vị trí của con người trong thế giới đó. Nó cung cấp cho chúng ta hệ thống quy luật phổ biến chi phối cả tự nhiên, xã hội và tư duy nhân loại." }
+      ];
+
+      function formatTime(sec) {
+        const m = Math.floor(sec / 60);
+        const s = Math.floor(sec % 60);
+        return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+      }
+
+      // Base slide transitions
+      slides.forEach((s, idx) => {
+        tl.set(`#${s.id}`, { autoAlpha: 1, pointerEvents: "auto" }, s.start);
+        if (idx < slides.length - 1) {
+          tl.set(`#${s.id}`, { autoAlpha: 0, pointerEvents: "none" }, s.end);
+        }
+      });
+      tl.to({}, { duration: totalDuration }, 0);
+
+      // ==========================================
+      // KINETIC SPOTLIGHT CUES (SECOND-BY-SECOND)
+      // ==========================================
+
+      // --- SLIDE 1 (0s - 16.08s) ---
+      tl.to("#s1-card-1", { className: "card spotlight-active", duration: 0.35 }, 4.2)
+        .to("#s1-card-1", { className: "card", duration: 0.3 }, 7.8);
+
+      tl.to("#s1-card-2", { className: "card spotlight-active", duration: 0.35 }, 8.0)
+        .to("#s1-card-2", { className: "card", duration: 0.3 }, 11.4);
+
+      tl.to("#s1-card-3", { className: "card spotlight-active", duration: 0.35 }, 11.5)
+        .to("#s1-card-3", { className: "card", duration: 0.3 }, 15.6);
+
+      // --- SLIDE 2 (16.08s - 31.52s) ---
+      tl.to("#s2-obj-box", { className: "card spotlight-active", duration: 0.3 }, 16.5)
+        .to("#s2-obj-box", { className: "card", duration: 0.3 }, 19.2);
+
+      tl.to("#s2-obj-1, #s2-agenda-1", { className: "card spotlight-active", duration: 0.35 }, 19.5)
+        .to("#s2-obj-1, #s2-agenda-1", { className: "card", duration: 0.3 }, 23.2);
+
+      tl.to("#s2-obj-2, #s2-agenda-2", { className: "card spotlight-active", duration: 0.35 }, 23.5)
+        .to("#s2-obj-2, #s2-agenda-2", { className: "card", duration: 0.3 }, 27.2);
+
+      tl.to("#s2-obj-3, #s2-agenda-3", { className: "card spotlight-active", duration: 0.35 }, 27.5)
+        .to("#s2-obj-3, #s2-agenda-3", { className: "card", duration: 0.3 }, 31.0);
+
+      // --- SLIDE 3 (31.52s - 47.84s) ---
+      tl.to("#s3-card-1", { className: "card spotlight-active", duration: 0.35 }, 33.0)
+        .to("#s3-card-1", { className: "card", duration: 0.3 }, 37.8);
+
+      tl.to("#s3-card-2", { className: "card spotlight-active", duration: 0.35 }, 38.0)
+        .to("#s3-card-2", { className: "card", duration: 0.3 }, 42.8);
+
+      tl.to("#s3-card-3", { className: "card spotlight-active", duration: 0.35 }, 43.0)
+        .to("#s3-card-3", { className: "card", duration: 0.3 }, 47.2);
+
+      // --- SLIDE 4 (47.84s - 63.36s) ---
+      tl.to("#s4-node-1", { className: "card spotlight-active", duration: 0.35 }, 50.0)
+        .to("#s4-node-1", { className: "card", duration: 0.3 }, 54.2);
+
+      tl.to("#s4-arrow-1", { stroke: "#0EA5E9", strokeWidth: 7, duration: 0.4 }, 54.0)
+        .to("#s4-node-2", { className: "card spotlight-active", duration: 0.35 }, 54.5)
+        .to("#s4-node-2", { className: "card", duration: 0.3 }, 58.8);
+
+      tl.to("#s4-arrow-2", { stroke: "#10B981", strokeWidth: 7, duration: 0.4 }, 58.5)
+        .to("#s4-node-3", { className: "card spotlight-active", duration: 0.35 }, 59.0)
+        .to("#s4-node-3", { className: "card", duration: 0.3 }, 62.8);
+
+      // --- SLIDE 5 (63.36s - 79.92s) ---
+      tl.to("#s5-col-1", { className: "card spotlight-active", duration: 0.35 }, 66.0)
+        .to("#s5-col-1", { className: "card", duration: 0.3 }, 71.2);
+
+      tl.to("#s5-col-2", { className: "card spotlight-active", duration: 0.35 }, 71.5)
+        .to("#s5-col-2", { className: "card", duration: 0.3 }, 75.5);
+
+      tl.to("#s5-banner", { className: "card spotlight-active", duration: 0.4 }, 75.8)
+        .to("#s5-banner", { className: "card", duration: 0.3 }, 79.4);
+
+      // --- SLIDE 6 (79.92s - 95.52s) ---
+      tl.to("#s6-core-box", { className: "card spotlight-active", duration: 0.35 }, 80.0)
+        .to("#s6-core-box", { className: "card", duration: 0.3 }, 83.8);
+
+      tl.to("#s6-pillar-1", { className: "card spotlight-active", duration: 0.35 }, 84.0)
+        .to("#s6-pillar-1", { className: "card", duration: 0.3 }, 86.6);
+
+      tl.to("#s6-pillar-2", { className: "card spotlight-active", duration: 0.35 }, 86.8)
+        .to("#s6-pillar-2", { className: "card", duration: 0.3 }, 89.6);
+
+      tl.to("#s6-pillar-3", { className: "card spotlight-active", duration: 0.35 }, 89.8)
+        .to("#s6-pillar-3", { className: "card", duration: 0.3 }, 92.6);
+
+      tl.to("#s6-pillar-4", { className: "card spotlight-active", duration: 0.35 }, 92.8)
+        .to("#s6-pillar-4", { className: "card", duration: 0.3 }, 95.3);
+
+      // Continuous Updates for Time, Slide Badge, Voiceover Subtitle & Progress
+      tl.eventCallback("onUpdate", () => {
+        const t = tl.time();
+
+        // 1. Update Header Title and Slide Badge
+        const activeSlide = slides.find(s => t >= s.start && t < s.end) || slides[slides.length - 1];
+        if (activeSlide) {
+          const headerEl = document.getElementById("headerSectionTitle");
+          if (headerEl) headerEl.textContent = activeSlide.title;
+          const idx = slides.indexOf(activeSlide) + 1;
+          const slideNumEl = document.getElementById("footerSlideNumber");
+          if (slideNumEl) slideNumEl.textContent = `Slide 0${idx} / 06`;
+        }
+
+        // 2. Update Progress Bar
+        const pct = Math.min(100, Math.max(0, (t / totalDuration) * 100));
+        const progEl = document.getElementById("progressBarFill");
+        if (progEl) progEl.style.width = `${pct}%`;
+
+        // 3. Update Time Display
+        const timeEl = document.getElementById("vTimeDisplay");
+        if (timeEl) {
+          timeEl.textContent = `${formatTime(t)} / ${formatTime(totalDuration)}`;
+        }
+
+        // 4. Update Voiceover Narration Subtitle
+        const activeCue = voiceCues.slice().reverse().find(c => t >= c.t) || voiceCues[0];
+        const voiceTextEl = document.getElementById("vVoiceText");
+        if (voiceTextEl && activeCue) {
+          voiceTextEl.textContent = activeCue.text;
+        }
+      });
+
+      tl.seek(0);
+    </script>
+
+    <!-- HyperFrames Slideshow JSON Metadata -->
+    <script type="application/hyperframes-slideshow+json">
+    {
+      "version": 1,
+      "slides": [
+        {
+          "sceneId": "slide-1",
+          "startTime": 0,
+          "endTime": 16.08,
+          "notes": "Chào mừng quý vị và các bạn sinh viên đến với nội dung: CHƯƠNG 1. KHÁI LUẬN VỀ TRIẾT HỌC VÀ. Đây là bài giảng nền tảng trang bị thế giới quan và phương pháp luận khoa học."
+        },
+        {
+          "sceneId": "slide-2",
+          "startTime": 16.08,
+          "endTime": 31.52,
+          "notes": "Trong bài học này, chúng ta tập trung vào ba mạch nội dung chính: thứ nhất là triết học và vấn đề cơ bản; thứ hai là sự hình thành triết học Mác Lênin; và thứ ba là vai trò thực tiễn của nó trong đời sống xã hội hiện đại."
+        },
+        {
+          "sceneId": "slide-3",
+          "startTime": 31.52,
+          "endTime": 47.84,
+          "notes": "Triết học xuất hiện gần như đồng thời ở cả phương Đông và phương Tây vào khoảng thế kỷ thứ tám đến thế kỷ thứ sáu trước Công nguyên. Đây là bước ngoặt vĩ đại đánh dấu sự chuyển biến từ nhận thức thần thoại, huyền bí sang tư duy lý luận có hệ thống."
+        },
+        {
+          "sceneId": "slide-4",
+          "startTime": 47.84,
+          "endTime": 63.36,
+          "notes": "Tóm lại, triết học chính là hệ thống tri thức lý luận chung nhất của con người về thế giới và vị trí của con người trong thế giới đó. Nó cung cấp cho chúng ta hệ thống quy luật phổ biến chi phối cả tự nhiên, xã hội và tư duy nhân loại."
+        },
+        {
+          "sceneId": "slide-5",
+          "startTime": 63.36,
+          "endTime": 79.92,
+          "notes": "Về nguồn gốc xã hội, triết học đòi hỏi hai tiền đề then chốt: sản xuất xã hội phát triển dẫn đến phân hóa giai cấp, và sự xuất hiện của tầng lớp trí thức khi lao động trí óc tách khỏi lao động chân tay, tạo điều kiện cho việc nghiên cứu lý luận chuyên sâu."
+        },
+        {
+          "sceneId": "slide-6",
+          "startTime": 79.92,
+          "endTime": 95.52,
+          "notes": "Tóm lại, triết học chính là hệ thống tri thức lý luận chung nhất của con người về thế giới và vị trí của con người trong thế giới đó. Nó cung cấp cho chúng ta hệ thống quy luật phổ biến chi phối cả tự nhiên, xã hội và tư duy nhân loại."
+        }
+      ],
+      "slideSequences": []
+    }
+    </script>
+  </body>
+</html>
