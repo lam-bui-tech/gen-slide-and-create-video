@@ -1,0 +1,210 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LessonSceneJSON",
+  "description": "Unified source of truth defining all slides, elements, animations, and voice-over tracks for HyperFrames engine",
+  "type": "object",
+  "required": ["projectId", "title", "slides"],
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "description": "Unique identifier of the lecture project"
+    },
+    "title": {
+      "type": "string",
+      "description": "Lecture title"
+    },
+    "theme": {
+      "type": "object",
+      "properties": {
+        "colorScheme": { "type": "string", "default": "academic-ocean" },
+        "fontFamily": { "type": "string", "default": "Inter, sans-serif" },
+        "aspectRatio": { "type": "string", "default": "16:9" }
+      }
+    },
+    "slides": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/SlideScene"
+      },
+      "minItems": 1,
+      "description": "Array of timed slides composing the presentation"
+    },
+    "totalDurationSeconds": {
+      "type": "number",
+      "description": "Calculated total duration across all slides"
+    }
+  },
+  "definitions": {
+    "SlideScene": {
+      "type": "object",
+      "required": [
+        "slideId",
+        "templateId",
+        "layoutVariant",
+        "title",
+        "elements",
+        "animations",
+        "voice",
+        "durationSeconds"
+      ],
+      "properties": {
+        "slideId": {
+          "type": "string",
+          "description": "Unique slide identifier (e.g. slide-01)"
+        },
+        "templateId": {
+          "type": "string",
+          "enum": [
+            "title-slide",
+            "learning-objectives",
+            "concept-explain",
+            "bullet-breakdown",
+            "image-explain",
+            "comparison",
+            "timeline",
+            "formula-explain",
+            "quiz",
+            "summary"
+          ],
+          "description": "Standard pedagogical template identifier"
+        },
+        "layoutVariant": {
+          "type": "string",
+          "description": "Visual layout variant (e.g. text-left-image-right, text-right-image-left, stacked-top, fullscreen, no-image, default)"
+        },
+        "title": {
+          "type": "string",
+          "description": "Slide header or key assertion"
+        },
+        "subtitle": {
+          "type": "string",
+          "description": "Optional secondary tagline or chapter tag"
+        },
+        "elements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SlideElement"
+          },
+          "description": "Structured semantic elements belonging to this slide"
+        },
+        "animations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AnimationItem"
+          },
+          "description": "GSAP animation cues synchronized with speech"
+        },
+        "voice": {
+          "$ref": "#/definitions/VoiceConfig",
+          "description": "Voice-over track configuration and audio synthesis metadata"
+        },
+        "durationSeconds": {
+          "type": "number",
+          "minimum": 1.0,
+          "description": "Slide duration in seconds. Audio-first sync: driven by real TTS audio duration"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Speaker notes or pedagogical teaching instructions"
+        }
+      }
+    },
+    "SlideElement": {
+      "type": "object",
+      "required": ["id", "type"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Element DOM/Timeline identifier targetable by animations"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "text",
+            "heading",
+            "badge",
+            "card",
+            "bullet-list",
+            "image",
+            "comparison-table",
+            "timeline-step",
+            "formula",
+            "quiz-block"
+          ]
+        },
+        "content": {
+          "description": "Element textual or structured payload"
+        },
+        "style": {
+          "type": "object",
+          "description": "Optional inline CSS overrides or variant styling classes"
+        }
+      }
+    },
+    "AnimationItem": {
+      "type": "object",
+      "required": ["target", "preset", "delay", "duration"],
+      "properties": {
+        "target": {
+          "type": "string",
+          "description": "CSS selector or element ID (e.g. #card-1, .bullet-item)"
+        },
+        "preset": {
+          "type": "string",
+          "enum": [
+            "fade-in",
+            "slide-in",
+            "zoom-in",
+            "typewriter",
+            "step-by-step",
+            "highlight-keyword"
+          ],
+          "description": "Predefined GSAP animation preset"
+        },
+        "delay": {
+          "type": "number",
+          "minimum": 0.0,
+          "description": "Relative delay in seconds from slide start"
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0.1,
+          "description": "Animation duration in seconds"
+        },
+        "easing": {
+          "type": "string",
+          "default": "power2.out",
+          "description": "GSAP easing formula (e.g. power2.out, back.out, none)"
+        }
+      }
+    },
+    "VoiceConfig": {
+      "type": "object",
+      "required": ["narration", "provider"],
+      "properties": {
+        "narration": {
+          "type": "string",
+          "description": "Spoken Vietnamese text for this slide"
+        },
+        "provider": {
+          "type": "string",
+          "enum": ["vieneu", "viettel", "fake"],
+          "description": "TTS Provider engine"
+        },
+        "voiceId": {
+          "type": "string",
+          "description": "Speaker voice name (e.g. MyDuyen, HaMy, BanMai)"
+        },
+        "audioUrl": {
+          "type": "string",
+          "description": "Path or URL to generated WAV/MP3 file"
+        },
+        "durationSeconds": {
+          "type": "number",
+          "minimum": 0.0,
+          "description": "Measured duration of the synthesized audio file"
+        }
+      }
+    }
+  }
+}

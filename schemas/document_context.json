@@ -1,0 +1,130 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DocumentContext",
+  "description": "Structured representation of an ingested lecture document (PPTX, PDF, DOCX, Markdown)",
+  "type": "object",
+  "required": ["title", "sourceFileName", "fileType", "sections"],
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Main title or extracted heading of the presentation/document"
+    },
+    "sourceFileName": {
+      "type": "string",
+      "description": "Original file name of the uploaded document"
+    },
+    "fileType": {
+      "type": "string",
+      "enum": ["pptx", "pdf", "docx", "md"],
+      "description": "Source document type"
+    },
+    "author": {
+      "type": "string",
+      "description": "Author, instructor, or department if detected"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Academic subject, module, or domain"
+    },
+    "sections": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/DocumentSection"
+      },
+      "description": "Extracted sections or original slides"
+    },
+    "extractedImages": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ExtractedImage"
+      },
+      "description": "Catalog of media assets extracted from the document"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional arbitrary metadata (page count, creation date, parser stats)"
+    }
+  },
+  "definitions": {
+    "DocumentSection": {
+      "type": "object",
+      "required": ["sectionId", "title", "contentOrder"],
+      "properties": {
+        "sectionId": {
+          "type": "string",
+          "description": "Unique section ID or slide index"
+        },
+        "title": {
+          "type": "string",
+          "description": "Section header or slide title"
+        },
+        "bullets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Key bullet points or paragraphs"
+        },
+        "tables": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "headers": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "rows": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "speakerNotes": {
+          "type": "string",
+          "description": "Speaker notes or footnotes"
+        },
+        "imageIds": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "References to extracted images belonging to this section"
+        },
+        "contentOrder": {
+          "type": "integer",
+          "description": "Zero-based order in the original document"
+        }
+      }
+    },
+    "ExtractedImage": {
+      "type": "object",
+      "required": ["id", "filePath"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Stable unique ID for the image"
+        },
+        "filePath": {
+          "type": "string",
+          "description": "Relative file path in storage/projects/{id}/images/"
+        },
+        "originalName": {
+          "type": "string"
+        },
+        "width": {
+          "type": "integer"
+        },
+        "height": {
+          "type": "integer"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["png", "jpg", "jpeg", "webp", "svg"]
+        }
+      }
+    }
+  }
+}

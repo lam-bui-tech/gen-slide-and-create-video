@@ -1,0 +1,196 @@
+{
+  "topic": "Khái luận về Triết học và Triết học Mác - Lênin",
+  "targetAudience": "Sinh viên đại học năm thứ nhất",
+  "estimatedDurationMinutes": 15.0,
+  "learningObjectives": [
+    "Nắm vững định nghĩa khoa học và đối tượng nghiên cứu của triết học.",
+    "Hiểu rõ hai mặt của vấn đề cơ bản của triết học.",
+    "Phân tích được các điều kiện tiền đề lịch sử cho sự ra đời của Triết học Mác - Lênin."
+  ],
+  "sections": [
+    {
+      "sectionTitle": "Phần I: Khái luận Triết học",
+      "description": "Nguồn gốc và bản chất của triết học",
+      "slideCount": 5
+    },
+    {
+      "sectionTitle": "Phần II: Sự ra đời của Triết học Mác - Lênin",
+      "description": "Tiền đề kinh tế, khoa học và lý luận",
+      "slideCount": 5
+    }
+  ],
+  "slides": [
+    {
+      "slideId": "slide-01",
+      "suggestedTemplateId": "title-slide",
+      "title": "Triết học và Triết học Mác - Lênin",
+      "keyTakeaways": [
+        "Học phần Lý luận chính trị đại cương",
+        "Giảng viên: Bộ môn Triết học"
+      ],
+      "speakerNotesDraft": "Chào mừng các bạn sinh viên đến với bài giảng Khái luận về Triết học và Triết học Mác - Lênin.",
+      "contentPayload": {
+        "badge": "Chương I",
+        "subject": "Triết học Mác - Lênin"
+      }
+    },
+    {
+      "slideId": "slide-02",
+      "suggestedTemplateId": "learning-objectives",
+      "title": "Mục tiêu bài học",
+      "keyTakeaways": [
+        "Định nghĩa Triết học và Vấn đề cơ bản",
+        "Đối lập giữa Chủ nghĩa duy vật & duy tâm",
+        "3 Tiền đề lịch sử hình thành Triết học Mác"
+      ],
+      "speakerNotesDraft": "Trong bài học hôm nay, chúng ta sẽ cùng chinh phục ba mục tiêu học tập trọng tâm.",
+      "contentPayload": {}
+    },
+    {
+      "slideId": "slide-03",
+      "suggestedTemplateId": "concept-explain",
+      "title": "Định nghĩa Triết học",
+      "keyTakeaways": [
+        "Hệ thống tri thức lý luận chung nhất về thế giới",
+        "Vị trí và vai trò của con người trong thế giới ấy",
+        "Hình thái ý thức xã hội đặc thù"
+      ],
+      "speakerNotesDraft": "Triết học là hệ thống tri thức lý luận chung nhất của con người về thế giới, về bản thân con người và vị trí của con người trong thế giới đó.",
+      "contentPayload": {
+        "quote": "Philosophia - Tình yêu sự thông thái",
+        "imageUrl": "storage/projects/sample/images/philosophy_intro.png"
+      }
+    },
+    {
+      "slideId": "slide-04",
+      "suggestedTemplateId": "bullet-breakdown",
+      "title": "Nguồn gốc ra đời của Triết học",
+      "keyTakeaways": [
+        "Nguồn gốc nhận thức: Tư duy trừu tượng đạt mức khái quát hóa cao",
+        "Nguồn gốc xã hội: Phân công lao động xã hội và sự phân chia giai cấp"
+      ],
+      "speakerNotesDraft": "Triết học không tự nhiên xuất hiện mà bắt nguồn từ hai cội rễ: nguồn gốc nhận thức và nguồn gốc xã hội.",
+      "contentPayload": {
+        "cards": [
+          { "title": "Nhận thức", "detail": "Nhu cầu giải thích vũ trụ" },
+          { "title": "Xã hội", "detail": "Lao động trí óc tách khỏi lao động chân tay" }
+        ]
+      }
+    },
+    {
+      "slideId": "slide-05",
+      "suggestedTemplateId": "image-explain",
+      "title": "Sơ đồ Vấn đề cơ bản của Triết học",
+      "keyTakeaways": [
+        "Mặt thứ nhất: Bản thể luận (Vật chất hay Ý thức có trước?)",
+        "Mặt thứ hai: Nhận thức luận (Con người có nhận thức được thế giới không?)"
+      ],
+      "speakerNotesDraft": "Vấn đề cơ bản lớn của mọi triết học, đặc biệt là triết học hiện đại, là vấn đề quan hệ giữa tư duy và tồn tại.",
+      "contentPayload": {
+        "diagramType": "mindmap",
+        "imageUrl": "storage/projects/sample/images/basic_problem.png"
+      }
+    },
+    {
+      "slideId": "slide-06",
+      "suggestedTemplateId": "comparison",
+      "title": "Chủ nghĩa Duy vật vs Chủ nghĩa Duy tâm",
+      "keyTakeaways": [
+        "Chủ nghĩa Duy vật: Vật chất có trước, ý thức có sau, vật chất quyết định ý thức",
+        "Chủ nghĩa Duy tâm: Ý thức, tinh thần có trước và sinh ra thế giới vật chất"
+      ],
+      "speakerNotesDraft": "Lịch sử triết học là cuộc đấu tranh không khoan nhượng giữa hai trường phái cơ bản: chủ nghĩa duy vật và chủ nghĩa duy tâm.",
+      "contentPayload": {
+        "columnA": {
+          "title": "Chủ nghĩa Duy vật",
+          "points": ["Vật chất là tính thứ nhất", "Khoa học dẫn đường", "Thế giới quan tiến bộ"]
+        },
+        "columnB": {
+          "title": "Chủ nghĩa Duy tâm",
+          "points": ["Ý thức là tính thứ nhất", "Gắn với tôn giáo", "Phục vụ giai cấp thống trị"]
+        }
+      }
+    },
+    {
+      "slideId": "slide-07",
+      "suggestedTemplateId": "timeline",
+      "title": "Tiến trình hình thành Triết học Mác",
+      "keyTakeaways": [
+        "1841 - 1844: Chuyển biến từ duy tâm sang duy vật",
+        "1844 - 1848: Đề xuất những nguyên lý cơ bản",
+        "1848 - 1895: Phát triển và hoàn thiện lý luận"
+      ],
+      "speakerNotesDraft": "Quá trình hình thành triết học Mác trải qua ba giai đoạn lịch sử kế tiếp nhau đầy sinh động.",
+      "contentPayload": {
+        "milestones": [
+          { "year": "1841-1844", "event": "Chuyển từ duy tâm sang duy vật" },
+          { "year": "1844-1848", "event": "Tuyên ngôn Đảng Cộng sản" },
+          { "year": "1848-1895", "event": "Bộ Tư bản và các tác phẩm kinh điển" }
+        ]
+      }
+    },
+    {
+      "slideId": "slide-08",
+      "suggestedTemplateId": "formula-explain",
+      "title": "Quy luật Mâu thuẫn: Nguồn gốc của sự phát triển",
+      "keyTakeaways": [
+        "Mặt đối lập ↔ Đấu tranh và Thống nhất → Chuyển hóa",
+        "Hạt nhân của phép biện chứng duy vật"
+      ],
+      "speakerNotesDraft": "Sự thống nhất và đấu tranh của các mặt đối lập là hạt nhân cơ bản của phép biện chứng duy vật.",
+      "contentPayload": {
+        "formula": "Phát triển = Thống nhất (A ⟷ B) + Đấu tranh (A ⚔ B)",
+        "elements": ["Thống nhất: Tạm thời, tương đối", "Đấu tranh: Tuyệt đối, vĩnh viễn"]
+      }
+    },
+    {
+      "slideId": "slide-09",
+      "suggestedTemplateId": "quiz",
+      "title": "Câu hỏi kiểm tra nhanh",
+      "keyTakeaways": [
+        "Câu hỏi trắc nghiệm củng cố kiến thức về Vấn đề cơ bản"
+      ],
+      "speakerNotesDraft": "Hãy cùng kiểm tra lại xem các bạn đã nắm vững mặt thứ nhất của vấn đề cơ bản chưa nhé.",
+      "contentPayload": {
+        "question": "Mặt thứ nhất của vấn đề cơ bản của triết học trả lời cho câu hỏi nào?",
+        "options": [
+          "A. Con người có thể nhận thức được thế giới hay không?",
+          "B. Giữa vật chất và ý thức, cái nào có trước, cái nào quyết định cái nào?",
+          "C. Thế giới vận động theo quy luật nào?",
+          "D. Con người có tự do ý chí hay không?"
+        ],
+        "correctIndex": 1,
+        "explanation": "Mặt thứ nhất (bản thể luận) giải quyết mối quan hệ giữa vật chất và ý thức: cái nào có trước, cái nào sinh ra và quyết định cái nào."
+      }
+    },
+    {
+      "slideId": "slide-10",
+      "suggestedTemplateId": "summary",
+      "title": "Tổng kết bài học",
+      "keyTakeaways": [
+        "Triết học là hệ thống tri thức lý luận chung nhất",
+        "Cuộc đấu tranh Duy vật - Duy tâm xuyên suốt lịch sử",
+        "Triết học Mác là vũ khí lý luận của giai cấp công nhân"
+      ],
+      "speakerNotesDraft": "Tóm lại, bài học đã trang bị cho các em nền tảng thế giới quan duy vật biện chứng và phương pháp luận khoa học vững chắc.",
+      "contentPayload": {
+        "recommendation": "Đọc trước Giáo trình Triết học Mác - Lênin chương II."
+      }
+    }
+  ],
+  "quiz": [
+    {
+      "question": "Mặt thứ nhất của vấn đề cơ bản của triết học là gì?",
+      "options": [
+        "Bản thể luận (Vật chất hay ý thức có trước)",
+        "Nhận thức luận (Con người có nhận thức được không)",
+        "Giá trị luận",
+        "Nhân học triết học"
+      ],
+      "correctIndex": 0,
+      "explanation": "Bản thể luận trả lời câu hỏi về nguồn gốc tính thứ nhất."
+    }
+  ],
+  "summary": "Bài học đặt nền móng thế giới quan duy vật biện chứng và giải quyết vấn đề cơ bản của triết học.",
+  "status": "approved"
+}

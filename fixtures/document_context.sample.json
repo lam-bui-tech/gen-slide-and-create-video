@@ -1,0 +1,58 @@
+{
+  "title": "Khái luận về Triết học và Triết học Mác - Lênin",
+  "sourceFileName": "1_Khái_luận_về_triết_học_và_triết_học_Mác_Lênin.pptx",
+  "fileType": "pptx",
+  "author": "Bộ môn Triết học Mác - Lênin",
+  "subject": "Triết học Mác - Lênin",
+  "sections": [
+    {
+      "sectionId": "sec-01",
+      "title": "Triết học và vấn đề cơ bản của triết học",
+      "contentOrder": 0,
+      "bullets": [
+        "Khái lược về triết học: Nguồn gốc nhận thức và nguồn gốc xã hội",
+        "Vấn đề cơ bản của triết học: Mối quan hệ giữa tư duy và tồn tại",
+        "Sự đối lập giữa chủ nghĩa duy vật và chủ nghĩa duy tâm"
+      ],
+      "tables": [],
+      "speakerNotes": "Chào mừng các bạn sinh viên đến với bài học đầu tiên môn Triết học Mác - Lênin.",
+      "imageIds": ["img-01"]
+    },
+    {
+      "sectionId": "sec-02",
+      "title": "Nguồn gốc ra đời của Triết học Mác - Lênin",
+      "contentOrder": 1,
+      "bullets": [
+        "Điều kiện kinh tế - xã hội thế kỷ 19",
+        "Tiền đề khoa học tự nhiên (Thuyết tế bào, Thuyết tiến hóa, Định luật bảo toàn)",
+        "Tiền đề lý luận (Triết học cổ điển Đức)"
+      ],
+      "tables": [],
+      "speakerNotes": "Triết học Mác ra đời là một tất yếu lịch sử, xuất phát từ nhu cầu thực tiễn và đỉnh cao trí tuệ nhân loại.",
+      "imageIds": ["img-02"]
+    }
+  ],
+  "extractedImages": [
+    {
+      "id": "img-01",
+      "filePath": "storage/projects/sample/images/philosophy_intro.png",
+      "originalName": "image1.png",
+      "width": 1920,
+      "height": 1080,
+      "format": "png"
+    },
+    {
+      "id": "img-02",
+      "filePath": "storage/projects/sample/images/historical_context.png",
+      "originalName": "image2.png",
+      "width": 1280,
+      "height": 720,
+      "format": "png"
+    }
+  ],
+  "metadata": {
+    "totalSlidesOriginal": 6,
+    "parsedAt": "2026-10-19T16:00:00Z",
+    "parserVersion": "1.0.0"
+  }
+}
