@@ -57,11 +57,11 @@ graph TD
 
 | ID | Thẻ | Tiêu đề | Phụ thuộc (Blocked by) | Trạng thái |
 | :--- | :--- | :--- | :--- | :--- |
-| **01** | `[A]` | Multi-format Document Ingestion Service | Không (Schema frozen) | `ready-for-agent` |
-| **02** | `[A]` | Clarification Interview & LLM Provider Setup | `01-A1` | `pending` |
-| **03** | `[A]` | Pedagogical Outline Generator & Approval API | `02-A2` | `pending` |
-| **04** | `[A]` | VieNeu-TTS Synthesis & Audio-First Sync Engine | Không (dùng `fixtures/scene.sample.json`) | `ready-for-agent` |
-| **05** | `[A]` | Multi-format Export Jobs (MP4, PDF, PPTX) | `04-A4` | `pending` |
+| **01** | `[A]` | Multi-format Document Ingestion Service | Không (Schema frozen) | `completed` |
+| **02** | `[A]` | Clarification Interview & LLM Provider Setup | `01-A1` (Done) | `completed` |
+| **03** | `[A]` | Pedagogical Outline Generator & Approval API | `02-A2` (Done) | `completed` |
+| **04** | `[A]` | VieNeu-TTS Synthesis & Audio-First Sync Engine | Không (Done) | `completed` |
+| **05** | `[A]` | Multi-format Export Jobs (MP4, PDF, PPTX) | `04-A4` (Done) | `completed` |
 | **06** | `[B]` | Design Tokens & 10 HyperFrames Templates | Không (dùng `fixtures/scene.sample.json`) | `ready-for-agent` |
 | **07** | `[B]` | Outline to Scene & HyperFrames Mapper | `06-B1` (dùng `fixtures/outline.sample.json`) | `pending` |
 | **08** | `[B]` | Studio Canvas Direct Editing & Autosave | `06-B1` | `pending` |

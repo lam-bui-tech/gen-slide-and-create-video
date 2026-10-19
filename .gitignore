@@ -4,4 +4,7 @@ server.js
 studio.html
 __pycache__/
 .pytest_cache/
-storage/projects/*/audio/*.wav
+storage/*.db
+storage/projects/
+storage/spike/
+

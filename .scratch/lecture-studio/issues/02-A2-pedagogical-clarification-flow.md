@@ -5,10 +5,10 @@ Hệ thống phân tích `DocumentContext` để tự động trả lời trư�
 
 **Blocked by:** 01: [A] Multi-format Document Ingestion Service
 
-**Status:** ready-for-agent
+**Status:** completed
 
-- [ ] Định nghĩa interface `LLMProvider` có phương thức `generate_structured(prompt, schema)` kèm cơ chế retry khi validate lỗi.
-- [ ] Cài đặt `GeminiProvider` (Gemini Flash mặc định), `OllamaProvider`, và `FakeProvider`.
-- [ ] Viết logic suy luận pre-filled answers từ `DocumentContext`.
-- [ ] Cung cấp endpoint `GET /projects/{id}/clarification` và `POST /projects/{id}/clarification` theo `docs/API.md`.
-- [ ] Viết unit tests kiểm thử bộ phỏng vấn với `FakeProvider`.
+- [x] Định nghĩa interface `LLMProvider` có phương thức `generate_structured(prompt, schema)` kèm cơ chế retry khi validate lỗi.
+- [x] Cài đặt `GeminiProvider` (Gemini Flash mặc định), `OllamaProvider`, và `FakeProvider`.
+- [x] Viết logic suy luận pre-filled answers từ `DocumentContext`.
+- [x] Cung cấp endpoint `GET /projects/{id}/clarification` và `POST /projects/{id}/clarification` theo `docs/API.md`.
+- [x] Viết unit tests kiểm thử bộ phỏng vấn với `FakeProvider`.

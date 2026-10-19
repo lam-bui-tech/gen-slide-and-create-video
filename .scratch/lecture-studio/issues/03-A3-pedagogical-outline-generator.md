@@ -5,9 +5,9 @@ Hệ thống sử dụng LLM để chuyển đổi tài liệu thô (`DocumentCo
 
 **Blocked by:** 02: [A] Pedagogical Clarification Interview & LLM Provider Setup
 
-**Status:** ready-for-agent
+**Status:** completed
 
-- [ ] Thiết kế prompt kỹ thuật yêu cầu LLM sinh JSON cấu trúc theo `schemas/lesson_outline.json`.
-- [ ] Ánh xạ chính xác các loại nội dung vào 10 template: `title-slide`, `learning-objectives`, `concept-explain`, `bullet-breakdown`, `image-explain`, `comparison`, `timeline`, `formula-explain`, `quiz`, `summary`.
-- [ ] Cung cấp endpoint `POST /projects/{id}/outline` (sinh mới), `GET /projects/{id}/outline`, và `PUT /projects/{id}/outline` (sửa / duyệt).
-- [ ] Kiểm thử tự động với `FakeProvider` và 1 lần chạy thực tế với Gemini Flash kiểm chứng tiếng Việt.
+- [x] Thiết kế prompt kỹ thuật yêu cầu LLM sinh JSON cấu trúc theo `schemas/lesson_outline.json`.
+- [x] Ánh xạ chính xác các loại nội dung vào 10 template: `title-slide`, `learning-objectives`, `concept-explain`, `bullet-breakdown`, `image-explain`, `comparison`, `timeline`, `formula-explain`, `quiz`, `summary`.
+- [x] Cung cấp endpoint `POST /projects/{id}/outline` (sinh mới), `GET /projects/{id}/outline`, và `PUT /projects/{id}/outline` (sửa / duyệt).
+- [x] Kiểm thử tự động với `FakeProvider` và script chạy thực tế với Gemini Flash (`scripts/manual_run_gemini_outline.py`).
