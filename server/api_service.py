@@ -309,6 +309,23 @@ def get_scene_endpoint(project_id: str):
     return LessonSceneJSON.model_validate(data)
 
 
+@app.put("/projects/{project_id}/scene")
+def update_scene_endpoint(project_id: str, scene: LessonSceneJSON):
+    """
+    Saves updated LessonSceneJSON from Studio autosave.
+    """
+    from datetime import datetime
+    scene_path = os.path.join(STORAGE_DIR, project_id, "scene.json")
+    os.makedirs(os.path.dirname(scene_path), exist_ok=True)
+    with open(scene_path, "w", encoding="utf-8") as f:
+        f.write(scene.model_dump_json(indent=2))
+
+    return {
+        "status": "saved",
+        "savedAt": datetime.utcnow().isoformat() + "Z"
+    }
+
+
 # ==========================================
 # Slide Narration & Audio Synthesis Endpoints
 # ==========================================

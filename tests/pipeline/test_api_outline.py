@@ -69,3 +69,16 @@ def test_outline_flow_and_scene_gating(setup_project):
     assert res_scene_ok.status_code in [200, 201]
     scene_data = res_scene_ok.json()
     assert "slides" in scene_data
+
+    # 5. Studio Autosave PUT /projects/{id}/scene
+    scene_data["slides"][0]["title"] = "Tiêu đề đã sửa trực tiếp trên Studio Canvas"
+    res_put_scene = client.put(f"/projects/{proj_id}/scene", json=scene_data)
+    assert res_put_scene.status_code == 200
+    assert res_put_scene.json()["status"] == "saved"
+    assert "savedAt" in res_put_scene.json()
+
+    # Verify GET reflects the saved changes
+    res_get_scene = client.get(f"/projects/{proj_id}/scene")
+    assert res_get_scene.status_code == 200
+    assert res_get_scene.json()["slides"][0]["title"] == "Tiêu đề đã sửa trực tiếp trên Studio Canvas"
+
