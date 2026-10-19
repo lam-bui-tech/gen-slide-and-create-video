@@ -5,9 +5,9 @@ Tích hợp động cơ tổng hợp giọng đọc tiếng Việt chất lượ
 
 **Blocked by:** None (có thể bắt đầu ngay và kiểm thử với `fixtures/scene.sample.json`).
 
-**Status:** ready-for-agent
+**Status:** completed
 
-- [ ] Định nghĩa `TTSProvider` interface (`synthesize(text, voice_id) -> (audio_bytes, duration)`) với `VieNeuProvider`, `ViettelProvider`, và `FakeTTSProvider`.
-- [ ] Xây dựng module tính toán Audio-First Sync (`compute_timeline_sync(scene_json)`) với bộ unit test toàn diện (audio ngắn hơn animation, audio dài hơn, audio bằng, thiếu audio, bài giảng 1 slide).
-- [ ] Đo thời lượng file audio bằng `ffprobe` / soundfile và lưu tệp `.wav` vào `storage/projects/{id}/audio/`.
-- [ ] Cung cấp endpoint `POST /projects/{id}/slides/{sid}/narration` (sinh lại lời thoại) và `POST /projects/{id}/slides/{sid}/audio` (tạo lại audio và cập nhật timeline) theo `docs/API.md`.
+- [x] Định nghĩa `TTSProvider` interface (`synthesize(text, voice_id) -> duration`) với `VieNeuProvider`, `ViettelProvider`, và `FakeTTSProvider`.
+- [x] Xây dựng module tính toán Audio-First Sync (`sync_audio_first_timeline`) với bộ unit test toàn diện (audio ngắn hơn animation, audio dài hơn, audio bằng, thiếu audio, bài giảng 1 slide).
+- [x] Đo thời lượng file audio bằng multi-strategy (`ffprobe` + `soundfile` + `wave`) và lưu tệp `.wav` vào `storage/projects/{id}/audio/`.
+- [x] Cung cấp endpoint `POST /projects/{id}/slides/{sid}/narration` (sinh lại lời thoại) và `POST /projects/{id}/slides/{sid}/audio` (tạo lại audio và cập nhật timeline) theo `docs/API.md`.

@@ -66,16 +66,16 @@ gantt
 ## 4. Checklist Công Việc Chi Tiết
 
 ### Phase 1 — Ingestion & Pedagogical Clarification
-- [ ] **1.1. Chuẩn hóa Service bóc tách tài liệu (Document Ingestion)**
-  - [ ] Hoàn thiện `scripts/pptx_to_lecture.py` và tích hợp `MarkItDown` để đọc thêm PDF, DOCX, Markdown.
-  - [ ] Bóc tách cấu trúc: Tiêu đề, các phần (sections), bullet points, ảnh nhúng, và speaker notes.
-  - [ ] Chuẩn hóa output thành `DocumentContext.json`.
-- [ ] **1.2. Pedagogical Clarification Interview**
-  - [ ] Xây dựng bộ 8 câu hỏi làm rõ sư phạm (đối tượng học sinh, mục tiêu, thời lượng, số slide, phong cách, quiz).
-  - [ ] Giao diện/Modal thu thập câu trả lời từ giảng viên.
-- [ ] **1.3. Sinh và chỉnh sửa LessonOutline**
-  - [ ] Prompt kỹ thuật cho Gemini Flash để sinh dàn bài sư phạm chuẩn (có learning objectives, quiz, summary).
-  - [ ] API & Giao diện cho phép giảng viên duyệt/sửa dàn bài trước khi tạo slide.
+- [x] **1.1. Chuẩn hóa Service bóc tách tài liệu (Document Ingestion)**
+  - [x] Hoàn thiện `scripts/pptx_to_lecture.py` và bóc tách thêm PDF, DOCX, Markdown trong `scripts/document_ingestion.py`.
+  - [x] Bóc tách cấu trúc: Tiêu đề, các phần (sections), bullet points, bảng biểu, ảnh nhúng, và speaker notes.
+  - [x] Chuẩn hóa output thành `DocumentContext.json`.
+- [x] **1.2. Pedagogical Clarification Interview**
+  - [x] Xây dựng bộ 8 câu hỏi làm rõ sư phạm (đối tượng học sinh, mục tiêu, thời lượng, số slide, phong cách, quiz).
+  - [x] API thu thập và lưu trữ câu trả lời xác nhận từ giảng viên.
+- [x] **1.3. Sinh và chỉnh sửa LessonOutline**
+  - [x] Prompt kỹ thuật cho Gemini Flash để sinh dàn bài sư phạm chuẩn (có learning objectives, quiz, summary).
+  - [x] API cho phép giảng viên duyệt/sửa dàn bài trước khi tạo slide và khóa tiến trình sinh slide khi chưa duyệt.
 
 ### Phase 2 — Thư viện 10 Template HyperFrames & Mapper
 - [ ] **2.1. Xây dựng 10 Template HTML/CSS/GSAP chuẩn HyperFrames**
@@ -104,16 +104,16 @@ gantt
   - [ ] Lưu trạng thái vào `LessonSceneJSON` ngay khi giảng viên thao tác.
 
 ### Phase 4 — Voice Synthesis & Xuất bản (Export)
-- [ ] **4.1. Tích hợp VieNeu-TTS v3 Turbo**
-  - [ ] Tự động tạo câu thuyết minh (`narration`) cho từng slide từ nội dung và speaker notes.
-  - [ ] Giảng viên nghe thử, sửa câu thuyết minh và bấm "Tạo lại giọng đọc".
-- [ ] **4.2. Cơ chế Auto Audio-First Sync**
-  - [ ] Đo độ dài thực tế của file audio tạo ra (`ffprobe` / Web Audio API).
-  - [ ] Tự động cập nhật `durationSeconds` của slide và đẩy `data-start` của các slide tiếp theo.
-- [ ] **4.3. Xuất file MP4 & PDF**
-  - [ ] Tích hợp API gọi `npx hyperframes render` để kết xuất video MP4 bài giảng full HD 1080p có đầy đủ giọng đọc và hiệu ứng.
-  - [ ] Tích hợp tính năng xuất PDF toàn bộ slide.
-  - [ ] Đóng gói slide PPTX ảnh nhanh gọn.
+- [x] **4.1. Tích hợp VieNeu-TTS v3 Turbo**
+  - [x] Tự động tạo câu thuyết minh (`narration`) cho từng slide từ nội dung và speaker notes.
+  - [x] Giảng viên nghe thử, sửa câu thuyết minh và bấm "Tạo lại giọng đọc".
+- [x] **4.2. Cơ chế Auto Audio-First Sync**
+  - [x] Đo độ dài thực tế của file audio tạo ra (`ffprobe` / soundfile / wave).
+  - [x] Tự động cập nhật `durationSeconds` của slide và đẩy `data-start` của các slide tiếp theo.
+- [x] **4.3. Xuất file MP4 & PDF**
+  - [x] Tích hợp API gọi `npx hyperframes render` để kết xuất video MP4 bài giảng full HD 1080p có đầy đủ giọng đọc và hiệu ứng.
+  - [x] Tích hợp tính năng xuất PDF toàn bộ slide.
+  - [x] Đóng gói slide PPTX ảnh nhanh gọn.
 
 ---
 

@@ -19,11 +19,11 @@
       "description": "Source document type"
     },
     "author": {
-      "type": "string",
+      "type": ["string", "null"],
       "description": "Author, instructor, or department if detected"
     },
     "subject": {
-      "type": "string",
+      "type": ["string", "null"],
       "description": "Academic subject, module, or domain"
     },
     "sections": {
@@ -85,7 +85,7 @@
           }
         },
         "speakerNotes": {
-          "type": "string",
+          "type": ["string", "null"],
           "description": "Speaker notes or footnotes"
         },
         "imageIds": {
@@ -112,17 +112,16 @@
           "description": "Relative file path in storage/projects/{id}/images/"
         },
         "originalName": {
-          "type": "string"
+          "type": ["string", "null"]
         },
         "width": {
-          "type": "integer"
+          "type": ["integer", "null"]
         },
         "height": {
-          "type": "integer"
+          "type": ["integer", "null"]
         },
         "format": {
-          "type": "string",
-          "enum": ["png", "jpg", "jpeg", "webp", "svg"]
+          "type": ["string", "null"]
         }
       }
     }

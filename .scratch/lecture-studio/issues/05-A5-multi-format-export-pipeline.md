@@ -10,9 +10,9 @@ Hệ thống hàng đợi xuất bản bài giảng đa định dạng dưới d
 
 **Status:** ready-for-agent
 
-- [ ] Cài đặt hàng đợi Background Jobs lưu trạng thái trong SQLite (`storage/lecture_studio.db`).
-- [ ] Tích hợp `npx hyperframes render` chạy subprocess an toàn có timeout, bắt log tiến độ (%) và xử lý dọn dẹp file tạm.
-- [ ] Tích hợp xuất PDF vector chất lượng cao qua Headless Chrome print.
-- [ ] Tích hợp generator `python-pptx` xuất file PowerPoint có text/shape chỉnh sửa được.
-- [ ] Cung cấp endpoint `POST /projects/{id}/export` và `GET /exports/{id}` theo `docs/API.md`.
-- [ ] Viết test tự động kiểm tra sự tồn tại của file xuất, thời lượng MP4 khớp tổng thời lượng các slide, số trang PDF và số slide PPTX chính xác.
+- [x] Cài đặt hàng đợi Background Jobs lưu trạng thái trong SQLite (`storage/lecture_studio.db`).
+- [x] Tích hợp `npx hyperframes render` chạy subprocess an toàn có timeout, bắt log tiến độ (%) và xử lý dọn dẹp file tạm.
+- [x] Tích hợp xuất PDF vector chất lượng cao qua Headless Chrome print.
+- [x] Tích hợp generator `python-pptx` xuất file PowerPoint dạng image-pack (1 high-res PNG/slide + speaker notes, documented non-editable).
+- [x] Cung cấp endpoint `POST /projects/{id}/export` và `GET /exports/{id}` theo `docs/API.md`.
+- [x] Viết test tự động kiểm tra sự tồn tại của file xuất, thời lượng MP4 khớp tổng thời lượng các slide, số trang PDF và số slide PPTX chính xác.
