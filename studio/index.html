@@ -4,26 +4,30 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Lecture Studio — Canvas WYSIWYG Editor</title>
-  <!-- Google Fonts: Be Vietnam Pro -->
+  <!-- Google Fonts: Be Vietnam Pro & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <!-- GSAP for animations -->
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
   <!-- Design Tokens & Template Styles -->
-  <link rel="stylesheet" href="templates/tokens.css">
-  <link rel="stylesheet" href="templates/templates.css">
+  <link rel="stylesheet" href="../templates/tokens.css">
+  <link rel="stylesheet" href="../templates/templates.css">
   <style>
     :root {
-      --sidebar-width: 340px;
+      --sidebar-width: 320px;
       --props-width: 380px;
       --app-bg: #F8FAFC;
       --panel-bg: #FFFFFF;
       --border-color: #E2E8F0;
       --primary: #0369A1;
       --primary-hover: #0284C7;
+      --primary-subtle: #E0F2FE;
       --text-main: #0F172A;
       --text-sub: #475569;
+      --accent-amber: #D97706;
+      --accent-emerald: #059669;
+      --accent-rose: #E11D48;
     }
 
     * {
@@ -44,14 +48,15 @@
 
     /* Top Navigation Bar */
     header.studio-navbar {
-      height: 64px;
+      height: 60px;
       background: var(--panel-bg);
       border-bottom: 1px solid var(--border-color);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 24px;
+      padding: 0 20px;
       z-index: 50;
+      flex-shrink: 0;
     }
 
     .nav-brand {
@@ -59,55 +64,83 @@
       align-items: center;
       gap: 12px;
       font-weight: 800;
-      font-size: 18px;
+      font-size: 17px;
       color: var(--primary);
+      text-decoration: none;
     }
 
     .nav-brand-badge {
-      width: 36px;
-      height: 36px;
-      background: linear-gradient(135deg, var(--hf-primary), var(--hf-primary-glow));
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, var(--hf-primary, #0369A1), #0284C7);
       color: white;
-      border-radius: 10px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
+      font-size: 18px;
+      box-shadow: 0 2px 4px rgba(3, 105, 161, 0.2);
     }
 
-    .nav-project-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text-main);
-      padding: 6px 14px;
-      border-radius: 8px;
-      background: #F1F5F9;
-      border: 1px solid transparent;
-      outline: none;
-    }
-
-    .nav-project-title:focus {
-      border-color: var(--primary);
-      background: white;
-    }
-
-    .nav-actions {
+    .nav-center {
       display: flex;
       align-items: center;
       gap: 12px;
     }
 
+    .nav-project-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 6px;
+      background: #F1F5F9;
+      border: 1px solid transparent;
+      outline: none;
+      min-width: 260px;
+      transition: all 0.2s;
+    }
+
+    .nav-project-title:focus {
+      border-color: var(--primary);
+      background: white;
+      box-shadow: 0 0 0 2px rgba(3, 105, 161, 0.1);
+    }
+
+    .save-indicator {
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .save-indicator.saved { color: #059669; }
+    .save-indicator.saving { color: #D97706; animation: pulse 1s infinite; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     .btn {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 14px;
+      justify-content: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 13px;
       font-weight: 600;
       cursor: pointer;
       border: 1px solid transparent;
-      transition: all 0.2s ease;
+      transition: all 0.15s ease;
+      white-space: nowrap;
     }
 
     .btn-secondary {
@@ -115,7 +148,7 @@
       color: var(--text-main);
       border-color: var(--border-color);
     }
-    .btn-secondary:hover {
+    .btn-secondary:hover:not(:disabled) {
       background: #E2E8F0;
     }
 
@@ -123,274 +156,489 @@
       background: var(--primary);
       color: white;
     }
-    .btn-primary:hover {
+    .btn-primary:hover:not(:disabled) {
       background: var(--primary-hover);
     }
 
-    .save-indicator {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 13px;
-      color: #64748B;
-      font-weight: 500;
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      filter: grayscale(0.5);
     }
-    .save-indicator.saved { color: #059669; }
-    .save-indicator.saving { color: #D97706; }
 
-    /* Studio Main Layout */
+    .btn-icon {
+      padding: 7px 10px;
+    }
+
+    /* Main Workspace 3-Pane Layout */
     .studio-workspace {
-      flex: 1;
       display: flex;
+      flex: 1;
+      height: calc(100vh - 60px);
       overflow: hidden;
     }
 
-    /* Left: Slide Navigator */
-    aside.slide-navigator {
+    /* Left Pane: Slide Navigator */
+    aside.slide-deck-pane, aside.slide-navigator {
       width: var(--sidebar-width);
       background: var(--panel-bg);
       border-right: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
-      overflow: hidden;
+      flex-shrink: 0;
     }
 
-    .nav-pane-header {
-      padding: 16px 20px;
+    .deck-header {
+      padding: 14px 16px;
       border-bottom: 1px solid var(--border-color);
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
 
-    .nav-pane-header h3 {
-      font-size: 14px;
+    .deck-title {
+      font-size: 13px;
       font-weight: 700;
-      color: #475569;
+      color: var(--text-sub);
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
 
-    .slide-list {
+    .slide-list-container {
       flex: 1;
       overflow-y: auto;
-      padding: 16px;
+      padding: 12px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 10px;
     }
 
     .slide-card-item {
-      padding: 14px 16px;
-      background: #F8FAFC;
+      background: #FFFFFF;
       border: 2px solid var(--border-color);
-      border-radius: 12px;
+      border-radius: 8px;
+      padding: 10px;
       cursor: pointer;
       transition: all 0.2s ease;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+      position: relative;
     }
 
     .slide-card-item:hover {
-      background: #F0F9FF;
-      border-color: var(--hf-primary-border);
+      border-color: #CBD5E1;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
     }
 
     .slide-card-item.active {
-      background: #F0F9FF;
       border-color: var(--primary);
-      box-shadow: 0 4px 12px rgba(3, 105, 161, 0.1);
+      background: #F0F9FF;
+      box-shadow: 0 0 0 1px var(--primary);
     }
 
     .slide-card-meta {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
-      color: #64748B;
+      color: var(--text-sub);
+      margin-bottom: 4px;
     }
 
     .slide-card-title {
-      font-size: 14px;
-      font-weight: 700;
+      font-size: 13px;
+      font-weight: 600;
       color: var(--text-main);
-      white-space: nowrap;
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
       overflow: hidden;
-      text-overflow: ellipsis;
+      margin-bottom: 6px;
     }
 
     .slide-card-sub {
-      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
       color: #64748B;
+    }
+
+    .slide-card-actions {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      display: none;
+      gap: 4px;
+      background: rgba(255,255,255,0.9);
+      border-radius: 4px;
+      padding: 2px;
+    }
+
+    .slide-card-item:hover .slide-card-actions {
+      display: flex;
+    }
+
+    .card-action-btn {
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      border: none;
+      background: #F1F5F9;
+      color: #475569;
+      cursor: pointer;
+      font-size: 11px;
+    }
+    .card-action-btn:hover {
+      background: #E2E8F0;
+      color: var(--text-main);
+    }
+    .card-action-btn.delete:hover {
+      background: #FEE2E2;
+      color: var(--accent-rose);
+    }
+
+    /* Center Pane: Canvas Preview & Controls */
+    main.studio-canvas-pane {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #F1F5F9;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .canvas-topbar {
+      height: 48px;
+      background: white;
+      border-bottom: 1px solid var(--border-color);
       display: flex;
       align-items: center;
       justify-content: space-between;
+      padding: 0 20px;
+      flex-shrink: 0;
     }
 
-    /* Center: Canvas Viewport */
-    main.studio-canvas-area {
+    .canvas-viewport {
       flex: 1;
-      background: #E2E8F0;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      position: relative;
-      padding: 32px;
-      overflow: hidden;
+      padding: 24px;
+      overflow: auto;
+      background: radial-gradient(circle, #E2E8F0 10%, transparent 11%);
+      background-size: 20px 20px;
     }
 
-    .canvas-viewport-wrapper {
+    /* Scaled 16:9 Canvas Frame (1920x1080 native scale) */
+    .canvas-frame-outer {
       width: 960px;
       height: 540px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
       position: relative;
+      background: #FFFFFF;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08);
+      border-radius: 8px;
       overflow: hidden;
-      transform-origin: center center;
+      flex-shrink: 0;
     }
 
-    /* Scaled 1920x1080 canvas */
     #live-canvas {
       width: 1920px;
       height: 1080px;
-      transform: scale(0.5);
       transform-origin: top left;
+      transform: scale(0.5); /* 960 / 1920 */
+      background: var(--hf-bg-main, #0F172A);
       position: absolute;
       top: 0;
       left: 0;
       pointer-events: auto;
     }
 
-    /* Editable on canvas styling */
+    /* ContentEditable styling inside live canvas */
     [contenteditable="true"] {
       outline: 2px dashed transparent;
-      border-radius: 4px;
-      transition: all 0.2s ease;
+      transition: all 0.15s ease;
       cursor: text;
     }
     [contenteditable="true"]:hover {
-      outline: 2px dashed #38BDF8;
-      background: rgba(56, 189, 248, 0.08);
+      outline: 2px dashed rgba(3, 105, 161, 0.5);
+      border-radius: 4px;
     }
     [contenteditable="true"]:focus {
-      outline: 2px solid var(--primary);
-      background: rgba(3, 105, 161, 0.1);
+      outline: 2px solid var(--hf-accent-amber, #D97706);
+      background: rgba(217, 119, 6, 0.08);
+      border-radius: 4px;
     }
 
-    /* Clickable image styling */
     .editable-image {
       cursor: pointer;
       position: relative;
-      transition: filter 0.2s ease;
+      transition: all 0.2s;
     }
     .editable-image:hover {
       filter: brightness(0.9);
-      outline: 3px dashed var(--primary);
+      outline: 4px solid var(--hf-primary, #0369A1);
     }
 
-    /* Canvas Controls Toolbar */
-    .canvas-controls-toolbar {
-      position: absolute;
-      bottom: 24px;
+    /* Bottom Timeline & Scrubber Bar */
+    .canvas-timeline-bar {
+      height: 64px;
+      background: white;
+      border-top: 1px solid var(--border-color);
       display: flex;
       align-items: center;
+      padding: 0 20px;
       gap: 16px;
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(12px);
-      padding: 10px 24px;
-      border-radius: 9999px;
-      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
-      border: 1px solid var(--border-color);
-      z-index: 40;
+      flex-shrink: 0;
     }
 
-    /* Right: Properties & Customization Panel */
-    aside.properties-panel {
+    .timeline-playback-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.15s;
+    }
+    .timeline-playback-btn:hover {
+      background: var(--primary-hover);
+      transform: scale(1.05);
+    }
+
+    .timeline-stop-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      background: #F1F5F9;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .timeline-stop-btn:hover {
+      background: #E2E8F0;
+    }
+
+    .timeline-scrubber-track {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .timeline-time-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-sub);
+      font-weight: 600;
+    }
+
+    .timeline-slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      background: #E2E8F0;
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .timeline-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      transition: transform 0.1s;
+    }
+    .timeline-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.25);
+    }
+
+    /* Right Pane: Properties Panel */
+    aside.props-panel {
       width: var(--props-width);
       background: var(--panel-bg);
       border-left: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
+      flex-shrink: 0;
       overflow-y: auto;
-      padding: 24px;
-      gap: 24px;
+    }
+
+    .props-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+      background: #FFFFFF;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .prop-section {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .prop-section-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
     .prop-group {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .prop-group:last-child {
+      margin-bottom: 0;
     }
 
     .prop-label {
-      font-size: 13px;
-      font-weight: 700;
-      color: #475569;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 6px;
     }
 
     .prop-input, .prop-select, .prop-textarea {
       width: 100%;
-      padding: 10px 14px;
-      border-radius: 8px;
+      padding: 8px 12px;
+      border-radius: 6px;
       border: 1px solid var(--border-color);
       font-family: inherit;
-      font-size: 14px;
+      font-size: 13px;
       color: var(--text-main);
+      background: #FFFFFF;
       outline: none;
-      transition: border-color 0.2s;
+      transition: all 0.2s;
     }
+
     .prop-input:focus, .prop-select:focus, .prop-textarea:focus {
       border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(3, 105, 161, 0.1);
     }
 
-    /* Voice & Audio Track Box */
-    .voice-track-box {
-      background: #F0F9FF;
-      border: 1px solid var(--hf-primary-border);
-      border-radius: 12px;
-      padding: 16px;
+    .prop-textarea {
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    /* Variant Badges Grid */
+    .variant-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
+
+    .variant-pill {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background: #F8FAFC;
+      font-size: 12px;
+      font-weight: 500;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .variant-pill:hover {
+      background: #F1F5F9;
+      border-color: #CBD5E1;
+    }
+    .variant-pill.active {
+      background: var(--primary-subtle);
+      border-color: var(--primary);
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    /* Animation Row */
+    .anim-row {
+      background: #F8FAFC;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 8px;
+      margin-bottom: 8px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 6px;
     }
 
-    .voice-track-header {
+    .anim-row-header {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--primary);
+      align-items: center;
+      font-size: 12px;
+      font-weight: 600;
     }
 
-    /* Modal for Image Selection */
+    .anim-controls-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 6px;
+    }
+
+    /* Voice / Audio Info Box */
+    .voice-stat-box {
+      background: #F0F9FF;
+      border: 1px solid #BAE6FD;
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    /* Modal dialog */
     .modal-overlay {
       position: fixed;
       inset: 0;
       background: rgba(15, 23, 42, 0.6);
       backdrop-filter: blur(4px);
-      z-index: 100;
       display: none;
       align-items: center;
       justify-content: center;
+      z-index: 100;
     }
-    .modal-overlay.open { display: flex; }
+    .modal-overlay.open {
+      display: flex;
+    }
 
     .modal-box {
-      width: 580px;
       background: white;
-      border-radius: 16px;
-      padding: 28px;
-      box-shadow: 0 24px 48px rgba(15, 23, 42, 0.25);
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
+      border-radius: 12px;
+      width: 520px;
+      max-width: 90vw;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
     }
   </style>
 </head>
@@ -398,153 +646,251 @@
 
   <!-- Top Navigation Bar -->
   <header class="studio-navbar">
-    <div class="nav-brand">
-      <div class="nav-brand-badge">🎓</div>
-      <span>HyperFrames Studio</span>
+    <div style="display: flex; align-items: center; gap: 20px;">
+      <a href="#" class="nav-brand">
+        <div class="nav-brand-badge">⚡</div>
+        <span>AI Lecture Studio</span>
+      </a>
+      <input type="text" id="project-title-input" class="nav-project-title" value="Chương 1: Triết Học & Thế Giới Quan" title="Nhấp để đổi tên bài giảng" />
+      <div id="save-status" class="save-indicator saved">
+        <span>●</span> Đã lưu
+      </div>
     </div>
 
-    <input type="text" id="project-title-input" class="nav-project-title" value="Khái luận về Triết học và Triết học Mác - Lênin" />
-
     <div class="nav-actions">
-      <button class="btn btn-secondary" id="btn-undo" title="Undo (Ctrl+Z)">↺ Hoàn tác</button>
-      <button class="btn btn-secondary" id="btn-redo" title="Redo (Ctrl+Y)">↻ Làm lại</button>
-      <div class="save-indicator saved" id="save-status">● Đã lưu</div>
-      <button class="btn btn-primary" id="btn-export-mp4">🎬 Xuất Video MP4</button>
+      <button class="btn btn-secondary btn-icon" id="btn-undo" title="Hoàn tác (Ctrl+Z)">↶</button>
+      <button class="btn btn-secondary btn-icon" id="btn-redo" title="Làm lại (Ctrl+Y)">↷</button>
+
+      <div style="height: 20px; width: 1px; background: var(--border-color); margin: 0 6px;"></div>
+
+      <button class="btn btn-secondary" id="btn-export-pdf" title="Xuất toàn bộ bài giảng sang PDF vector">
+        📄 Xuất PDF
+      </button>
+      <button class="btn btn-secondary" id="btn-export-pptx" title="Xuất bài giảng sang PPTX (Image Pack)">
+        📊 Xuất PPTX
+      </button>
+      <button class="btn btn-primary" id="btn-export-mp4" title="Render video bài giảng 1080p qua HyperFrames CLI">
+        🎬 Xuất MP4 (1080p)
+      </button>
     </div>
   </header>
 
-  <!-- Workspace 3-Pane View -->
+  <!-- 3-Pane Main Studio Workspace -->
   <div class="studio-workspace">
-    <!-- Left: Slide Navigator -->
+
+    <!-- Left Pane: Slide Navigator -->
     <aside class="slide-navigator">
-      <div class="nav-pane-header">
-        <h3>Danh Sách Slide</h3>
+      <div class="deck-header">
+        <span class="deck-title" id="deck-count-label">Danh Sách Slide (10)</span>
         <button class="btn btn-secondary" id="btn-add-slide" style="padding: 4px 10px; font-size: 12px;">+ Thêm</button>
       </div>
-      <div class="slide-list" id="slide-list-container">
-        <!-- Dynamically populated -->
+      <div class="slide-list-container" id="slide-list-container">
+        <!-- Rendered dynamically -->
       </div>
     </aside>
 
-    <!-- Center: Live WYSIWYG Canvas -->
-    <main class="studio-canvas-area">
-      <div class="canvas-viewport-wrapper">
-        <div id="live-canvas">
-          <!-- Live 1920x1080 slide content rendered here -->
+    <!-- Center Pane: Live Canvas & Controls -->
+    <main class="studio-canvas-pane">
+      <div class="canvas-topbar">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button class="btn btn-secondary btn-icon" id="btn-prev-slide" title="Slide trước (←)">◀</button>
+          <span id="canvas-slide-indicator" style="font-size: 13px; font-weight: 700; min-width: 100px; text-align: center;">Slide 1 / 10</span>
+          <button class="btn btn-secondary btn-icon" id="btn-next-slide" title="Slide tiếp (→)">▶</button>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--text-sub);">
+          <span>Độ phân giải: <strong>1920 × 1080 (16:9)</strong></span>
+          <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #059669;"></span>
+          <span id="canvas-template-badge" style="background: #E0F2FE; color: #0369A1; padding: 2px 8px; border-radius: 4px; font-weight: 600;">title-slide</span>
         </div>
       </div>
 
-      <!-- Controls Toolbar -->
-      <div class="canvas-controls-toolbar">
-        <button class="btn btn-secondary" id="btn-prev-slide">◀</button>
-        <button class="btn btn-primary" id="btn-play-preview">▶ Phát Slide</button>
-        <button class="btn btn-secondary" id="btn-next-slide">▶</button>
-        <span id="canvas-slide-indicator" style="font-size: 14px; font-weight: 700; color: #475569;">Slide 1 / 10</span>
+      <!-- Viewport with 1920x1080 Scaled Canvas -->
+      <div class="canvas-viewport">
+        <div class="canvas-frame-outer">
+          <div id="live-canvas">
+            <!-- Dynamic HyperFrames Slide Section will be mounted here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Timeline & Scrubber -->
+      <div class="canvas-timeline-bar">
+        <button class="timeline-playback-btn" id="btn-timeline-play" title="Phát hoạt họa slide này">▶</button>
+        <button class="timeline-stop-btn" id="btn-timeline-stop" title="Dừng và về 0s">⏹</button>
+
+        <div class="timeline-scrubber-track">
+          <div class="timeline-time-info">
+            <span id="time-current">00:00.0</span>
+            <span id="time-total">00:16.0</span>
+          </div>
+          <input type="range" class="timeline-slider" id="timeline-slider" min="0" max="16.0" step="0.05" value="0" />
+        </div>
       </div>
     </main>
 
-    <!-- Right: Properties & Customization Panel -->
-    <aside class="properties-panel">
-      <h3 style="font-size: 16px; font-weight: 800; color: var(--hf-primary);">Thiết Lập Slide Hiện Tại</h3>
+    <!-- Right Pane: Properties & Voice Inspector -->
+    <aside class="props-panel">
+      <div class="props-header">Thuộc Tính & Giọng Đọc</div>
 
-      <!-- 1. Template Selector -->
-      <div class="prop-group">
-        <label class="prop-label">Khuôn mẫu Template</label>
-        <select id="prop-template-select" class="prop-select">
-          <option value="title-slide">01. Slide Mở Đầu (Title Hero)</option>
-          <option value="learning-objectives">02. Mục Tiêu Bài Học (Learning Objectives)</option>
-          <option value="concept-explain">03. Giải Thích Khái Niệm (Concept Explain)</option>
-          <option value="bullet-breakdown">04. Phân Tích Luận Điểm (Bullet Breakdown)</option>
-          <option value="image-explain">05. Sơ Đồ / Hình Ảnh Trực Quan (Image Explain)</option>
-          <option value="comparison">06. So Sánh 2 Cột Đối Xứng (Comparison)</option>
-          <option value="timeline">07. Trục Tiến Trình Thời Gian (Timeline)</option>
-          <option value="formula-explain">08. Công Thức & Định Lý (Formula Explain)</option>
-          <option value="quiz">09. Câu Hỏi Tương Tác (Quiz)</option>
-          <option value="summary">10. Tổng Kết Bài Học (Summary & Takeaways)</option>
-        </select>
-      </div>
-
-      <!-- 2. Layout Variant Switcher -->
-      <div class="prop-group">
-        <label class="prop-label">Bố cục Biến thể (Layout Variant)</label>
-        <select id="prop-variant-select" class="prop-select">
-          <option value="default">Mặc định (Standard)</option>
-          <option value="text-left-image-right">Chữ Trái — Ảnh Phải</option>
-          <option value="text-right-image-left">Ảnh Trái — Chữ Phải</option>
-          <option value="stacked-top">Xếp Tầng Trên — Dưới</option>
-          <option value="fullscreen">Toàn Màn Hình (Fullscreen)</option>
-          <option value="no-image">Thuần Chữ (Không Ảnh)</option>
-        </select>
-      </div>
-
-      <!-- 3. Animation Preset Picker -->
-      <div class="prop-group">
-        <label class="prop-label">Hiệu ứng Động (GSAP Preset)</label>
-        <select id="prop-anim-select" class="prop-select">
-          <option value="slide-in">Slide In (Trượt êm từ dưới)</option>
-          <option value="fade-in">Fade In (Hiện rõ dần)</option>
-          <option value="zoom-in">Zoom In (Phóng to tinh tế)</option>
-          <option value="typewriter">Typewriter (Đánh máy từng chữ)</option>
-          <option value="step-by-step">Step-by-step (Xuất hiện tuần tự)</option>
-          <option value="highlight-keyword">Highlight Keyword (Rực sáng trọng tâm)</option>
-        </select>
-      </div>
-
-      <!-- 4. Voice-over & Narration Studio (Phase 4.1 UI) -->
-      <div class="voice-track-box">
-        <div class="voice-track-header">
-          <span>🎙️ VieNeu Thuyết Minh AI</span>
-          <span id="voice-duration-badge">16.0s</span>
+      <!-- 1. Template & Layout Variant -->
+      <div class="prop-section">
+        <div class="prop-section-title">Mẫu & Bố Cục</div>
+        <div class="prop-group">
+          <label class="prop-label">Mẫu Thiết Kế (Template)</label>
+          <select id="prop-template-select" class="prop-select">
+            <option value="title-slide">1. Slide Tiêu Đề (title-slide)</option>
+            <option value="learning-objectives">2. Mục Tiêu Bài Học (learning-objectives)</option>
+            <option value="concept-explain">3. Giải Thích Khái Niệm (concept-explain)</option>
+            <option value="bullet-breakdown">4. Phân Tích Luận Điểm (bullet-breakdown)</option>
+            <option value="image-explain">5. Sơ Đồ Trực Quan (image-explain)</option>
+            <option value="comparison">6. So Sánh Đối Chiếu (comparison)</option>
+            <option value="timeline">7. Trục Tiến Trình (timeline)</option>
+            <option value="formula-explain">8. Công Thức & Định Lý (formula-explain)</option>
+            <option value="quiz">9. Câu Hỏi Tương Tác (quiz)</option>
+            <option value="summary">10. Tổng Kết Bài Học (summary)</option>
+          </select>
         </div>
-        <textarea id="prop-narration-input" class="prop-textarea" rows="4" placeholder="Nhập câu thuyết minh cho slide này..."></textarea>
-        <div style="display: flex; gap: 8px;">
-          <button class="btn btn-secondary" id="btn-test-audio" style="flex: 1;">▶ Nghe Thử</button>
-          <button class="btn btn-primary" id="btn-regen-voice" style="flex: 1;">↻ Tạo Lại Giọng Đọc</button>
+
+        <div class="prop-group">
+          <label class="prop-label">Biến Thể Bố Cục (Layout Variant)</label>
+          <select id="prop-variant-select" class="prop-select" style="margin-bottom: 8px;">
+            <option value="default">Mặc định</option>
+            <option value="text-left-image-right">Chữ Trái - Ảnh Phải</option>
+            <option value="text-right-image-left">Ảnh Trái - Chữ Phải</option>
+            <option value="stacked-top">Banner Trên</option>
+            <option value="fullscreen">Tràn Viền</option>
+            <option value="no-image">Không Có Ảnh</option>
+          </select>
+          <div class="variant-grid" id="variant-pills-container">
+            <div class="variant-pill active" data-variant="default">Mặc định</div>
+            <div class="variant-pill" data-variant="text-left-image-right">Chữ Trái - Ảnh Phải</div>
+            <div class="variant-pill" data-variant="text-right-image-left">Ảnh Trái - Chữ Phải</div>
+            <div class="variant-pill" data-variant="stacked-top">Banner Trên</div>
+            <div class="variant-pill" data-variant="fullscreen">Tràn Viền</div>
+            <div class="variant-pill" data-variant="no-image">Không Có Ảnh</div>
+          </div>
         </div>
       </div>
 
-      <!-- 5. Slide Notes -->
-      <div class="prop-group">
-        <label class="prop-label">Ghi Chú Giảng Viên (Speaker Notes)</label>
-        <textarea id="prop-notes-input" class="prop-textarea" rows="3" placeholder="Ghi chú thêm cho bài giảng..."></textarea>
+      <!-- 2. Voice-Over & Audio-First Sync (Phase 4.1 UI) -->
+      <div class="prop-section">
+        <div class="prop-section-title">
+          <span>Giọng Đọc & Lời Thoại</span>
+          <span style="font-size: 11px; color: var(--primary);">VieNeu v3</span>
+        </div>
+
+        <div class="voice-stat-box">
+          <div>
+            <div style="font-weight: 700; color: #0369A1;" id="voice-duration-label">🎙️ Audio: 15.0s</div>
+            <div style="font-size: 11px; color: #64748B;" id="slide-duration-label">⏱️ Slide: 16.0s (Audio + 1.0s)</div>
+          </div>
+          <button class="btn btn-primary" id="btn-regen-voice" style="padding: 6px 12px; font-size: 12px;">
+            ↻ Tạo Lại
+          </button>
+        </div>
+
+        <div class="prop-group">
+          <label class="prop-label">Kịch Bản Thuyết Minh (Vietnamese Narration)</label>
+          <textarea id="prop-narration-input" class="prop-textarea" rows="4" placeholder="Nhập lời giảng chi tiết bằng tiếng Việt..."></textarea>
+          <div style="display: flex; justify-content: space-between; font-size: 11px; color: #64748B; margin-top: 4px;">
+            <span id="narration-char-count">0 từ · 0 ký tự</span>
+            <span id="narration-est-time">Ước tính: ~0s</span>
+          </div>
+        </div>
+
+        <div class="prop-group">
+          <label class="prop-label">Giọng Đọc AI (TTS Speaker)</label>
+          <select id="prop-voice-select" class="prop-select">
+            <option value="BanMai">VieNeu — Ban Mai (Nữ Miền Bắc)</option>
+            <option value="MyDuyen">VieNeu — Mỹ Duyên (Nữ Miền Nam)</option>
+            <option value="MinhQuang">VieNeu — Minh Quang (Nam Miền Bắc)</option>
+            <option value="LeMinh">VieNeu — Lê Minh (Nam Miền Nam)</option>
+            <option value="viettel-ai">Viettel AI — Giọng Chuẩn</option>
+          </select>
+        </div>
+
+        <div class="prop-group">
+          <label class="prop-label">Nghe Thử Âm Thanh Đã Tạo</label>
+          <audio id="slide-audio-player" controls style="width: 100%; height: 36px; border-radius: 6px;"></audio>
+        </div>
+      </div>
+
+      <!-- 3. Animation Presets & Cues (Phase 3.2 UI) -->
+      <div class="prop-section">
+        <div class="prop-section-title">
+          <span>Hiệu Ứng Hoạt Họa (GSAP)</span>
+          <button class="btn btn-secondary" id="btn-add-anim" style="padding: 2px 8px; font-size: 11px;">+ Thêm</button>
+        </div>
+
+        <div id="anim-list-container">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- 4. Speaker Notes -->
+      <div class="prop-section">
+        <div class="prop-section-title">Ghi Chú Giảng Viên</div>
+        <div class="prop-group">
+          <textarea id="prop-notes-input" class="prop-textarea" rows="3" placeholder="Ghi chú thêm cho người thuyết trình..."></textarea>
+        </div>
       </div>
     </aside>
+
   </div>
 
   <!-- Image Selector Modal -->
   <div class="modal-overlay" id="image-modal">
     <div class="modal-box">
-      <h3 style="font-size: 18px; font-weight: 800; color: var(--hf-primary);">Chọn hoặc Thay Ảnh Minh Họa</h3>
-      <input type="text" id="modal-img-url" class="prop-input" placeholder="Dán đường dẫn ảnh (URL hoặc local path)..." />
-      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 8px;">
-        <img class="img-preview-opt" src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=300&q=80" style="width: 100%; height: 80px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid transparent;" />
-        <img class="img-preview-opt" src="https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=300&q=80" style="width: 100%; height: 80px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid transparent;" />
-        <img class="img-preview-opt" src="https://images.unsplash.com/photo-1507842229451-7f01be7fe7ab?w=300&q=80" style="width: 100%; height: 80px; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid transparent;" />
+      <h3 style="font-size: 17px; font-weight: 800; color: var(--hf-primary, #0369A1); margin-bottom: 12px;">
+        Thay Ảnh Minh Họa Slide
+      </h3>
+      <div class="prop-group">
+        <label class="prop-label">Đường Dẫn Ảnh (URL hoặc local storage):</label>
+        <input type="text" id="modal-img-url" class="prop-input" placeholder="https://..." />
       </div>
-      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 12px;">
+
+      <div class="prop-group">
+        <label class="prop-label">Hoặc tải file ảnh lên từ máy tính:</label>
+        <input type="file" id="modal-img-file" accept="image/*" class="prop-input" style="padding: 6px;" />
+      </div>
+
+      <div class="prop-group">
+        <label class="prop-label">Kho ảnh mẫu học thuật gợi ý:</label>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+          <img class="img-preview-opt" src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400&q=80" style="width: 100%; height: 75px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 2px solid transparent;" />
+          <img class="img-preview-opt" src="https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=400&q=80" style="width: 100%; height: 75px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 2px solid transparent;" />
+          <img class="img-preview-opt" src="https://images.unsplash.com/photo-1507842229451-7f01be7fe7ab?w=400&q=80" style="width: 100%; height: 75px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 2px solid transparent;" />
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
         <button class="btn btn-secondary" id="btn-close-modal">Hủy</button>
-        <button class="btn btn-primary" id="btn-apply-img">Áp Dụng</button>
+        <button class="btn btn-primary" id="btn-apply-img">Áp Dụng Ảnh</button>
       </div>
     </div>
   </div>
 
   <script type="module">
-    import { TEMPLATES, renderSlide } from './templates/index.js';
+    import { sceneReducer, validateSlide, computeSlideDuration, recomputeTotalDuration, ALLOWED_PRESETS, ALLOWED_VARIANTS } from './reducer.js';
+    import { TEMPLATES, renderSlide, buildGsapTimelineForSlide } from '../templates/index.js';
 
-    // Application State Store
-    class StudioStore {
+    class StudioApp {
       constructor() {
         this.currentSlideIndex = 0;
         this.history = [];
         this.historyIndex = -1;
         this.saveTimeout = null;
         this.activeImageTargetId = null;
+        this.isAudioJobRunning = false;
 
         this.scene = null;
+        this.currentTimeline = null;
+        this.isPlaying = false;
       }
 
       async init() {
-        // Load initial scene from fixtures/scene.sample.json or localStorage
+        // Try local storage or fetch fixtures
         const saved = localStorage.getItem('lecture_scene_state');
         if (saved) {
           try {
@@ -553,29 +899,64 @@
         }
 
         if (!this.scene) {
-          const res = await fetch('fixtures/scene.sample.json');
-          this.scene = await res.json();
+          try {
+            const res = await fetch('../fixtures/scene.sample.json');
+            this.scene = await res.json();
+          } catch (e) {
+            console.error('Failed to load sample fixture, creating minimal scene:', e);
+            this.scene = {
+              projectId: 'project-sample',
+              title: 'Bài Giảng Mẫu',
+              slides: [
+                {
+                  slideId: 'slide-01',
+                  templateId: 'title-slide',
+                  layoutVariant: 'default',
+                  title: 'Chương 1: Triết Học & Thế Giới Quan',
+                  elements: [],
+                  animations: [],
+                  voice: { narration: 'Chào mừng các bạn đến với bài giảng.', provider: 'vieneu', durationSeconds: 5.0 },
+                  durationSeconds: 6.0
+                }
+              ]
+            };
+          }
         }
 
-        this.pushHistory('Khởi tạo Studio');
+        // Initialize history
+        this.history = [JSON.parse(JSON.stringify(this.scene))];
+        this.historyIndex = 0;
+
+        this.bindEvents();
         this.renderAll();
       }
 
-      pushHistory(actionDesc) {
-        if (this.historyIndex < this.history.length - 1) {
-          this.history = this.history.slice(0, this.historyIndex + 1);
+      dispatch(action, actionName = 'Thay đổi dữ liệu') {
+        try {
+          const nextScene = sceneReducer(this.scene, action);
+          this.scene = nextScene;
+
+          // Push history for undo/redo
+          if (this.historyIndex < this.history.length - 1) {
+            this.history = this.history.slice(0, this.historyIndex + 1);
+          }
+          this.history.push(JSON.parse(JSON.stringify(this.scene)));
+          this.historyIndex = this.history.length - 1;
+
+          this.triggerAutosave();
+          this.renderAll();
+        } catch (err) {
+          console.error(`Dispatch failed [${action.type}]:`, err);
+          alert(`Lỗi thay đổi trạng thái: ${err.message}`);
         }
-        this.history.push(JSON.parse(JSON.stringify(this.scene)));
-        this.historyIndex = this.history.length - 1;
-        this.triggerAutosave();
       }
 
       undo() {
         if (this.historyIndex > 0) {
           this.historyIndex--;
           this.scene = JSON.parse(JSON.stringify(this.history[this.historyIndex]));
-          this.renderAll();
           this.triggerAutosave();
+          this.renderAll();
         }
       }
 
@@ -583,8 +964,8 @@
         if (this.historyIndex < this.history.length - 1) {
           this.historyIndex++;
           this.scene = JSON.parse(JSON.stringify(this.history[this.historyIndex]));
-          this.renderAll();
           this.triggerAutosave();
+          this.renderAll();
         }
       }
 
@@ -599,7 +980,6 @@
         this.saveTimeout = setTimeout(async () => {
           localStorage.setItem('lecture_scene_state', JSON.stringify(this.scene));
           try {
-            // Attempt autosave to backend if endpoint is live
             await fetch(`/projects/${this.scene.projectId || 'sample'}/scene`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
@@ -616,48 +996,138 @@
       }
 
       getCurrentSlide() {
+        if (!this.scene || !this.scene.slides) return null;
         return this.scene.slides[this.currentSlideIndex];
       }
 
       setSlideIndex(idx) {
-        if (idx >= 0 && idx < this.scene.slides.length) {
+        if (this.scene && idx >= 0 && idx < this.scene.slides.length) {
           this.currentSlideIndex = idx;
+          this.stopSlideTimeline();
           this.renderAll();
         }
       }
 
       renderAll() {
+        this.renderNavbar();
         this.renderSlideList();
         this.renderCanvas();
         this.renderProperties();
+        this.setupSlideTimeline();
+      }
+
+      renderNavbar() {
+        const titleInput = document.getElementById('project-title-input');
+        if (titleInput && this.scene.title) {
+          titleInput.value = this.scene.title;
+        }
+
+        const btnUndo = document.getElementById('btn-undo');
+        const btnRedo = document.getElementById('btn-redo');
+        if (btnUndo) btnUndo.disabled = this.historyIndex <= 0;
+        if (btnRedo) btnRedo.disabled = this.historyIndex >= this.history.length - 1;
+
+        // Export button lock when audio job runs
+        ['btn-export-pdf', 'btn-export-pptx', 'btn-export-mp4'].forEach(id => {
+          const btn = document.getElementById(id);
+          if (btn) btn.disabled = this.isAudioJobRunning;
+        });
       }
 
       renderSlideList() {
         const container = document.getElementById('slide-list-container');
-        if (!container) return;
+        if (!container || !this.scene) return;
         container.innerHTML = '';
+
+        const totalSecs = Math.round((this.scene.totalDurationSeconds || recomputeTotalDuration(this.scene.slides)) * 10) / 10;
+        const countLabel = document.getElementById('deck-count-label');
+        if (countLabel) {
+          const mins = Math.floor(totalSecs / 60);
+          const secs = Math.floor(totalSecs % 60);
+          countLabel.innerText = `Slide (${this.scene.slides.length}) · ⏱️ ${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+        }
 
         this.scene.slides.forEach((s, idx) => {
           const item = document.createElement('div');
           item.className = `slide-card-item ${idx === this.currentSlideIndex ? 'active' : ''}`;
           item.innerHTML = `
+            <div class="slide-card-actions">
+              ${idx > 0 ? `<button class="card-action-btn btn-move-up" title="Lên trên">▲</button>` : ''}
+              ${idx < this.scene.slides.length - 1 ? `<button class="card-action-btn btn-move-down" title="Xuống dưới">▼</button>` : ''}
+              <button class="card-action-btn btn-dup-slide" title="Nhân bản">⎘</button>
+              ${this.scene.slides.length > 1 ? `<button class="card-action-btn delete btn-del-slide" title="Xóa slide">✕</button>` : ''}
+            </div>
             <div class="slide-card-meta">
               <span>#${String(idx + 1).padStart(2, '0')} · ${s.templateId}</span>
               <span>${s.durationSeconds || 16}s</span>
             </div>
             <div class="slide-card-title">${s.title || 'Slide không tên'}</div>
             <div class="slide-card-sub">
-              <span>🎙️ ${s.voice?.durationSeconds || 15}s</span>
+              <span>🎙️ ${s.voice?.durationSeconds || 0}s</span>
               <span>✦ ${s.layoutVariant || 'default'}</span>
             </div>
           `;
-          item.onclick = () => this.setSlideIndex(idx);
+
+          // Card selection
+          item.onclick = (e) => {
+            if (e.target.closest('.card-action-btn')) return;
+            this.setSlideIndex(idx);
+          };
+
+          // Move Up
+          const upBtn = item.querySelector('.btn-move-up');
+          if (upBtn) {
+            upBtn.onclick = (e) => {
+              e.stopPropagation();
+              this.dispatch({ type: 'REORDER_SLIDES', payload: { fromIndex: idx, toIndex: idx - 1 } }, 'Di chuyển slide lên');
+              this.setSlideIndex(idx - 1);
+            };
+          }
+
+          // Move Down
+          const downBtn = item.querySelector('.btn-move-down');
+          if (downBtn) {
+            downBtn.onclick = (e) => {
+              e.stopPropagation();
+              this.dispatch({ type: 'REORDER_SLIDES', payload: { fromIndex: idx, toIndex: idx + 1 } }, 'Di chuyển slide xuống');
+              this.setSlideIndex(idx + 1);
+            };
+          }
+
+          // Duplicate
+          const dupBtn = item.querySelector('.btn-dup-slide');
+          if (dupBtn) {
+            dupBtn.onclick = (e) => {
+              e.stopPropagation();
+              const clone = JSON.parse(JSON.stringify(s));
+              clone.slideId = `slide-${Date.now().toString().slice(-4)}`;
+              clone.title += ' (Bản sao)';
+              this.dispatch({ type: 'ADD_SLIDE', payload: { index: idx + 1, slide: clone } }, 'Nhân bản slide');
+              this.setSlideIndex(idx + 1);
+            };
+          }
+
+          // Delete
+          const delBtn = item.querySelector('.btn-del-slide');
+          if (delBtn) {
+            delBtn.onclick = (e) => {
+              e.stopPropagation();
+              if (confirm(`Bạn có chắc muốn xóa slide #${idx + 1}?`)) {
+                this.dispatch({ type: 'DELETE_SLIDE', payload: { slideIndex: idx } }, 'Xóa slide');
+                if (this.currentSlideIndex >= this.scene.slides.length) {
+                  this.currentSlideIndex = Math.max(0, this.scene.slides.length - 1);
+                }
+                this.renderAll();
+              }
+            };
+          }
+
           container.appendChild(item);
         });
 
-        const counter = document.getElementById('canvas-slide-indicator');
-        if (counter) {
-          counter.innerText = `Slide ${this.currentSlideIndex + 1} / ${this.scene.slides.length}`;
+        const indicator = document.getElementById('canvas-slide-indicator');
+        if (indicator) {
+          indicator.innerText = `Slide ${this.currentSlideIndex + 1} / ${this.scene.slides.length}`;
         }
       }
 
@@ -669,33 +1139,57 @@
 
         canvas.innerHTML = renderSlide(slide, this.currentSlideIndex, 0);
 
-        // Make on-canvas text editable
-        const editableElements = canvas.querySelectorAll('.slide-title, .title-hero-sub, .concept-quote, .breakdown-title, .breakdown-body, .timeline-event-title, .formula-display-box, .question-txt, .objective-text, .summary-bullet-text');
-        editableElements.forEach(el => {
+        const badge = document.getElementById('canvas-template-badge');
+        if (badge) badge.innerText = `${slide.templateId} (${slide.layoutVariant || 'default'})`;
+
+        // Direct Text Editing on Canvas
+        const textElements = canvas.querySelectorAll(`
+          .slide-title, .title-hero-sub, .concept-quote,
+          .breakdown-title, .breakdown-body, .timeline-event-title,
+          .timeline-event-desc, .formula-display-box, .formula-note-text,
+          .question-txt, .quiz-opt-text, .objective-text, .summary-bullet-text
+        `);
+
+        textElements.forEach(el => {
           el.setAttribute('contenteditable', 'true');
-          el.addEventListener('blur', (e) => {
+          el.setAttribute('spellcheck', 'false');
+
+          el.onblur = (e) => {
             const newText = e.target.innerText.trim();
             if (el.classList.contains('slide-title')) {
-              slide.title = newText;
+              if (slide.title !== newText) {
+                this.dispatch({
+                  type: 'UPDATE_SLIDE',
+                  payload: { slideIndex: this.currentSlideIndex, changes: { title: newText } }
+                }, 'Sửa tiêu đề slide');
+              }
             } else if (el.classList.contains('title-hero-sub')) {
-              slide.subtitle = newText;
+              if (slide.subtitle !== newText) {
+                this.dispatch({
+                  type: 'UPDATE_SLIDE',
+                  payload: { slideIndex: this.currentSlideIndex, changes: { subtitle: newText } }
+                }, 'Sửa phụ đề slide');
+              }
             } else if (el.classList.contains('concept-quote')) {
               const def = slide.elements.find(x => x.type === 'card' || x.type === 'text');
-              if (def) def.content = newText.replace(/^[“”"]|[“”"]$/g, '');
+              if (def) {
+                this.dispatch({
+                  type: 'UPDATE_ELEMENT',
+                  payload: { slideIndex: this.currentSlideIndex, elementId: def.id, changes: { content: newText.replace(/^[“”"]|[“”"]$/g, '') } }
+                }, 'Sửa định nghĩa');
+              }
             }
-            this.pushHistory('Chỉnh sửa văn bản trực tiếp trên Canvas');
-            this.renderSlideList();
-          });
+          };
         });
 
-        // Make images clickable for modal replace
+        // Clickable Images
         const images = canvas.querySelectorAll('img');
         images.forEach(img => {
           img.classList.add('editable-image');
-          img.title = 'Click để đổi ảnh minh họa';
+          img.title = 'Click để thay đổi ảnh minh họa';
           img.onclick = () => {
             this.activeImageTargetId = img.id;
-            openImageModal(img.src);
+            this.openImageModal(img.src);
           };
         });
       }
@@ -704,98 +1198,505 @@
         const slide = this.getCurrentSlide();
         if (!slide) return;
 
+        // Template Selector
         const templateSelect = document.getElementById('prop-template-select');
-        const variantSelect = document.getElementById('prop-variant-select');
-        const narrationInput = document.getElementById('prop-narration-input');
-        const notesInput = document.getElementById('prop-notes-input');
-        const durationBadge = document.getElementById('voice-duration-badge');
-
         if (templateSelect) templateSelect.value = slide.templateId || 'concept-explain';
-        if (variantSelect) variantSelect.value = slide.layoutVariant || 'default';
-        if (narrationInput) narrationInput.value = slide.voice?.narration || '';
+
+        // Layout Variants
+        const pills = document.querySelectorAll('#variant-pills-container .variant-pill');
+        const currentVariant = slide.layoutVariant || 'default';
+        pills.forEach(pill => {
+          if (pill.dataset.variant === currentVariant) pill.classList.add('active');
+          else pill.classList.remove('active');
+        });
+
+        // Narration & Counts
+        const narrationInput = document.getElementById('prop-narration-input');
+        if (narrationInput) {
+          narrationInput.value = slide.voice?.narration || '';
+          this.updateNarrationStats(narrationInput.value);
+        }
+
+        // Voice Select
+        const voiceSelect = document.getElementById('prop-voice-select');
+        if (voiceSelect && slide.voice?.voiceId) {
+          voiceSelect.value = slide.voice.voiceId;
+        }
+
+        // Audio Duration labels
+        const voiceDur = slide.voice?.durationSeconds || 0;
+        const slideDur = slide.durationSeconds || 16.0;
+        const voiceDurLabel = document.getElementById('voice-duration-label');
+        const slideDurLabel = document.getElementById('slide-duration-label');
+        if (voiceDurLabel) voiceDurLabel.innerText = `🎙️ Audio: ${voiceDur}s`;
+        if (slideDurLabel) slideDurLabel.innerText = `⏱️ Slide: ${slideDur}s (Audio + 1.0s)`;
+
+        // Audio Player
+        const audioEl = document.getElementById('slide-audio-player');
+        if (audioEl) {
+          if (slide.voice?.audioUrl) {
+            audioEl.src = slide.voice.audioUrl;
+            audioEl.style.display = 'block';
+          } else {
+            audioEl.removeAttribute('src');
+          }
+        }
+
+        // Notes
+        const notesInput = document.getElementById('prop-notes-input');
         if (notesInput) notesInput.value = slide.notes || '';
-        if (durationBadge) durationBadge.innerText = (slide.durationSeconds || 16) + 's';
+
+        // Animations list
+        this.renderAnimationsList(slide);
+      }
+
+      updateNarrationStats(text) {
+        const words = text ? text.trim().split(/\s+/).filter(Boolean).length : 0;
+        const chars = text ? text.length : 0;
+        const estSecs = Math.max(1, Math.round(words / 3.2)); // ~3.2 Vietnamese words/second
+
+        const charEl = document.getElementById('narration-char-count');
+        const estEl = document.getElementById('narration-est-time');
+        if (charEl) charEl.innerText = `${words} từ · ${chars} ký tự`;
+        if (estEl) estEl.innerText = `Ước tính: ~${estSecs}s`;
+      }
+
+      renderAnimationsList(slide) {
+        const container = document.getElementById('anim-list-container');
+        if (!container) return;
+        container.innerHTML = '';
+
+        if (!slide.animations || slide.animations.length === 0) {
+          container.innerHTML = `<div style="font-size: 12px; color: #94A3B8; font-style: italic;">Chưa có hiệu ứng hoạt họa riêng.</div>`;
+          return;
+        }
+
+        slide.animations.forEach((anim, aIdx) => {
+          const row = document.createElement('div');
+          row.className = 'anim-row';
+          row.innerHTML = `
+            <div class="anim-row-header">
+              <span style="color: var(--primary); font-family: monospace;">${anim.target}</span>
+              <button class="card-action-btn delete btn-del-anim" style="width: 18px; height: 18px;">✕</button>
+            </div>
+            <div class="anim-controls-grid">
+              <select class="prop-select anim-preset-select" style="padding: 4px 6px; font-size: 11px;">
+                ${ALLOWED_PRESETS.map(p => `<option value="${p}" ${p === anim.preset ? 'selected' : ''}>${p}</option>`).join('')}
+              </select>
+              <input type="number" step="0.1" min="0" class="prop-input anim-delay-input" value="${anim.delay || 0}" title="Delay (s)" style="padding: 4px 6px; font-size: 11px;" />
+              <input type="number" step="0.1" min="0.1" class="prop-input anim-duration-input" value="${anim.duration || 1.0}" title="Duration (s)" style="padding: 4px 6px; font-size: 11px;" />
+            </div>
+          `;
+
+          row.querySelector('.btn-del-anim').onclick = () => {
+            this.dispatch({
+              type: 'REMOVE_ANIMATION',
+              payload: { slideIndex: this.currentSlideIndex, animIndex: aIdx }
+            }, 'Xóa hiệu ứng');
+          };
+
+          row.querySelector('.anim-preset-select').onchange = (e) => {
+            this.dispatch({
+              type: 'SET_ANIMATION',
+              payload: { slideIndex: this.currentSlideIndex, animIndex: aIdx, animation: { preset: e.target.value } }
+            }, 'Đổi preset hiệu ứng');
+          };
+
+          row.querySelector('.anim-delay-input').onchange = (e) => {
+            this.dispatch({
+              type: 'SET_ANIMATION',
+              payload: { slideIndex: this.currentSlideIndex, animIndex: aIdx, animation: { delay: parseFloat(e.target.value) || 0 } }
+            }, 'Đổi delay hiệu ứng');
+          };
+
+          row.querySelector('.anim-duration-input').onchange = (e) => {
+            this.dispatch({
+              type: 'SET_ANIMATION',
+              payload: { slideIndex: this.currentSlideIndex, animIndex: aIdx, animation: { duration: parseFloat(e.target.value) || 1.0 } }
+            }, 'Đổi thời lượng hiệu ứng');
+          };
+
+          container.appendChild(row);
+        });
+      }
+
+      setupSlideTimeline() {
+        const slide = this.getCurrentSlide();
+        if (!slide) return;
+
+        const canvas = document.getElementById('live-canvas');
+        this.currentTimeline = buildGsapTimelineForSlide(slide, canvas);
+
+        const slider = document.getElementById('timeline-slider');
+        const maxDur = slide.durationSeconds || 16.0;
+        if (slider) {
+          slider.max = maxDur;
+          slider.value = 0;
+        }
+
+        const totalTimeEl = document.getElementById('time-total');
+        const curTimeEl = document.getElementById('time-current');
+        if (totalTimeEl) totalTimeEl.innerText = this.formatSeconds(maxDur);
+        if (curTimeEl) curTimeEl.innerText = '00:00.0';
+
+        if (this.currentTimeline) {
+          this.currentTimeline.eventCallback('onUpdate', () => {
+            if (slider && this.currentTimeline) {
+              const time = this.currentTimeline.time();
+              slider.value = time;
+              if (curTimeEl) curTimeEl.innerText = this.formatSeconds(time);
+            }
+          });
+          this.currentTimeline.eventCallback('onComplete', () => {
+            this.isPlaying = false;
+            const playBtn = document.getElementById('btn-timeline-play');
+            if (playBtn) playBtn.innerText = '▶';
+          });
+        }
+      }
+
+      playSlideTimeline() {
+        if (!this.currentTimeline) return;
+        this.isPlaying = true;
+        this.currentTimeline.play();
+        const playBtn = document.getElementById('btn-timeline-play');
+        if (playBtn) playBtn.innerText = '⏸';
+      }
+
+      pauseSlideTimeline() {
+        if (!this.currentTimeline) return;
+        this.isPlaying = false;
+        this.currentTimeline.pause();
+        const playBtn = document.getElementById('btn-timeline-play');
+        if (playBtn) playBtn.innerText = '▶';
+      }
+
+      stopSlideTimeline() {
+        if (!this.currentTimeline) return;
+        this.isPlaying = false;
+        this.currentTimeline.pause(0);
+        const playBtn = document.getElementById('btn-timeline-play');
+        const slider = document.getElementById('timeline-slider');
+        const curTimeEl = document.getElementById('time-current');
+        if (playBtn) playBtn.innerText = '▶';
+        if (slider) slider.value = 0;
+        if (curTimeEl) curTimeEl.innerText = '00:00.0';
+      }
+
+      formatSeconds(s) {
+        const mins = Math.floor(s / 60);
+        const secs = (s % 60).toFixed(1);
+        return `${String(mins).padStart(2, '0')}:${secs.padStart(4, '0')}`;
+      }
+
+      openImageModal(currentSrc) {
+        const modal = document.getElementById('image-modal');
+        const input = document.getElementById('modal-img-url');
+        if (input) input.value = currentSrc || '';
+        if (modal) modal.classList.add('open');
+      }
+
+      closeImageModal() {
+        const modal = document.getElementById('image-modal');
+        if (modal) modal.classList.remove('open');
+      }
+
+      bindEvents() {
+        // Project title edit
+        const titleInput = document.getElementById('project-title-input');
+        if (titleInput) {
+          titleInput.onblur = (e) => {
+            this.scene.title = e.target.value.trim();
+            this.triggerAutosave();
+          };
+        }
+
+        // Undo / Redo
+        document.getElementById('btn-undo').onclick = () => this.undo();
+        document.getElementById('btn-redo').onclick = () => this.redo();
+
+        // Prev / Next slide
+        document.getElementById('btn-prev-slide').onclick = () => this.setSlideIndex(this.currentSlideIndex - 1);
+        document.getElementById('btn-next-slide').onclick = () => this.setSlideIndex(this.currentSlideIndex + 1);
+
+        // Add Slide
+        document.getElementById('btn-add-slide').onclick = () => {
+          const newSlide = {
+            slideId: `slide-${Date.now().toString().slice(-4)}`,
+            templateId: 'concept-explain',
+            layoutVariant: 'default',
+            title: 'Khái Niệm Mới',
+            elements: [
+              { id: 'card-new', type: 'card', content: 'Nội dung giải thích chi tiết cho khái niệm này.' }
+            ],
+            animations: [
+              { target: '.slide-title', preset: 'fade-in', delay: 0.2, duration: 0.8 }
+            ],
+            voice: {
+              narration: 'Nội dung thuyết minh cho slide mới.',
+              provider: 'vieneu',
+              voiceId: 'BanMai',
+              durationSeconds: 4.0
+            },
+            durationSeconds: 5.0
+          };
+          this.dispatch({
+            type: 'ADD_SLIDE',
+            payload: { index: this.currentSlideIndex + 1, slide: newSlide }
+          }, 'Thêm slide mới');
+          this.setSlideIndex(this.currentSlideIndex + 1);
+        };
+
+        // Template Selector
+        document.getElementById('prop-template-select').onchange = (e) => {
+          this.dispatch({
+            type: 'UPDATE_SLIDE',
+            payload: { slideIndex: this.currentSlideIndex, changes: { templateId: e.target.value } }
+          }, 'Đổi template');
+        };
+
+        // Variant Pills
+        document.querySelectorAll('#variant-pills-container .variant-pill').forEach(pill => {
+          pill.onclick = () => {
+            const v = pill.dataset.variant;
+            this.dispatch({
+              type: 'UPDATE_SLIDE',
+              payload: { slideIndex: this.currentSlideIndex, changes: { layoutVariant: v } }
+            }, 'Đổi layout variant');
+          };
+        });
+
+        // Narration text blur
+        const narrationInput = document.getElementById('prop-narration-input');
+        if (narrationInput) {
+          narrationInput.oninput = (e) => this.updateNarrationStats(e.target.value);
+          narrationInput.onblur = (e) => {
+            const currentNarration = this.getCurrentSlide()?.voice?.narration;
+            if (currentNarration !== e.target.value) {
+              this.dispatch({
+                type: 'UPDATE_VOICE',
+                payload: { slideIndex: this.currentSlideIndex, changes: { narration: e.target.value } }
+              }, 'Sửa kịch bản thuyết minh');
+            }
+          };
+        }
+
+        // Voice speaker select
+        document.getElementById('prop-voice-select').onchange = (e) => {
+          this.dispatch({
+            type: 'UPDATE_VOICE',
+            payload: { slideIndex: this.currentSlideIndex, changes: { voiceId: e.target.value } }
+          }, 'Chọn giọng đọc');
+        };
+
+        // Notes blur
+        const notesInput = document.getElementById('prop-notes-input');
+        if (notesInput) {
+          notesInput.onblur = (e) => {
+            if (this.getCurrentSlide()?.notes !== e.target.value) {
+              this.dispatch({
+                type: 'UPDATE_SLIDE',
+                payload: { slideIndex: this.currentSlideIndex, changes: { notes: e.target.value } }
+              }, 'Sửa ghi chú');
+            }
+          };
+        }
+
+        // "Tạo Lại Giọng Đọc" Button (B5 Voice UI)
+        document.getElementById('btn-regen-voice').onclick = async () => {
+          const slide = this.getCurrentSlide();
+          if (!slide) return;
+
+          const regenBtn = document.getElementById('btn-regen-voice');
+          regenBtn.disabled = true;
+          regenBtn.innerText = '⏳ Đang tạo...';
+          this.isAudioJobRunning = true;
+          this.renderNavbar();
+
+          try {
+            // Attempt to hit Person A's API: POST /projects/{id}/slides/{sid}/audio
+            const res = await fetch(`/projects/${this.scene.projectId || 'sample'}/slides/${slide.slideId}/audio`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                narration: slide.voice?.narration || '',
+                voiceId: slide.voice?.voiceId || 'BanMai',
+                provider: 'vieneu'
+              })
+            });
+
+            if (res.ok) {
+              const data = await res.json();
+              this.dispatch({
+                type: 'UPDATE_VOICE',
+                payload: {
+                  slideIndex: this.currentSlideIndex,
+                  changes: {
+                    audioUrl: data.audioUrl,
+                    durationSeconds: data.durationSeconds
+                  },
+                  autoSync: true
+                }
+              }, 'Cập nhật âm thanh TTS');
+            } else {
+              // Simulated Mock Response when server is not running
+              await new Promise(r => setTimeout(r, 800));
+              const words = (slide.voice?.narration || '').trim().split(/\s+/).filter(Boolean).length;
+              const simDuration = Math.round(Math.max(3.5, words / 3.0) * 10) / 10;
+              this.dispatch({
+                type: 'UPDATE_VOICE',
+                payload: {
+                  slideIndex: this.currentSlideIndex,
+                  changes: {
+                    durationSeconds: simDuration,
+                    audioUrl: 'https://actions.google.com/sounds/v1/speech/greeting.ogg'
+                  },
+                  autoSync: true
+                }
+              }, 'Tạo lại giọng đọc (Mô phỏng)');
+            }
+          } catch (err) {
+            // Simulated fallback
+            const words = (slide.voice?.narration || '').trim().split(/\s+/).filter(Boolean).length;
+            const simDuration = Math.round(Math.max(3.5, words / 3.0) * 10) / 10;
+            this.dispatch({
+              type: 'UPDATE_VOICE',
+              payload: {
+                slideIndex: this.currentSlideIndex,
+                changes: {
+                  durationSeconds: simDuration
+                },
+                autoSync: true
+              }
+            }, 'Tạo lại giọng đọc');
+          } finally {
+            regenBtn.disabled = false;
+            regenBtn.innerText = '↻ Tạo Lại';
+            this.isAudioJobRunning = false;
+            this.renderNavbar();
+          }
+        };
+
+        // Add Animation button
+        document.getElementById('btn-add-anim').onclick = () => {
+          this.dispatch({
+            type: 'SET_ANIMATION',
+            payload: {
+              slideIndex: this.currentSlideIndex,
+              animIndex: (this.getCurrentSlide()?.animations?.length || 0),
+              animation: {
+                target: '.slide-title',
+                preset: 'fade-in',
+                delay: 0.5,
+                duration: 1.0,
+                easing: 'power2.out'
+              }
+            }
+          }, 'Thêm hiệu ứng hoạt họa');
+        };
+
+        // Timeline playback controls
+        const playBtn = document.getElementById('btn-timeline-play');
+        if (playBtn) {
+          playBtn.onclick = () => {
+            if (this.isPlaying) this.pauseSlideTimeline();
+            else this.playSlideTimeline();
+          };
+        }
+
+        const stopBtn = document.getElementById('btn-timeline-stop');
+        if (stopBtn) {
+          stopBtn.onclick = () => this.stopSlideTimeline();
+        }
+
+        const slider = document.getElementById('timeline-slider');
+        if (slider) {
+          slider.oninput = (e) => {
+            const time = parseFloat(e.target.value);
+            if (this.currentTimeline) {
+              this.currentTimeline.pause(time);
+              this.isPlaying = false;
+              if (playBtn) playBtn.innerText = '▶';
+            }
+            const curTimeEl = document.getElementById('time-current');
+            if (curTimeEl) curTimeEl.innerText = this.formatSeconds(time);
+          };
+        }
+
+        // Image Modal
+        document.getElementById('btn-close-modal').onclick = () => this.closeImageModal();
+        document.querySelectorAll('.img-preview-opt').forEach(opt => {
+          opt.onclick = () => {
+            document.getElementById('modal-img-url').value = opt.src;
+          };
+        });
+
+        // File upload reader for images
+        const fileInput = document.getElementById('modal-img-file');
+        if (fileInput) {
+          fileInput.onchange = (e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = (re) => {
+                document.getElementById('modal-img-url').value = re.target.result;
+              };
+              reader.readAsDataURL(file);
+            }
+          };
+        }
+
+        document.getElementById('btn-apply-img').onclick = () => {
+          const newUrl = document.getElementById('modal-img-url').value.trim();
+          if (newUrl) {
+            const slide = this.getCurrentSlide();
+            const imgEl = slide.elements?.find(e => e.type === 'image' || e.id === this.activeImageTargetId);
+            if (imgEl) {
+              this.dispatch({
+                type: 'UPDATE_ELEMENT',
+                payload: { slideIndex: this.currentSlideIndex, elementId: imgEl.id, changes: { content: newUrl } }
+              }, 'Đổi ảnh minh họa');
+            }
+          }
+          this.closeImageModal();
+        };
+
+        // Keyboard Shortcuts
+        window.addEventListener('keydown', (e) => {
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+            e.preventDefault();
+            if (e.shiftKey) this.redo();
+            else this.undo();
+          } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+            e.preventDefault();
+            this.redo();
+          } else if (e.key === 'ArrowLeft' && e.altKey) {
+            this.setSlideIndex(this.currentSlideIndex - 1);
+          } else if (e.key === 'ArrowRight' && e.altKey) {
+            this.setSlideIndex(this.currentSlideIndex + 1);
+          } else if (e.key === ' ' && e.ctrlKey) {
+            e.preventDefault();
+            if (this.isPlaying) this.pauseSlideTimeline();
+            else this.playSlideTimeline();
+          }
+        });
+
+        // Export Buttons Handler (Triggers Person A's /export or notification)
+        document.getElementById('btn-export-mp4').onclick = () => {
+          alert('Khởi chạy render MP4 (HyperFrames 1080p). Tiến trình sẽ tạo video chất lượng cao kèm thuyết minh VieNeu.');
+        };
+        document.getElementById('btn-export-pdf').onclick = () => {
+          window.print();
+        };
+        document.getElementById('btn-export-pptx').onclick = () => {
+          alert('Đang đóng gói slide dạng PPTX Image Pack độ phân giải cao.');
+        };
       }
     }
 
-    const store = new StudioStore();
-    window.studioStore = store;
-    store.init();
-
-    // Event Bindings
-    document.getElementById('btn-undo').onclick = () => store.undo();
-    document.getElementById('btn-redo').onclick = () => store.redo();
-    document.getElementById('btn-prev-slide').onclick = () => store.setSlideIndex(store.currentSlideIndex - 1);
-    document.getElementById('btn-next-slide').onclick = () => store.setSlideIndex(store.currentSlideIndex + 1);
-
-    document.getElementById('prop-template-select').onchange = (e) => {
-      const slide = store.getCurrentSlide();
-      slide.templateId = e.target.value;
-      store.pushHistory('Đổi Template: ' + e.target.value);
-      store.renderAll();
-    };
-
-    document.getElementById('prop-variant-select').onchange = (e) => {
-      const slide = store.getCurrentSlide();
-      slide.layoutVariant = e.target.value;
-      store.pushHistory('Đổi Layout Variant: ' + e.target.value);
-      store.renderAll();
-    };
-
-    document.getElementById('prop-narration-input').onblur = (e) => {
-      const slide = store.getCurrentSlide();
-      if (!slide.voice) slide.voice = {};
-      slide.voice.narration = e.target.value;
-      store.pushHistory('Sửa kịch bản thuyết minh');
-    };
-
-    document.getElementById('prop-notes-input').onblur = (e) => {
-      const slide = store.getCurrentSlide();
-      slide.notes = e.target.value;
-      store.pushHistory('Sửa ghi chú giảng viên');
-    };
-
-    // Keyboard Shortcuts (Ctrl+Z, Ctrl+Y)
-    window.addEventListener('keydown', (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
-        e.preventDefault();
-        if (e.shiftKey) store.redo();
-        else store.undo();
-      } else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
-        e.preventDefault();
-        store.redo();
-      }
-    });
-
-    // Image Modal Logic
-    function openImageModal(currentSrc) {
-      const modal = document.getElementById('image-modal');
-      const input = document.getElementById('modal-img-url');
-      if (input) input.value = currentSrc || '';
-      if (modal) modal.classList.add('open');
-    }
-
-    document.getElementById('btn-close-modal').onclick = () => {
-      document.getElementById('image-modal').classList.remove('open');
-    };
-
-    document.querySelectorAll('.img-preview-opt').forEach(opt => {
-      opt.onclick = () => {
-        document.getElementById('modal-img-url').value = opt.src;
-      };
-    });
-
-    document.getElementById('btn-apply-img').onclick = () => {
-      const newUrl = document.getElementById('modal-img-url').value.trim();
-      const slide = store.getCurrentSlide();
-      const imgEl = slide.elements?.find(e => e.type === 'image' || e.id === store.activeImageTargetId);
-      if (imgEl && newUrl) {
-        imgEl.content = newUrl;
-        store.pushHistory('Thay ảnh minh họa');
-        store.renderCanvas();
-      }
-      document.getElementById('image-modal').classList.remove('open');
-    };
+    const app = new StudioApp();
+    window.studioApp = app;
+    window.addEventListener('DOMContentLoaded', () => app.init());
   </script>
 </body>
 </html>

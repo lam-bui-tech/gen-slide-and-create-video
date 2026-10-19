@@ -403,6 +403,50 @@ export function renderSlide(slide, index = 0, startOffset = 0) {
 }
 
 /**
+ * Build a GSAP timeline for a single slide based on its animations array
+ */
+export function buildGsapTimelineForSlide(slide, containerEl) {
+  if (typeof gsap === 'undefined' || !containerEl) return null;
+  const tl = gsap.timeline({ paused: true });
+  if (!Array.isArray(slide.animations)) return tl;
+
+  slide.animations.forEach(anim => {
+    const targets = containerEl.querySelectorAll(anim.target);
+    if (!targets || targets.length === 0) return;
+
+    const delay = anim.delay || 0;
+    const duration = anim.duration || 1.0;
+    const ease = anim.easing || 'power2.out';
+
+    switch (anim.preset) {
+      case 'fade-in':
+        tl.fromTo(targets, { opacity: 0 }, { opacity: 1, duration, ease }, delay);
+        break;
+      case 'slide-in':
+        tl.fromTo(targets, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration, ease }, delay);
+        break;
+      case 'zoom-in':
+        tl.fromTo(targets, { opacity: 0, scale: 0.88 }, { opacity: 1, scale: 1, duration, ease }, delay);
+        break;
+      case 'typewriter':
+        tl.fromTo(targets, { opacity: 0, clipPath: 'inset(0 100% 0 0)' }, { opacity: 1, clipPath: 'inset(0 0% 0 0)', duration, ease }, delay);
+        break;
+      case 'step-by-step':
+        tl.fromTo(targets, { opacity: 0, y: 25 }, { opacity: 1, y: 0, duration, ease, stagger: 0.25 }, delay);
+        break;
+      case 'highlight-keyword':
+        tl.fromTo(targets, { outline: '2px solid transparent' }, { outline: '2px solid var(--hf-accent-amber)', duration, ease }, delay);
+        break;
+      default:
+        tl.fromTo(targets, { opacity: 0 }, { opacity: 1, duration, ease }, delay);
+        break;
+    }
+  });
+
+  return tl;
+}
+
+/**
  * Helper to escape HTML characters
  */
 function escapeHtml(str) {
@@ -414,3 +458,4 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
+
