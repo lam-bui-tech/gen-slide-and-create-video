@@ -111,6 +111,22 @@ const server = http.createServer(async (req, res) => {
       proxyRes.pipe(res);
     });
     proxyReq.on('error', (err) => {
+      // If backend is unreachable and requesting /storage, serve directly from local storage directory
+      if (pathname.startsWith('/storage/')) {
+        const localRel = pathname.replace(/^\//, '');
+        const localPath = path.join(__dirname, localRel);
+        if (fs.existsSync(localPath) && fs.statSync(localPath).isFile()) {
+          const ext = path.extname(localPath).toLowerCase();
+          const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+          res.writeHead(200, {
+            'Content-Type': contentType,
+            'Access-Control-Allow-Origin': '*',
+            'Cache-Control': 'public, max-age=86400'
+          });
+          fs.createReadStream(localPath).pipe(res);
+          return;
+        }
+      }
       sendJson(res, 502, { error: 'Không thể kết nối FastAPI backend (:8000). Đảm bảo uvicorn đang chạy: ' + err.message });
     });
     req.pipe(proxyReq);

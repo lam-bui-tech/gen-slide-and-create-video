@@ -7,7 +7,7 @@ Serving per docs/API.md on port 8000
 import os
 import shutil
 import sqlite3
-from typing import Optional
+from typing import Optional, Dict, Any, List, Union
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -22,6 +22,7 @@ from scripts.document_ingestion import (
     FileTooLargeError,
     ParseFailureError,
 )
+from scripts.migrate_v1_to_v2 import migrate_on_read
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STORAGE_DIR = os.path.join(BASE_DIR, "storage", "projects")
@@ -68,11 +69,67 @@ def serve_project_audio(project_id: str, filename: str):
 
     raise HTTPException(status_code=404, detail="Audio file not found")
 
+@app.get("/storage/projects/{project_id}/images/{filename}")
+def serve_project_image(project_id: str, filename: str):
+    if ".." in filename or "/" in filename or "\\" in filename:
+        raise HTTPException(status_code=400, detail="Invalid filename")
+    if ".." in project_id or "/" in project_id or "\\" in project_id:
+        raise HTTPException(status_code=400, detail="Invalid project_id")
+
+    img_dir = os.path.join(STORAGE_DIR, project_id, "images")
+    img_path = os.path.join(img_dir, filename)
+    if not os.path.isfile(img_path):
+        raise HTTPException(status_code=404, detail="Image file not found")
+
+    ext = os.path.splitext(filename)[1].lower()
+    media_types = {
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".webp": "image/webp",
+        ".svg": "image/svg+xml",
+        ".gif": "image/gif"
+    }
+    media_type = media_types.get(ext, "image/png")
+    return FileResponse(
+        img_path,
+        media_type=media_type,
+        headers={"Cache-Control": "public, max-age=86400"}
+    )
+
+@app.get("/storage/projects/{project_id}/videos/{filename}")
+def serve_project_video(project_id: str, filename: str):
+    if ".." in filename or "/" in filename or "\\" in filename:
+        raise HTTPException(status_code=400, detail="Invalid filename")
+    if ".." in project_id or "/" in project_id or "\\" in project_id:
+        raise HTTPException(status_code=400, detail="Invalid project_id")
+
+    video_dir = os.path.join(STORAGE_DIR, project_id, "videos")
+    video_path = os.path.join(video_dir, filename)
+    if not os.path.isfile(video_path):
+        raise HTTPException(status_code=404, detail="Video file not found")
+
+    ext = os.path.splitext(filename)[1].lower()
+    media_types = {
+        ".mp4": "video/mp4",
+        ".webm": "video/webm",
+        ".ogg": "video/ogg"
+    }
+    media_type = media_types.get(ext, "video/mp4")
+    return FileResponse(
+        video_path,
+        media_type=media_type,
+        headers={"Cache-Control": "public, max-age=86400", "Accept-Ranges": "bytes"}
+    )
+
 storage_root = os.path.join(BASE_DIR, "storage")
 os.makedirs(storage_root, exist_ok=True)
 app.mount("/storage", StaticFiles(directory=storage_root), name="storage")
 
 ingestion_service = DocumentIngestionService(storage_base=STORAGE_DIR)
+
+
+from scripts.pack_loader import load_pack, list_packs, save_pack
 
 
 def init_db():
@@ -83,10 +140,17 @@ def init_db():
             CREATE TABLE IF NOT EXISTS projects (
                 id TEXT PRIMARY KEY,
                 title TEXT,
+                pack_id TEXT DEFAULT 'basic',
                 current_step TEXT DEFAULT 'upload',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        # Safe migration for existing DB
+        try:
+            cursor.execute("ALTER TABLE projects ADD COLUMN pack_id TEXT DEFAULT 'basic'")
+        except sqlite3.OperationalError:
+            pass  # column already exists
+
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS jobs (
                 id TEXT PRIMARY KEY,
@@ -105,14 +169,116 @@ def init_db():
 init_db()
 
 
+# ==========================================
+# 0. Template Pack Endpoints (v2)
+# ==========================================
+
+@app.get("/packs")
+def get_packs_endpoint(
+    subject: Optional[str] = None,
+    style: Optional[str] = None,
+    effect: Optional[str] = None,
+):
+    packs = list_packs(subject=subject, style=style, effect=effect)
+    return [p.model_dump(by_alias=True) for p in packs]
+
+
+@app.get("/packs/{pack_id}")
+def get_pack_endpoint(pack_id: str):
+    try:
+        pack = load_pack(pack_id)
+        return pack.model_dump(by_alias=True)
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"error": {"code": "NOT_FOUND", "message": f"Template pack '{pack_id}' not found."}},
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"error": {"code": "INVALID_PACK", "message": str(e)}},
+        )
+
+
+@app.post("/packs", status_code=status.HTTP_201_CREATED)
+def create_pack_endpoint(pack_data: dict):
+    try:
+        saved = save_pack(pack_data)
+        return saved.model_dump(by_alias=True)
+    except PermissionError as e:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={"error": {"code": "READ_ONLY_PACK", "message": str(e)}},
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"error": {"code": "INVALID_PACK", "message": str(e)}},
+        )
+
+
+@app.post("/packs/{pack_id}/layouts", status_code=status.HTTP_201_CREATED)
+def add_layout_to_pack_endpoint(pack_id: str, layout_data: dict):
+    if pack_id == "basic":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={"error": {"code": "READ_ONLY_PACK", "message": "The built-in 'basic' pack is read-only. Duplicate it to create a custom pack first."}},
+        )
+
+    if ".." in pack_id or "/" in pack_id or "\\" in pack_id:
+        raise HTTPException(status_code=400, detail="Invalid pack_id")
+
+    try:
+        pack = load_pack(pack_id)
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"error": {"code": "NOT_FOUND", "message": f"Template pack '{pack_id}' not found."}},
+        )
+
+    from schemas.models import Layout
+
+    try:
+        new_layout = Layout.model_validate(layout_data)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"error": {"code": "INVALID_LAYOUT", "message": str(e)}},
+        )
+
+    # Enforce unique layout id
+    if any(l.id == new_layout.id for l in pack.layouts):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={"error": {"code": "DUPLICATE_LAYOUT_ID", "message": f"Layout with id '{new_layout.id}' already exists in pack '{pack_id}'."}},
+        )
+
+    pack.layouts.append(new_layout)
+    pack_dict = pack.model_dump(by_alias=True, exclude_none=True)
+    saved_pack = save_pack(pack_dict)
+    return saved_pack.model_dump(by_alias=True)
+
+
+
 class CreateProjectRequest(BaseModel):
     title: Optional[str] = "Bài giảng mới"
+    packId: Optional[str] = "basic"
 
 
 @app.post("/projects", status_code=status.HTTP_201_CREATED)
 def create_project(req: CreateProjectRequest):
     import uuid
     from datetime import datetime
+
+    # Validate that the requested packId actually exists
+    pack_id = req.packId or "basic"
+    try:
+        load_pack(pack_id)
+    except (FileNotFoundError, ValueError):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"error": {"code": "PACK_NOT_FOUND", "message": f"Template pack '{pack_id}' does not exist."}},
+        )
 
     project_id = f"proj-{uuid.uuid4().hex[:8]}"
     project_dir = os.path.join(STORAGE_DIR, project_id)
@@ -121,14 +287,15 @@ def create_project(req: CreateProjectRequest):
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT INTO projects (id, title, current_step) VALUES (?, ?, ?)",
-            (project_id, req.title, "upload"),
+            "INSERT INTO projects (id, title, pack_id, current_step) VALUES (?, ?, ?, ?)",
+            (project_id, req.title, pack_id, "upload"),
         )
         conn.commit()
 
     return {
         "projectId": project_id,
         "title": req.title,
+        "packId": pack_id,
         "currentStep": "upload",
         "createdAt": datetime.utcnow().isoformat() + "Z",
     }
@@ -225,6 +392,52 @@ def submit_clarification_answers(project_id: str, payload: ClarificationAnswerPa
         conn.commit()
 
     return {"status": "ready_for_outline"}
+
+
+# ==========================================
+# Adaptive Clarification Endpoints (v2 - P3.1)
+# ==========================================
+
+from scripts.adaptive_clarification import AdaptiveClarificationService
+
+adaptive_clarification_service = AdaptiveClarificationService()
+
+
+@app.get("/projects/{project_id}/clarify")
+def get_adaptive_clarify_endpoint(project_id: str):
+    doc_context = get_document_context(project_id)
+    pack_id = "basic"
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT pack_id FROM projects WHERE id = ?", (project_id,))
+        row = cursor.fetchone()
+        if row and row[0]:
+            pack_id = row[0]
+
+    try:
+        pack = load_pack(pack_id)
+    except Exception:
+        pack = load_pack("basic")
+
+    analysis = adaptive_clarification_service.analyze(doc_context, pack)
+    return analysis.model_dump()
+
+
+@app.post("/projects/{project_id}/clarify")
+def submit_adaptive_clarify_endpoint(project_id: str, answers: dict):
+    proj_dir = os.path.join(STORAGE_DIR, project_id)
+    os.makedirs(proj_dir, exist_ok=True)
+    clarify_path = os.path.join(proj_dir, "clarification.json")
+    with open(clarify_path, "w", encoding="utf-8") as f:
+        json.dump(answers, f, ensure_ascii=False, indent=2)
+
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        cursor.execute("UPDATE projects SET current_step = 'clarified' WHERE id = ?", (project_id,))
+        conn.commit()
+
+    return {"status": "clarified", "answers": answers}
+
 
 
 # ==========================================
@@ -350,9 +563,64 @@ def generate_scene_endpoint(project_id: str):
 
     import subprocess
     import json
+    from scripts.slot_filler import SlotFillerEngine
+    from scripts.pack_loader import load_pack
 
     scene_data = None
-    if outline and os.path.exists(outline_path) and os.path.exists(mapper_script):
+    doc_json_path = os.path.join(STORAGE_DIR, project_id, "document_context.json")
+
+    # 1. v2 SlotFillerEngine path (when document_context exists)
+    if os.path.exists(doc_json_path):
+        try:
+            doc_context = get_document_context(project_id)
+            pack_id = "basic"
+            with sqlite3.connect(DB_PATH) as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT pack_id FROM projects WHERE id = ?", (project_id,))
+                row = cursor.fetchone()
+                if row and row[0]:
+                    pack_id = row[0]
+
+            try:
+                pack = load_pack(pack_id)
+            except Exception:
+                pack = load_pack("basic")
+
+            clarify_path = os.path.join(STORAGE_DIR, project_id, "clarification.json")
+            clarify_answers = {}
+            if os.path.exists(clarify_path):
+                with open(clarify_path, "r", encoding="utf-8") as f:
+                    clarify_answers = json.load(f)
+
+            # Determine LLM provider
+            from scripts.llm_provider import GeminiProvider, FakeProvider
+            api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+            if api_key:
+                try:
+                    slot_provider = GeminiProvider(api_key=api_key)
+                except Exception:
+                    slot_provider = outline_generator.provider
+            else:
+                slot_provider = outline_generator.provider
+
+            engine = SlotFillerEngine(llm_provider=slot_provider)
+            filled_slides = engine.fill_deck(doc_context, pack, clarify_answers)
+
+            scene_v2 = LessonSceneJSON(
+                schemaVersion=2,
+                packId=pack_id,
+                projectId=project_id,
+                title=doc_context.title,
+                slides=filled_slides,
+            )
+            with open(scene_path, "w", encoding="utf-8") as f:
+                f.write(scene_v2.model_dump_json(indent=2))
+            scene_data = scene_v2.model_dump(by_alias=True)
+        except Exception as e:
+            print(f"[WARN] SlotFillerEngine failed ({e}), trying fallback mapper...")
+
+    # 2. Fallback to Node mapper (v1 compatibility)
+    if not scene_data and outline and os.path.exists(outline_path) and os.path.exists(mapper_script):
         try:
             res = subprocess.run(
                 ["node", mapper_script, outline_path, scene_path, project_id],
@@ -408,7 +676,7 @@ def get_scene_endpoint(project_id: str):
     import json
     with open(scene_path, "r", encoding="utf-8") as f:
         data = json.load(f)
-    return LessonSceneJSON.model_validate(data)
+    return LessonSceneJSON.model_validate(migrate_on_read(data))
 
 
 @app.put("/projects/{project_id}/scene")
@@ -490,9 +758,12 @@ def synthesize_slide_audio_endpoint(project_id: str, slide_id: str, req: AudioSy
     output_audio_path = os.path.join(audio_dir, audio_filename)
     rel_audio_url = f"storage/projects/{project_id}/audio/{audio_filename}"
 
-    # Synthesize audio
+    from scripts.pronunciation import normalize_for_tts
+
+    # Synthesize audio using pronunciation-normalized text
+    spoken_text = normalize_for_tts(req.narration)
     measured_duration = active_tts_provider.synthesize(
-        text=req.narration,
+        text=spoken_text,
         voice_id=req.voiceId or "MyDuyen",
         output_path=output_audio_path,
     )
@@ -522,6 +793,215 @@ def synthesize_slide_audio_endpoint(project_id: str, slide_id: str, req: AudioSy
             "subsequentStartTimesUpdated": True,
         },
     }
+
+
+# ==========================================
+# Media Recommendations & Upload (P4.1 & P4.2)
+# ==========================================
+
+from scripts.media_recommender import MediaRecommender
+
+media_recommender = MediaRecommender(storage_base=STORAGE_DIR)
+
+
+@app.post("/projects/{project_id}/media-upload", status_code=status.HTTP_201_CREATED)
+async def upload_media_file(project_id: str, file: UploadFile = File(...)):
+    filename = file.filename or "media_upload"
+    if ".." in filename or "/" in filename or "\\" in filename:
+        raise HTTPException(status_code=400, detail="Invalid filename")
+
+    ext = os.path.splitext(filename)[1].lower()
+    is_video = ext in [".mp4", ".webm", ".ogg"]
+
+    if is_video:
+        target_dir = os.path.join(STORAGE_DIR, project_id, "videos")
+    else:
+        target_dir = os.path.join(STORAGE_DIR, project_id, "images")
+    os.makedirs(target_dir, exist_ok=True)
+
+    target_path = os.path.join(target_dir, filename)
+    try:
+        with open(target_path, "wb") as f_out:
+            shutil.copyfileobj(file.file, f_out)
+    finally:
+        await file.close()
+
+    if is_video:
+        from scripts.video_pipeline import probe_video, extract_poster_frame
+        base_name = os.path.splitext(filename)[0]
+        img_dir = os.path.join(STORAGE_DIR, project_id, "images")
+        os.makedirs(img_dir, exist_ok=True)
+        poster_filename = f"poster_{base_name}.png"
+        poster_path = os.path.join(img_dir, poster_filename)
+
+        extract_poster_frame(target_path, poster_path, timestamp_sec=1.0)
+        v_info = probe_video(target_path)
+
+        return {
+            "id": f"vid-{filename}",
+            "source": "upload",
+            "type": "video",
+            "url": f"/storage/projects/{project_id}/videos/{filename}",
+            "posterUrl": f"/storage/projects/{project_id}/images/{poster_filename}",
+            "durationSeconds": v_info.get("durationSeconds", 5.0),
+            "hasAudio": v_info.get("hasAudio", False),
+            "codec": v_info.get("codec", "unknown"),
+            "alt": filename,
+            "relevance": 1.0,
+            "license": "teacher-upload",
+        }
+    else:
+        return {
+            "id": f"up-{filename}",
+            "source": "upload",
+            "type": "image",
+            "url": f"/storage/projects/{project_id}/images/{filename}",
+            "alt": filename,
+            "relevance": 1.0,
+            "license": "teacher-upload",
+        }
+
+
+@app.get("/projects/{project_id}/media-recommendations/{slide_id}")
+def get_media_recommendations(project_id: str, slide_id: str):
+    scene = get_scene_endpoint(project_id)
+    clean_target = slide_id.replace("-0", "-")
+    target_slide = next(
+        (s for s in scene.slides if s.slideId == slide_id or s.slideId.replace("-0", "-") == clean_target),
+        None,
+    )
+    if not target_slide:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"error": {"code": "NOT_FOUND", "message": f"Slide {slide_id} not found"}},
+        )
+
+    try:
+        doc_context = get_document_context(project_id)
+    except Exception:
+        doc_context = DocumentContext(
+            title=scene.title,
+            sourceFileName="",
+            fileType="pptx",
+            sections=[]
+        )
+
+    return media_recommender.recommend(target_slide, doc_context, project_id)
+
+
+# ==========================================
+# Slide Chat NL Edit Endpoint (P7.3-API)
+# ==========================================
+
+class SlideChatRequest(BaseModel):
+    instruction: str
+
+
+class SlideChatLLMPatch(BaseModel):
+    patch: Dict[str, Any]
+    explanation: str
+
+
+@app.post("/projects/{project_id}/slides/{slide_id}/chat")
+def slide_chat_edit_endpoint(project_id: str, slide_id: str, req: SlideChatRequest):
+    scene = get_scene_endpoint(project_id)
+    clean_target = slide_id.replace("-0", "-")
+    target_slide = next(
+        (s for s in scene.slides if s.slideId == slide_id or s.slideId.replace("-0", "-") == clean_target),
+        None,
+    )
+    if not target_slide:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"error": {"code": "NOT_FOUND", "message": f"Slide {slide_id} not found"}},
+        )
+
+    pack_id = scene.packId or "basic"
+    try:
+        pack = load_pack(pack_id)
+        layout = next((l for l in pack.layouts if l.id == target_slide.layoutId), None)
+    except Exception:
+        layout = None
+
+    old_slots = dict(target_slide.slotValues or {})
+
+    from scripts.llm_provider import GeminiProvider, FakeProvider
+    api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+    if api_key:
+        try:
+            chat_provider = GeminiProvider(api_key=api_key)
+        except Exception:
+            chat_provider = outline_generator.provider
+    else:
+        chat_provider = outline_generator.provider
+
+    prompt = f"""
+Current slotValues for slide {slide_id}:
+{json.dumps(old_slots, indent=2, ensure_ascii=False)}
+
+User instruction:
+"{req.instruction}"
+
+Task:
+Modify the slotValues dictionary according to the instruction.
+RULES:
+1. ONLY modify values inside slotValues.
+2. NEVER output HTML code or styling tags.
+3. Keep unmodified slot fields intact.
+4. Output valid JSON matching the schema.
+"""
+    system_instruction = (
+        "You are an AI assistant helping a teacher refine lecture slides. "
+        "Return a JSON object with 'patch' (the modified slotValues dictionary) and 'explanation' (short Vietnamese explanation)."
+    )
+
+    try:
+        if isinstance(chat_provider, FakeProvider) or not api_key:
+            new_slots = dict(old_slots)
+            import re
+            quotes = re.findall(r"['\"](.*?)['\"]", req.instruction)
+            if quotes:
+                new_slots["title"] = quotes[0]
+            else:
+                new_slots["title"] = "Triết học Mác - Lênin"
+            patch_data = new_slots
+            explanation = "Đã cập nhật tiêu đề slide theo yêu cầu."
+        else:
+            llm_res = chat_provider.generate_structured(
+                prompt=prompt,
+                schema_class=SlideChatLLMPatch,
+                system_instruction=system_instruction,
+            )
+            patch_data = llm_res.patch
+            explanation = llm_res.explanation
+    except Exception as e:
+        patch_data = dict(old_slots)
+        explanation = f"Không thể xử lý yêu cầu qua AI: {e}"
+
+    diff: Dict[str, Dict[str, Any]] = {}
+    for k, new_v in patch_data.items():
+        old_v = old_slots.get(k)
+        if old_v != new_v:
+            diff[k] = {"from": old_v, "to": new_v}
+
+    if layout:
+        from scripts.slot_filler import check_slot_constraints
+        overflows = check_slot_constraints(patch_data, layout)
+        if overflows:
+            for o in overflows:
+                s_id = o["slotId"]
+                limit = o["limit"]
+                if s_id in patch_data and isinstance(patch_data[s_id], str) and len(patch_data[s_id]) > limit:
+                    patch_data[s_id] = patch_data[s_id][:limit]
+
+    return {
+        "slideId": slide_id,
+        "patch": patch_data,
+        "diff": diff,
+        "explanation": explanation,
+    }
+
+
 
 
 # ==========================================
@@ -566,6 +1046,85 @@ def get_export_status_endpoint(export_id: str):
             detail={"error": {"code": "NOT_FOUND", "message": f"Export job {export_id} not found."}}
         )
     return job
+
+
+# ==========================================
+# Subtitles Endpoints (SRT / VTT - P7.1)
+# ==========================================
+
+from fastapi import Response
+from scripts.subtitles import generate_subtitles
+import json
+
+
+def _serve_project_subtitles(project_id: str, format_type: str):
+    scene_path = os.path.join(STORAGE_DIR, project_id, "scene.json")
+    if not os.path.exists(scene_path):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"error": {"code": "NOT_FOUND", "message": f"Project or scene for '{project_id}' not found."}},
+        )
+    try:
+        with open(scene_path, "r", encoding="utf-8") as f:
+            scene_data = json.load(f)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": {"code": "SCENE_READ_ERROR", "message": str(e)}},
+        )
+
+    # Migrate v1 to v2 on read if needed
+    if scene_data.get("schemaVersion") != "2.0.0" and "slides" in scene_data:
+        try:
+            from scripts.migrate_v1_to_v2 import migrate_on_read
+            scene_data = migrate_on_read(scene_data)
+        except Exception:
+            pass
+
+    content = generate_subtitles(scene_data, format_type=format_type)
+    media_type = "text/vtt; charset=utf-8" if format_type.lower() == "vtt" else "text/plain; charset=utf-8"
+    return Response(content=content, media_type=media_type)
+
+
+@app.get("/projects/{project_id}/subtitles.srt")
+def get_project_subtitles_srt(project_id: str):
+    return _serve_project_subtitles(project_id, "srt")
+
+
+@app.get("/projects/{project_id}/subtitles.vtt")
+def get_project_subtitles_vtt(project_id: str):
+    return _serve_project_subtitles(project_id, "vtt")
+
+
+@app.get("/projects/{project_id}/subtitles")
+def get_project_subtitles(project_id: str, format: Optional[str] = "srt"):
+    return _serve_project_subtitles(project_id, format or "srt")
+
+
+# ==========================================
+# Pronunciation Preview Endpoint (P7.2)
+# ==========================================
+
+from typing import Dict, Optional
+from scripts.pronunciation import normalize_for_tts
+
+
+class PronunciationPreviewRequest(BaseModel):
+    text: str
+    subject: Optional[str] = None
+    overrides: Optional[Dict[str, str]] = None
+
+
+@app.post("/preview-pronunciation")
+def preview_pronunciation_endpoint(req: PronunciationPreviewRequest):
+    spoken = normalize_for_tts(req.text, subject=req.subject, overrides=req.overrides)
+    return {
+        "original": req.text,
+        "spoken": spoken,
+        "subject": req.subject,
+    }
+
+
 
 
 

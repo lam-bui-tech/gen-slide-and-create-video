@@ -33,14 +33,44 @@ Tất cả các lỗi trả về mã trạng thái HTTP chuẩn kèm cấu trúc
 
 ## 2. Danh Sách Endpoint Chi Tiết
 
+### 2.0. Quản Lý Template Packs (v2)
+
+#### `GET /packs`
+Lấy danh sách các Template Pack có sẵn trên hệ thống, hỗ trợ lọc theo thẻ phân loại sư phạm và thị giác.
+- **Query Parameters**:
+  - `subject` (string, tùy chọn): Lọc theo môn học (`toan-tin`, `khoa-hoc-tu-nhien`, `xa-hoi-nhan-van`, `ngoai-ngu`, `kinh-te-quan-tri`, `tong-hop`).
+  - `style` (string, tùy chọn): Lọc theo phong cách (`hoc-thuat-nghiem-tuc`, `hien-dai-toi-gian`, `sinh-dong-tre-trung`, `cong-nghe-tuong-lai`).
+  - `effect` (string, tùy chọn): Lọc theo hiệu ứng GSAP (`nhe-nhang-fade`, `nang-dong-kinetic`, `chu-danh-may-typewriter`).
+- **Response `200 OK`**: Danh sách `TemplatePack` (xem [schemas/template_pack.json](file:///c:/Users/OS/Downloads/project/my-presentation/schemas/template_pack.json)).
+
+#### `GET /packs/{id}`
+Lấy chi tiết một Template Pack bao gồm bảng Design Tokens và danh sách Layouts sư phạm cùng các Slots.
+- **Response `200 OK`**: Đối tượng `TemplatePack` đầy đủ.
+- **Errors**: `404 NOT_FOUND` nếu `id` không tồn tại.
+
+#### `POST /packs`
+Tạo hoặc đăng ký một Template Pack mới vào filesystem (`templates/packs/{id}/pack.json`).
+- **Request Body**: Đối tượng `TemplatePack` hợp lệ theo schema v2.
+- **Response `201 Created`**: Đối tượng `TemplatePack` đã lưu.
+- **Errors**: `403 READ_ONLY_PACK` (khi cố gắng ghi đè pack `basic`), `422 INVALID_PACK`.
+
+#### `POST /packs/{id}/layouts` (P5.3 - Builder Save Layout)
+Lưu layout mới được thiết kế từ Template Builder vào Template Pack chỉ định. Kiểm tra tính duy nhất của `layout.id`, chống path traversal, và ngăn chặn sửa đổi pack `basic` mặc định.
+- **Request Body**: Đối tượng `Layout` hợp lệ theo schema v2.
+- **Response `201 Created`**: Đối tượng `TemplatePack` đã được cập nhật kèm layout mới.
+- **Errors**: `403 READ_ONLY_PACK` (không cho phép sửa pack `basic`), `409 DUPLICATE_LAYOUT_ID`, `422 INVALID_LAYOUT`.
+
+---
+
 ### 2.1. Quản lý Dự án (Projects)
 
 #### `POST /projects`
-Tạo một bài giảng mới.
+Tạo một bài giảng mới với thiết kế gắn liền với một Template Pack cụ thể.
 - **Request Body**:
   ```json
   {
-    "title": "Tên bài giảng (tùy chọn)"
+    "title": "Tên bài giảng (tùy chọn)",
+    "packId": "basic"
   }
   ```
 - **Response `201 Created`**:
@@ -48,10 +78,12 @@ Tạo một bài giảng mới.
   {
     "projectId": "proj-a1b2c3d4",
     "title": "Bài giảng mới",
+    "packId": "basic",
     "currentStep": "upload",
     "createdAt": "2026-10-19T16:00:00Z"
   }
   ```
+- **Errors**: `404 PACK_NOT_FOUND` nếu `packId` chỉ định không tồn tại trên hệ thống.
 
 ---
 
@@ -124,7 +156,7 @@ Lấy 8 câu hỏi làm rõ sư phạm, tự động điền sẵn (pre-filled) 
   ```
 
 #### `POST /projects/{id}/clarification`
-Gửi câu trả lời xác nhận từ giảng viên.
+Gửi câu trả lời xác nhận từ giảng viên (v1).
 - **Request Body**:
   ```json
   {
@@ -141,6 +173,54 @@ Gửi câu trả lời xác nhận từ giảng viên.
   ```json
   {
     "status": "ready_for_outline"
+  }
+  ```
+
+#### `GET /projects/{id}/clarify` (v2 - Adaptive Clarification)
+Phân tích ngữ cảnh sư phạm thông minh từ `DocumentContext` và Template Pack đã chọn ở Bước 1. Suy diễn sẵn các thuộc tính (`style`, `language`, `subject`, `targetAudience`, `durationMinutes`). Chỉ sinh câu hỏi khi độ tin cậy < 0.8 kèm 2 lựa chọn sư phạm cốt lõi (giọng đọc VieNeu và bài kiểm tra trắc nghiệm check-in).
+- **Response `200 OK`**:
+  ```json
+  {
+    "inferred": [
+      { "key": "style", "value": "hoc-thuat-nghiem-tuc", "confidence": 1.0 },
+      { "key": "language", "value": "vi", "confidence": 0.95 },
+      { "key": "targetAudience", "value": "Sinh viên đại học", "confidence": 0.88 },
+      { "key": "durationMinutes", "value": 15, "confidence": 0.85 }
+    ],
+    "questions": [
+      {
+        "id": "voiceId",
+        "question": "Giọng đọc thuyết minh trí tuệ nhân tạo (VieNeu)?",
+        "type": "single-choice",
+        "options": ["MyDuyen", "NamKhoi"],
+        "suggestedAnswer": "MyDuyen"
+      },
+      {
+        "id": "includeQuiz",
+        "question": "Thêm câu hỏi trắc nghiệm tương tác / check-in cuối bài giảng?",
+        "type": "boolean",
+        "options": [true, false],
+        "suggestedAnswer": true
+      }
+    ]
+  }
+  ```
+
+#### `POST /projects/{id}/clarify` (v2 - Save Answers)
+Lưu câu trả lời làm rõ sư phạm, cập nhật trạng thái dự án sang `clarified` và kích hoạt bước tiếp theo.
+- **Request Body**:
+  ```json
+  {
+    "voiceId": "MyDuyen",
+    "includeQuiz": true,
+    "targetAudience": "Sinh viên đại học"
+  }
+  ```
+- **Response `200 OK`**:
+  ```json
+  {
+    "status": "clarified",
+    "answers": { ... }
   }
   ```
 
@@ -225,6 +305,61 @@ Lưu bản cập nhật `LessonSceneJSON` từ Studio (Debounced Autosave 500ms 
 
 ---
 
+### 2.5.1. Khuyến Nghị & Tải Lên Đa Phương Tiện (Media Recommendations & Upload - P4.1, P4.2)
+
+#### `POST /projects/{id}/media-upload`
+Tải lên tệp hình ảnh (.png, .jpg, .webp, .svg) hoặc video (.mp4, .webm) từ giảng viên và lưu vào kho lưu trữ của dự án.
+- **Content-Type**: `multipart/form-data`
+- **Response `201 Created`**:
+  ```json
+  {
+    "id": "up-chart.svg",
+    "source": "upload",
+    "type": "image",
+    "url": "/storage/projects/proj-a1b2c3d4/images/chart.svg",
+    "alt": "chart.svg",
+    "relevance": 1.0,
+    "license": "teacher-upload"
+  }
+  ```
+
+#### `GET /projects/{id}/media-recommendations/{slideId}`
+Phân tích nhu cầu thị giác `visual_need` (diagram, chart, photo, video, none) của slide và xếp hạng 3-4 ứng viên phù hợp nhất từ 3 nguồn: DocumentImageSource (ảnh gốc từ tài liệu), DiagramSource (sơ đồ SVG/Mermaid tự sinh), và UploadSource (ảnh giáo viên tải lên).
+- **Response `200 OK`**:
+  ```json
+  {
+    "visualNeed": {
+      "type": "diagram",
+      "description": "Sơ đồ khối thể hiện quy trình hoặc cấu trúc liên kết",
+      "searchQuery": "diagram quy trình",
+      "altText": "Sơ đồ minh họa",
+      "confidence": 0.88
+    },
+    "candidates": [
+      {
+        "id": "img_01",
+        "source": "document",
+        "type": "image",
+        "url": "/storage/projects/proj-a1b2c3d4/images/matrix.png",
+        "alt": "matrix.png",
+        "relevance": 0.95,
+        "license": "document-original"
+      },
+      {
+        "id": "diag-slide-01",
+        "source": "diagram",
+        "type": "diagram",
+        "url": "/storage/projects/proj-a1b2c3d4/images/diagram_slide-01.svg",
+        "alt": "Sơ đồ quy trình",
+        "relevance": 0.88,
+        "license": "ai-generated-svg"
+      }
+    ]
+  }
+  ```
+
+---
+
 ### 2.6. Đồng Bộ Giọng Nói Từng Slide (Voice & Audio-First Sync)
 
 #### `POST /projects/{id}/slides/{sid}/narration`
@@ -240,6 +375,29 @@ Tạo lại câu thuyết minh sư phạm cho 1 slide cụ thể thông qua LLM.
   {
     "slideId": "slide-02",
     "narration": "Câu thuyết minh mới do AI sinh ra..."
+  }
+  ```
+
+#### `POST /projects/{id}/slides/{slideId}/chat` (P7.3-API)
+Chỉnh sửa nội dung từng slide bằng ngôn ngữ tự nhiên thông qua AI. AI chỉ cập nhật và trả về JSON patch trên `slotValues` (tuyệt đối không can thiệp HTML), tính sẵn `diff` và `explanation` để giao diện Studio hiển thị trực quan. **Không tự động lưu đĩa** cho đến khi giảng viên quyết định lưu thông qua `PUT /projects/{id}/scene`.
+- **Request Body**:
+  ```json
+  {
+    "instruction": "Hãy rút gọn tiêu đề thành 'Triết học Mác - Lênin' và bổ sung ví dụ thực tế vào bullets."
+  }
+  ```
+- **Response `200 OK`**:
+  ```json
+  {
+    "slideId": "slide-01",
+    "patch": {
+      "title": "Triết học Mác - Lênin",
+      "bullets": [ ... ]
+    },
+    "diff": {
+      "title": { "from": "Khái luận Triết học dài dòng...", "to": "Triết học Mác - Lênin" }
+    },
+    "explanation": "Đã rút gọn tiêu đề slide và bổ sung ví dụ thực tiễn."
   }
   ```
 
@@ -267,9 +425,45 @@ Gọi VieNeu-TTS v3 Turbo tổng hợp giọng đọc cho slide, tự động đ
   ```
 - **Sync Rule**: Slide `durationSeconds = max(audioDuration + 0.8, lastAnimationEnd)`.
 
+#### `POST /preview-pronunciation`
+Xem trước dạng phát âm tiếng Việt chuẩn hóa (chuẩn hóa ký hiệu toán học, số mũ, căn bậc hai, phân số, đơn vị, chữ Hy Lạp và thuật ngữ chuyên ngành) trước khi gửi qua VieNeu-TTS.
+- **Request Body**:
+  ```json
+  {
+    "text": "Cho hàm số f(x) = x² + 2x, với x ∈ [0, 10].",
+    "subject": "toan-tin",
+    "overrides": {
+      "f(x)": "f của x"
+    }
+  }
+  ```
+- **Response `200 OK`**:
+  ```json
+  {
+    "original": "Cho hàm số f(x) = x² + 2x, với x ∈ [0, 10].",
+    "spoken": "Cho hàm số f của x = x bình phương + 2x, với x thuộc [0, 10].",
+    "subject": "toan-tin"
+  }
+  ```
+
 ---
 
-### 2.7. Xuất Bản Bài Giảng (Export Services)
+### 2.7. Phụ Đề Bài Giảng (Subtitles - P7.1)
+
+#### `GET /projects/{id}/subtitles.srt`
+Xuất phụ đề bài giảng định dạng SRT chuẩn (UTF-8 có dấu tiếng Việt), thời gian đơn điệu, không chồng lấn, ngắt dòng dễ đọc.
+- **Response `200 OK`**: File nội dung `text/plain; charset=utf-8`.
+
+#### `GET /projects/{id}/subtitles.vtt`
+Xuất phụ đề bài giảng định dạng WebVTT cho trình duyệt web và video player HTML5.
+- **Response `200 OK`**: File nội dung `text/vtt; charset=utf-8`.
+
+#### `GET /projects/{id}/subtitles?format=srt|vtt`
+Endpoint hợp nhất nhận query param `format` (mặc định `srt`).
+
+---
+
+### 2.8. Xuất Bản Bài Giảng (Export Services)
 
 #### `POST /projects/{id}/export`
 Khởi tạo background job xuất bản bài giảng.

@@ -214,14 +214,22 @@ def sync_audio_first_timeline(
         else:
             last_anim_end = 0.0
 
+        # Calculate video clip ceiling if present
+        video_dur = 0.0
+        media_val = s.slotValues.get("media") if s.slotValues else None
+        if isinstance(media_val, dict) and media_val.get("type") == "video":
+            raw_dur = float(media_val.get("durationSeconds") or 0.0)
+            t_start = float(media_val.get("trimStart") or 0.0)
+            t_end = media_val.get("trimEnd")
+            video_dur = float(t_end) - t_start if t_end is not None else max(raw_dur - t_start, 0.0)
+
         # Calculate audio baseline
         audio_dur = s.voice.durationSeconds if (s.voice and s.voice.durationSeconds is not None) else None
 
         if audio_dur is not None and audio_dur > 0:
-            slide_dur = max(audio_dur + padding, last_anim_end, 1.0)
+            slide_dur = max(audio_dur + padding, video_dur, last_anim_end, 3.0)
         else:
-            # Fallback if audio missing
-            slide_dur = max(last_anim_end, 3.0)
+            slide_dur = max(video_dur, last_anim_end, 3.0)
 
         slide_dur = round(slide_dur, 2)
         s.durationSeconds = slide_dur

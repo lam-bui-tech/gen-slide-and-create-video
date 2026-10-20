@@ -382,6 +382,8 @@ def render_mp4_hyperframes(
         "30",
         "-q",
         "looks",
+        "--video-frame-format",
+        "auto",
     ]
 
     # Run via shell on Windows

@@ -35,7 +35,7 @@
   "extractedImages": [
     {
       "id": "img-01",
-      "filePath": "storage/projects/sample/images/philosophy_intro.png",
+      "filePath": "storage/projects/sample-project/images/philosophy_intro.png",
       "originalName": "image1.png",
       "width": 1920,
       "height": 1080,
@@ -43,7 +43,7 @@
     },
     {
       "id": "img-02",
-      "filePath": "storage/projects/sample/images/historical_context.png",
+      "filePath": "storage/projects/sample-project/images/historical_context.png",
       "originalName": "image2.png",
       "width": 1280,
       "height": 720,

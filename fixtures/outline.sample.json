@@ -58,7 +58,7 @@
       "speakerNotesDraft": "Triết học là hệ thống tri thức lý luận chung nhất của con người về thế giới, về bản thân con người và vị trí của con người trong thế giới đó.",
       "contentPayload": {
         "quote": "Philosophia - Tình yêu sự thông thái",
-        "imageUrl": "storage/projects/sample/images/philosophy_intro.png"
+        "imageUrl": "storage/projects/sample-project/images/philosophy_intro.png"
       }
     },
     {
@@ -88,7 +88,7 @@
       "speakerNotesDraft": "Vấn đề cơ bản lớn của mọi triết học, đặc biệt là triết học hiện đại, là vấn đề quan hệ giữa tư duy và tồn tại.",
       "contentPayload": {
         "diagramType": "mindmap",
-        "imageUrl": "storage/projects/sample/images/basic_problem.png"
+        "imageUrl": "storage/projects/sample-project/images/basic_problem.png"
       }
     },
     {

@@ -471,23 +471,31 @@ function buildElementsForTemplate(templateId, slide) {
   const takeaways = slide.keyTakeaways || [];
 
   switch (templateId) {
-    case 'title-slide':
-      return [
+    case 'title-slide': {
+      const elements = [
         { id: 'badge-course', type: 'badge', content: payload.badge || 'Bài Học' },
-        { id: 'txt-author', type: 'text', content: payload.author || takeaways[0] || 'Giảng viên' },
-        { id: 'img-hero', type: 'image', content: payload.image || 'storage/projects/sample/images/philosophy_intro.png' }
+        { id: 'txt-author', type: 'text', content: payload.author || takeaways[0] || 'Giảng viên' }
       ];
+      if (payload.image) {
+        elements.push({ id: 'img-hero', type: 'image', content: payload.image });
+      }
+      return elements;
+    }
 
     case 'learning-objectives':
       return [
         { id: 'obj-list', type: 'bullet-list', content: takeaways.length ? takeaways : ['Mục tiêu 1', 'Mục tiêu 2', 'Mục tiêu 3'] }
       ];
 
-    case 'concept-explain':
-      return [
-        { id: 'txt-def', type: 'card', content: payload.quote || takeaways[0] || slide.speakerNotesDraft || '' },
-        { id: 'img-concept', type: 'image', content: payload.image || 'storage/projects/sample/images/philosophy_concept.png' }
+    case 'concept-explain': {
+      const elements = [
+        { id: 'txt-def', type: 'card', content: payload.quote || takeaways[0] || slide.speakerNotesDraft || '' }
       ];
+      if (payload.image) {
+        elements.push({ id: 'img-concept', type: 'image', content: payload.image });
+      }
+      return elements;
+    }
 
     case 'bullet-breakdown':
       return takeaways.map((t, idx) => ({
@@ -496,11 +504,15 @@ function buildElementsForTemplate(templateId, slide) {
         content: { heading: `Luận điểm ${idx + 1}`, body: t }
       }));
 
-    case 'image-explain':
-      return [
-        { id: 'img-diagram', type: 'image', content: payload.image || 'storage/projects/sample/images/basic_problem.png' },
+    case 'image-explain': {
+      const elements = [
         { id: 'txt-side', type: 'text', content: takeaways[0] || slide.speakerNotesDraft || '' }
       ];
+      if (payload.image) {
+        elements.unshift({ id: 'img-diagram', type: 'image', content: payload.image });
+      }
+      return elements;
+    }
 
     case 'comparison':
       return [

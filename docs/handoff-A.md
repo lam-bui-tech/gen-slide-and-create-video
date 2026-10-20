@@ -1,48 +1,46 @@
-# Handoff Track A — Pipeline & Backend (Người A)
+# Handoff Track A — Backend & Pipeline v2 (Người A)
 
-## 1. Đã hoàn thành (Done)
-- **A1 (Document Ingestion Service)**:
-  - `scripts/document_ingestion.py`: Bóc tách PPTX, PDF, DOCX, MD thành `DocumentContext.json` hợp lệ schema.
-  - Bóc tách ảnh nhúng lưu vào `storage/` với ID ổn định (`img_{hash}_{idx}`), ném lỗi kiểu dữ liệu rõ ràng.
-- **A2 (Clarification Flow & LLM Provider)**:
-  - `scripts/llm_provider.py`: Deep Module interface `LLMProvider` có vòng lặp auto-retry feedback (tối đa 3 lần).
-  - Adapters: `GeminiProvider` (Gemini 3.7 Flash), `OllamaProvider` (Llama 3.3/Qwen), `FakeProvider` (testing).
-  - `scripts/clarification_service.py`: 8 câu hỏi sư phạm, pre-fill thông minh từ `DocumentContext`.
-- **A3 (Outline Generator & Gating API)**:
-  - `scripts/outline_generator.py`: Sinh `LessonOutline` gồm 10 template sư phạm chuẩn, `speakerNotesDraft` tiếng Việt.
-  - API duyệt dàn bài (`PUT /projects/{id}/outline`). Khóa `POST /projects/{id}/scene` (422) nếu chưa `approved`.
-- **A4 (VieNeu-TTS & Audio-First Sync Engine)**:
-  - `scripts/tts_provider.py`: `VieNeuProvider` (mặc định), `ViettelProvider`, `FakeTTSProvider`.
-  - Đo thời lượng âm thanh đa tầng (`ffprobe` -> `soundfile` -> `wave`).
-  - Hàm thuần `sync_audio_first_timeline`: `slide.durationSeconds = max(audio + 0.8s, anim, 1s)`, tịnh tiến timeline.
-- **A5 (Multi-Format Export Pipeline)**:
-  - `scripts/export_service.py`: Quản lý background jobs (`pending`, `running`, `completed`, `failed`) trong SQLite.
-  - **MP4 1080p**: Subprocess gọi `npx hyperframes render` có timeout, bắt log tiến độ, cleanup file hỏng.
-  - **PDF Vector**: Headless Chrome in trang 16:9 (@page `1920px 1080px`), nhúng font Be Vietnam Pro, số trang = số slide.
-  - **PPTX Image-Pack**: 1 slide gồm ảnh 1080p + speaker notes tiếng Việt, ghi chú rõ ràng không thể biên tập.
+## 1. Đã hoàn thành (Done - 100% Person A Tickets)
+- **P1.1**: Sửa lỗi 404 static images (`/storage/projects/{id}/images/` & `videos/`), xóa 3 phantom fallback trong `outline_to_hyperframes.js`.
+- **P1.2**: Schema v2 (`template_pack.json`, `lesson_scene.json` v2, Pydantic & TS models, `tests/test_contracts.py` drift guard).
+- **P1.3**: `migrate_v1_to_v2.py` (idempotent, lossless, migrate-on-read, CLI backup, golden fixtures cho 10 layout).
+- **P2.2**: API Packs (`GET /packs` đa chiều, `GET /packs/{id}`, `POST /packs`, `POST /projects` gắn `packId`).
+- **P3.1**: `AdaptiveClarificationService` (suy diễn thông minh từ doc/pack tokens, bỏ qua nếu confidence >= 0.8, tối đa 2 câu hỏi).
+- **P3.2**: `SlotFillerEngine` (bóc tách image inventory, chống sinh ảnh ảo, ràng buộc slot + auto-retry, trả slide plan).
+- **P4.1 & P4.2**: `MediaRecommender` (phân tích `visual_need`, 3 adapters: DocumentImage, Diagram SVG, Upload).
+- **P5.3**: API lưu Layout từ Builder (`POST /packs/{id}/layouts`, chặn sửa pack basic, tạo thumbnail).
+- **P6.1 & P6.2**: Video Pipeline (spike ADR-0008, upload MP4/WebM, ffprobe + trích xuất poster frame, sync audio-first max(narration, video)).
+- **P7.1**: Phụ đề SRT/VTT (`GET /projects/{id}/subtitles.srt|vtt`, tách câu tiếng Việt đơn điệu, không đè lấp).
+- **P7.2**: Chuẩn hóa phát âm tiếng Việt (`scripts/pronunciation.py`, toán học $x^2, \sqrt{x}$, từ điển chuyên ngành).
+- **P7.3-API**: Endpoint chat sửa slide (`POST /projects/{id}/slides/{slideId}/chat`, patch slotValues, không can thiệp HTML).
 
-## 2. File thay đổi (Changed Files)
-- `scripts/document_ingestion.py`, `scripts/clarification_service.py`, `scripts/llm_provider.py`
-- `scripts/outline_generator.py`, `scripts/tts_provider.py`, `scripts/export_service.py`, `scripts/spike_vietnamese_diacritics.py`
-- `server/api_service.py` (FastAPI endpoints theo `docs/API.md`)
-- `fixtures/sample.docx`, `fixtures/sample.md`, `fixtures/sample.pdf`
-- `tests/pipeline/` (9 file kiểm thử, bao phủ 100% các module pipeline)
-- `docs/handoff-A.md`
+## 2. File thay đổi & tạo mới (Changed / Created Files)
+- **Schemas**: `schemas/template_pack.json`, `schemas/lesson_scene.json`, `schemas/models.py`, `schemas/types.ts`.
+- **Server**: `server/api_service.py`, `server.js`.
+- **Scripts**: `scripts/pack_loader.py`, `scripts/migrate_v1_to_v2.py`, `scripts/adaptive_clarification.py`, `scripts/slot_filler.py`, `scripts/media_recommender.py`, `scripts/video_pipeline.py`, `scripts/subtitles.py`, `scripts/pronunciation.py`, `scripts/export_service.py`, `scripts/tts_provider.py`.
+- **Fixtures & Packs**: `templates/packs/basic/pack.json`, `fixtures/basic_pack.sample.json`, `fixtures/migration/*`.
+- **ADRs & Docs**: `docs/adr/0006*.md`, `docs/adr/0007*.md`, `docs/adr/0008*.md`, `docs/spikes/P6.1.md`, `docs/API.md`, `docs/TICKETS.md`.
+- **Tests**: `tests/pipeline/*`, `tests/test_contracts.py` (96/96 tests PASS).
 
-## 3. Quyết định kỹ thuật (ADRs)
-- Kiến trúc Dual Service: FastAPI cổng `8000` (xử lý Ingestion, AI, TTS, Export) + Node/Studio cổng `3000`.
-- SQLite (`storage/lecture_studio.db`) lưu metadata và tiến trình jobs; file system lưu ngữ cảnh JSON và tài nguyên.
-- Auto-retry feedback loop cho LLM: Tự động đưa thông báo lỗi Pydantic/JSON Schema ngược lại prompt nếu LLM sinh sai.
-- Timeline Audio-First thuần khiết: Slide duration được dẫn dắt bởi độ dài thực tế của giọng đọc âm thanh.
+## 3. Quyết định kỹ thuật & Giao diện (Key Decisions & Contracts)
+- **JSON Schema Strictness**: Luôn dùng `exclude_none=True` khi export Pydantic sang JSON Schema draft-07.
+- **Audio-First Sync với Video**: Slide duration = `max(audio_duration + padding, video_duration, last_anim_end, 3.0)`.
+- **Slide Chat Boundary**: Trả patch trên `slotValues` + diff, tuyệt đối không sinh trực tiếp HTML, không tự động lưu đè trước PUT.
+- **Chính sách pack basic**: Built-in `basic` là read-only (403 khi ghi đè); chỉnh sửa sẽ copy-on-write sang pack mới.
 
-## 4. Lệnh kiểm thử (Run Tests)
+## 4. Lệnh kiểm thử & khôi phục phiên (Run Tests & Resume)
 ```bash
-# Kiểm thử toàn bộ 39 unit & integration tests của Track A
-python -m pytest tests/pipeline/ -v
-# Kết quả: 39/39 tests PASS
+# Set UTF-8 trên Windows
+$env:PYTHONUTF8="1"
+# Chạy toàn bộ 96 tests (pipeline + contracts)
+python -m pytest tests/pipeline tests/test_contracts.py
 ```
 
-## 5. Việc kế tiếp (Next Steps)
-- Phối hợp với Người B chạy **Integration Gate G2**: Nạp outline thật từ A3 vào `outline_to_hyperframes.js`.
-- Chạy **Integration Gate G3 & G4**: Đổi Studio (B3 & B5) từ mock sang gọi REST API FastAPI cổng 8000 thật.
-- Kiểm thử luồng xuất video **Integration Gate G5**: Xuất file MP4 1080p từ scene do Studio cập nhật.
+## 5. Bàn giao cho Người B (Next Steps for Person B)
+- **P1.4 & P1.5**: Nạp `templates/packs/basic/pack.json` và hoàn thiện JS `TemplateRegistry`.
+- **P2.1 & P2.3**: Dựng Template Gallery kết nối API `GET /packs` và `POST /projects` (`packId`).
+- **P3.3**: Kết nối Studio với `GET /projects/{id}/clarify` và `POST /projects/{id}/scene`.
+- **P4.3**: Dựng Media Strip UI gọi `GET /projects/{id}/media-recommendations/{slideId}`.
+- **P5.1 & P5.2**: Template Builder gọi `POST /packs/{id}/layouts`.
+- **P6.3**: Video component trên Canvas kết nối poster và video URL từ API media-upload.
+- **P7.3 & P7.4**: Tích hợp chat box sửa slide vào `POST /projects/{id}/slides/{slideId}/chat`.

@@ -1,0 +1,285 @@
+{
+  "projectId": "proj-sample-philosophy",
+  "title": "Khái luận về Triết học và Triết học Mác - Lênin",
+  "theme": {
+    "colorScheme": "academic-ocean",
+    "fontFamily": "Inter, sans-serif",
+    "aspectRatio": "16:9"
+  },
+  "totalDurationSeconds": 165.5,
+  "slides": [
+    {
+      "slideId": "slide-01",
+      "templateId": "title-slide",
+      "layoutVariant": "default",
+      "title": "Triết học và Triết học Mác - Lênin",
+      "subtitle": "Chương I: Khái luận về triết học và vai trò của triết học trong đời sống xã hội",
+      "elements": [
+        { "id": "badge-course", "type": "badge", "content": "Lý luận chính trị đại cương" },
+        { "id": "txt-author", "type": "text", "content": "Giảng viên: Bộ môn Triết học Mác - Lênin" },
+        { "id": "img-hero", "type": "image", "content": "storage/projects/sample-project/images/philosophy_intro.png" }
+      ],
+      "animations": [
+        { "target": "#badge-course", "preset": "fade-in", "delay": 0.2, "duration": 0.8, "easing": "power2.out" },
+        { "target": ".slide-title", "preset": "slide-in", "delay": 0.6, "duration": 1.0, "easing": "power2.out" },
+        { "target": "#img-hero", "preset": "zoom-in", "delay": 1.2, "duration": 1.2, "easing": "back.out" }
+      ],
+      "voice": {
+        "narration": "Chào mừng các bạn sinh viên đến với bài giảng Khái luận về Triết học và Triết học Mác - Lênin.",
+        "provider": "vieneu",
+        "voiceId": "MyDuyen",
+        "audioUrl": "storage/projects/sample/audio/slide-01.wav",
+        "durationSeconds": 15.2
+      },
+      "durationSeconds": 16.0,
+      "notes": "Slide mở đầu, giới thiệu tác giả và môn học."
+    },
+    {
+      "slideId": "slide-02",
+      "templateId": "learning-objectives",
+      "layoutVariant": "stacked-top",
+      "title": "Mục tiêu bài học",
+      "subtitle": "3 chuẩn đầu ra cốt lõi của chương",
+      "elements": [
+        {
+          "id": "obj-list",
+          "type": "bullet-list",
+          "content": [
+            "1. Nắm vững định nghĩa khoa học và đối tượng của Triết học",
+            "2. Phân biệt rõ hai mặt của Vấn đề cơ bản của Triết học",
+            "3. Hiểu được tiền đề lịch sử - khoa học ra đời của Triết học Mác"
+          ]
+        }
+      ],
+      "animations": [
+        { "target": ".obj-item-0", "preset": "step-by-step", "delay": 1.0, "duration": 0.8, "easing": "power2.out" }
+      ],
+      "voice": {
+        "narration": "Trong bài học này, chúng ta cần hoàn thành 3 mục tiêu cốt lõi.",
+        "provider": "vieneu",
+        "voiceId": "MyDuyen",
+        "audioUrl": "storage/projects/sample/audio/slide-02.wav",
+        "durationSeconds": 14.0
+      },
+      "durationSeconds": 15.0,
+      "notes": "Nhấn mạnh từng mục tiêu theo thứ tự xuất hiện."
+    },
+    {
+      "slideId": "slide-03",
+      "templateId": "concept-explain",
+      "layoutVariant": "text-left-image-right",
+      "title": "Khái niệm Triết học",
+      "subtitle": "Nguồn gốc từ Hy Lạp cổ đại (Philosophia)",
+      "elements": [
+        { "id": "txt-def", "type": "card", "content": "Hệ thống tri thức lý luận chung nhất của con người về thế giới." },
+        { "id": "img-concept", "type": "image", "content": "storage/projects/sample-project/images/philosophy_concept.png" }
+      ],
+      "animations": [
+        { "target": "#txt-def", "preset": "typewriter", "delay": 0.5, "duration": 2.0, "easing": "none" }
+      ],
+      "voice": {
+        "narration": "Triết học là hệ thống tri thức lý luận chung nhất của con người về thế giới.",
+        "provider": "vieneu",
+        "voiceId": "MyDuyen",
+        "audioUrl": "storage/projects/sample/audio/slide-03.wav",
+        "durationSeconds": 13.5
+      },
+      "durationSeconds": 14.5,
+      "notes": "Giải thích chữ Philosophia."
+    },
+    {
+      "slideId": "slide-04",
+      "templateId": "bullet-breakdown",
+      "layoutVariant": "default",
+      "title": "Nguồn gốc ra đời của Triết học",
+      "subtitle": "Hai điều kiện tiền đề quyết định",
+      "elements": [
+        { "id": "card-cog", "type": "card", "content": { "heading": "Nguồn gốc nhận thức", "body": "Tư duy trừu tượng phát triển." } },
+        { "id": "card-soc", "type": "card", "content": { "heading": "Nguồn gốc xã hội", "body": "Chế độ chiếm hữu nô lệ xuất hiện." } }
+      ],
+      "animations": [
+        { "target": "#card-cog", "preset": "slide-in", "delay": 1.0, "duration": 1.0, "easing": "power2.out" }
+      ],
+      "voice": {
+        "narration": "Triết học bắt nguồn từ hai điều kiện tất yếu: nhận thức và xã hội.",
+        "provider": "vieneu",
+        "voiceId": "MyDuyen",
+        "audioUrl": "storage/projects/sample/audio/slide-04.wav",
+        "durationSeconds": 15.0
+      },
+      "durationSeconds": 16.0,
+      "notes": "Làm nổi bật hai card."
+    },
+    {
+      "slideId": "slide-05",
+      "templateId": "image-explain",
+      "layoutVariant": "text-right-image-left",
+      "title": "Vấn đề cơ bản của Triết học",
+      "subtitle": "Mối quan hệ giữa Tư duy và Tồn tại",
+      "elements": [
+        { "id": "img-diagram", "type": "image", "content": "storage/projects/sample-project/images/basic_problem.png" },
+        { "id": "txt-side", "type": "text", "content": "Vấn đề cơ bản lớn của mọi triết học là quan hệ giữa tư duy và tồn tại." }
+      ],
+      "animations": [
+        { "target": "#img-diagram", "preset": "zoom-in", "delay": 0.5, "duration": 1.2, "easing": "power2.out" }
+      ],
+      "voice": {
+        "narration": "Vấn đề cơ bản lớn của mọi triết học chính là mối quan hệ giữa tư duy và tồn tại.",
+        "provider": "vieneu",
+        "voiceId": "MyDuyen",
+        "audioUrl": "storage/projects/sample/audio/slide-05.wav",
+        "durationSeconds": 18.0
+      },
+      "durationSeconds": 19.0,
+      "notes": "Trích dẫn F. Engels."
+    },
+    {
+      "slideId": "slide-06",
+      "templateId": "comparison",
+      "layoutVariant": "default",
+      "title": "Chủ nghĩa Duy vật vs Chủ nghĩa Duy tâm",
+      "subtitle": "Giải quyết mặt thứ nhất của Vấn đề cơ bản",
+      "elements": [
+        {
+          "id": "col-materialism",
+          "type": "card",
+          "content": {
+            "title": "Chủ nghĩa Duy vật",
+            "items": ["Vật chất có trước, quyết định ý thức"]
+          }
+        },
+        {
+          "id": "col-idealism",
+          "type": "card",
+          "content": {
+            "title": "Chủ nghĩa Duy tâm",
+            "items": ["Ý thức, tinh thần có trước"]
+          }
+        }
+      ],
+      "animations": [
+        { "target": "#col-materialism", "preset": "slide-in", "delay": 1.0, "duration": 1.0, "easing": "power2.out" }
+      ],
+      "voice": {
+        "narration": "Chủ nghĩa duy vật coi vật chất có trước. Chủ nghĩa duy tâm coi ý thức có trước.",
+        "provider": "vieneu",
+        "voiceId": "MyDuyen",
+        "audioUrl": "storage/projects/sample/audio/slide-06.wav",
+        "durationSeconds": 17.5
+      },
+      "durationSeconds": 18.5,
+      "notes": "So sánh đối xứng 2 cột."
+    },
+    {
+      "slideId": "slide-07",
+      "templateId": "timeline",
+      "layoutVariant": "default",
+      "title": "Tiến trình hình thành Triết học Mác",
+      "subtitle": "Ba giai đoạn phát triển lịch sử",
+      "elements": [
+        {
+          "id": "timeline-track",
+          "type": "timeline-step",
+          "content": [
+            { "time": "1841 - 1844", "event": "Chuyển từ duy tâm sang duy vật", "highlight": true }
+          ]
+        }
+      ],
+      "animations": [
+        { "target": ".step-0", "preset": "fade-in", "delay": 1.0, "duration": 0.8, "easing": "power2.out" }
+      ],
+      "voice": {
+        "narration": "Tiến trình hình thành tư tưởng của Các Mác và Ăng-ghen.",
+        "provider": "vieneu",
+        "voiceId": "MyDuyen",
+        "audioUrl": "storage/projects/sample/audio/slide-07.wav",
+        "durationSeconds": 16.0
+      },
+      "durationSeconds": 17.0,
+      "notes": "Trục thời gian."
+    },
+    {
+      "slideId": "slide-08",
+      "templateId": "formula-explain",
+      "layoutVariant": "stacked-top",
+      "title": "Quy luật Mâu thuẫn",
+      "subtitle": "Hạt nhân của Phép biện chứng",
+      "elements": [
+        { "id": "formula-box", "type": "formula", "content": "Phát triển = Thống nhất + Đấu tranh" },
+        { "id": "formula-note", "type": "text", "content": "Đấu tranh giữa các mặt đối lập là tuyệt đối." }
+      ],
+      "animations": [
+        { "target": "#formula-box", "preset": "zoom-in", "delay": 0.5, "duration": 1.0, "easing": "back.out" }
+      ],
+      "voice": {
+        "narration": "Quy luật mâu thuẫn là hạt nhân của phép biện chứng.",
+        "provider": "vieneu",
+        "voiceId": "MyDuyen",
+        "audioUrl": "storage/projects/sample/audio/slide-08.wav",
+        "durationSeconds": 15.5
+      },
+      "durationSeconds": 16.5,
+      "notes": "Công thức."
+    },
+    {
+      "slideId": "slide-09",
+      "templateId": "quiz",
+      "layoutVariant": "default",
+      "title": "Câu hỏi kiểm tra nhanh",
+      "subtitle": "Củng cố kiến thức",
+      "elements": [
+        {
+          "id": "quiz-box",
+          "type": "quiz-block",
+          "content": {
+            "question": "Mặt thứ nhất của vấn đề cơ bản là gì?",
+            "options": ["A. Bản thể luận", "B. Nhận thức luận"],
+            "correctIndex": 0,
+            "explanation": "Bản thể luận giải quyết vật chất hay ý thức có trước."
+          }
+        }
+      ],
+      "animations": [
+        { "target": ".question-txt", "preset": "fade-in", "delay": 0.5, "duration": 0.8, "easing": "power2.out" }
+      ],
+      "voice": {
+        "narration": "Hãy trả lời câu hỏi trắc nghiệm sau.",
+        "provider": "vieneu",
+        "voiceId": "MyDuyen",
+        "audioUrl": "storage/projects/sample/audio/slide-09.wav",
+        "durationSeconds": 16.8
+      },
+      "durationSeconds": 18.0,
+      "notes": "Trắc nghiệm."
+    },
+    {
+      "slideId": "slide-10",
+      "templateId": "summary",
+      "layoutVariant": "no-image",
+      "title": "Tổng kết bài học",
+      "subtitle": "Các điểm cần nhớ",
+      "elements": [
+        {
+          "id": "summary-points",
+          "type": "bullet-list",
+          "content": [
+            "Triết học là hệ thống tri thức lý luận",
+            "Vấn đề cơ bản gồm 2 mặt"
+          ]
+        }
+      ],
+      "animations": [
+        { "target": "#summary-points", "preset": "fade-in", "delay": 0.8, "duration": 1.2, "easing": "power2.out" }
+      ],
+      "voice": {
+        "narration": "Tóm lại bài học đã hoàn thành.",
+        "provider": "vieneu",
+        "voiceId": "MyDuyen",
+        "audioUrl": "storage/projects/sample/audio/slide-10.wav",
+        "durationSeconds": 14.5
+      },
+      "durationSeconds": 15.0,
+      "notes": "Tổng kết."
+    }
+  ]
+}

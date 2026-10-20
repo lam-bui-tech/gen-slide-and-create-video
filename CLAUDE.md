@@ -133,3 +133,14 @@ Fix all errors before presenting the result. Warnings should be reviewed before 
   - Interactive Prototype: `studio.html` & `server.js` (port 3000/3001)
   - Git Repository: Connected to `https://github.com/lam-bui-tech/gen-slide-and-create-video.git` (branch `main`).
 - **Next Immediate Action**: Execute **Phase 1 — Task 1.1**: Document Ingestion Service (integrate `MarkItDown` + `python-pptx` to parse PPTX/PDF/DOCX into `DocumentContext.json`).
+
+---
+
+## Person A (Backend / Pipeline) Ownership Rules
+IMPORTANT: Person A owns server/, scripts/, schemas/, server.js, storage/, tests/pipeline/.
+YOU MUST NOT edit templates/, studio*, outline_to_hyperframes.js, tests/engine/ (Person B).
+Schema changes go through a small separate PR that B reviews.
+IMPORTANT: AI outputs structured JSON only; providers (LLM/TTS) only via interfaces.
+IMPORTANT: v1 projects must keep opening (migrate_v1_to_v2). Never delete v1 code paths
+until docs/TICKETS.md says so.
+Run tests: pytest tests/pipeline tests/test_contracts.py. Env: Windows, PYTHONUTF8=1.
