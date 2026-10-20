@@ -668,6 +668,10 @@
     </div>
 
     <div class="nav-actions">
+      <button class="btn btn-secondary" id="btn-select-pack" title="Chọn hoặc thay đổi Bộ Mẫu Giảng Dạy (Template Pack)" style="padding: 7px 14px; font-weight: 600;">
+        🎨 Bộ Mẫu (<span id="current-pack-label">basic</span>)
+      </button>
+
       <button class="btn btn-primary" id="btn-upload-doc" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: white; padding: 7px 16px; font-weight: 700;">
         📥 Tải Tài Liệu (PPTX/PDF/DOCX/MD)
       </button>
@@ -888,10 +892,64 @@
     </div>
   </div>
 
+  <!-- Template Pack Gallery Step 1 Modal (P2.3) -->
+  <div class="modal-overlay" id="gallery-step-modal">
+    <div class="modal-box" style="width: 880px; max-width: 95vw; max-height: 90vh; display: flex; flex-direction: column; padding: 24px; border-radius: 14px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 16px;">
+        <div>
+          <h2 style="font-size: 20px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+            <span>🎨</span> Kho Bộ Mẫu Giảng Dạy (Template Gallery)
+          </h2>
+          <p style="font-size: 13px; color: var(--text-sub); margin-top: 4px;">
+            Bước 1: Chọn bộ mẫu thiết kế chuẩn sư phạm trước khi nạp tài liệu hoặc đổi bộ mẫu cho bài giảng hiện tại.
+          </p>
+        </div>
+        <button id="btn-close-gallery-modal" class="btn btn-secondary btn-icon" style="font-size: 16px;">✕</button>
+      </div>
+
+      <!-- Quick filters -->
+      <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+        <input type="text" id="gallery-search-input" placeholder="🔍 Tìm kiếm bộ mẫu..." class="prop-input" style="flex: 1; min-width: 220px;" />
+        <select id="gallery-filter-subject" class="prop-select" style="width: 160px;">
+          <option value="">Tất cả môn học</option>
+          <option value="toan-tin">Toán - Tin</option>
+          <option value="khoa-hoc-tu-nhien">Khoa học tự nhiên</option>
+          <option value="xa-hoi-nhan-van">Khoa học Xã hội</option>
+          <option value="kinh-te-quan-tri">Kinh tế - Quản trị</option>
+          <option value="tong-hop">Tổng hợp</option>
+        </select>
+        <select id="gallery-filter-style" class="prop-select" style="width: 170px;">
+          <option value="">Tất cả phong cách</option>
+          <option value="hoc-thuat-nghiem-tuc">Học thuật nghiêm túc</option>
+          <option value="hien-dai-toi-gian">Hiện đại tối giản</option>
+          <option value="sinh-dong-tre-trung">Sinh động trẻ trung</option>
+        </select>
+      </div>
+
+      <!-- Pack Grid Container -->
+      <div id="gallery-pack-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; overflow-y: auto; padding: 4px; max-height: 50vh;">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <!-- Footer CTA -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 16px;">
+        <span style="font-size: 12px; color: var(--text-sub);" id="gallery-status-hint">Đang chọn: <strong>basic</strong></span>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-secondary" id="btn-gallery-cancel">Đóng</button>
+          <button class="btn btn-primary" id="btn-gallery-confirm" style="font-weight: 700;">
+            Tiếp Tục Với Bộ Mẫu Đã Chọn ➜
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     import { sceneReducer, validateSlide, computeSlideDuration, recomputeTotalDuration, ALLOWED_PRESETS, ALLOWED_VARIANTS } from '/studio/reducer.js';
     import { TEMPLATES, renderSlide, buildGsapTimelineForSlide } from '/templates/index.js';
     import { migrateOnRead } from '/templates/migration.js';
+    import { TemplateRegistry } from '/templates/registry.js';
+    import { createFlowMachine } from '/studio/flow.js';
 
     const API_BASE = window.API_BASE || 'http://localhost:8000';
 
@@ -907,6 +965,131 @@
         this.scene = null;
         this.currentTimeline = null;
         this.isPlaying = false;
+
+        this.flowMachine = createFlowMachine({ current: 'studio', selectedPackId: 'basic' });
+        this.selectedGalleryPackId = 'basic';
+        this.galleryIntent = 'upload';
+        this.availablePacks = [];
+      }
+
+      async loadAvailablePacks() {
+        try {
+          const apiBase = window.location.port === '8000' ? '' : (window.location.port === '3000' ? '' : 'http://localhost:8000');
+          const res = await fetch(`${apiBase}/packs`);
+          if (res.ok) {
+            this.availablePacks = await res.json();
+          } else {
+            this.availablePacks = TemplateRegistry.list();
+          }
+        } catch (e) {
+          this.availablePacks = TemplateRegistry.list();
+        }
+        if (!this.availablePacks || this.availablePacks.length === 0) {
+          this.availablePacks = TemplateRegistry.list();
+        }
+      }
+
+      async openGalleryModal(intent = 'upload') {
+        this.galleryIntent = intent;
+        await this.loadAvailablePacks();
+        const modal = document.getElementById('gallery-step-modal');
+        const hintEl = document.getElementById('gallery-status-hint');
+        const confirmBtn = document.getElementById('btn-gallery-confirm');
+
+        this.selectedGalleryPackId = this.scene?.templatePackId || 'basic';
+        if (hintEl) hintEl.innerHTML = `Đang chọn: <strong>${this.selectedGalleryPackId}</strong>`;
+        if (confirmBtn) {
+          confirmBtn.innerText = intent === 'upload' 
+            ? 'Tiếp Tục Chọn Tệp Tải Lên ➜' 
+            : 'Áp Dụng Bộ Mẫu Này ➜';
+        }
+        this.renderGalleryGrid(this.availablePacks);
+        if (modal) modal.classList.add('open');
+      }
+
+      closeGalleryModal() {
+        const modal = document.getElementById('gallery-step-modal');
+        if (modal) modal.classList.remove('open');
+      }
+
+      renderGalleryGrid(packs) {
+        const grid = document.getElementById('gallery-pack-grid');
+        if (!grid) return;
+        grid.innerHTML = '';
+
+        for (const pack of packs) {
+          const isSelected = pack.id === this.selectedGalleryPackId;
+          const card = document.createElement('div');
+          card.style.cssText = `
+            border: 2px solid ${isSelected ? 'var(--primary)' : 'var(--border-color)'};
+            border-radius: 10px;
+            padding: 14px;
+            background: ${isSelected ? 'var(--primary-subtle)' : '#FFFFFF'};
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+          `;
+          card.onclick = () => {
+            this.selectedGalleryPackId = pack.id;
+            const hintEl = document.getElementById('gallery-status-hint');
+            if (hintEl) hintEl.innerHTML = `Đang chọn: <strong>${pack.name || pack.id}</strong>`;
+            this.renderGalleryGrid(this.availablePacks);
+          };
+
+          const tokens = pack.tokens || {};
+          const primaryColor = tokens['--hf-primary'] || '#0369A1';
+          const secondaryColor = tokens['--hf-secondary'] || '#0284C7';
+          const accentColor = tokens['--hf-accent'] || '#D97706';
+
+          card.innerHTML = `
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                <h4 style="font-size: 15px; font-weight: 700; color: var(--text-main);">${pack.name || pack.id}</h4>
+                <span style="font-size: 11px; font-weight: 700; background: ${primaryColor}; color: white; padding: 2px 6px; border-radius: 4px;">
+                  ${pack.layouts?.length || 10} layouts
+                </span>
+              </div>
+              <p style="font-size: 12px; color: var(--text-sub); line-height: 1.4; margin-bottom: 12px;">
+                ${pack.description || 'Bộ mẫu thiết kế chuẩn sư phạm.'}
+              </p>
+              <div style="display: flex; gap: 6px; margin-bottom: 12px;">
+                <div style="width: 18px; height: 18px; border-radius: 50%; background: ${primaryColor}; border: 1px solid rgba(0,0,0,0.1);" title="Primary"></div>
+                <div style="width: 18px; height: 18px; border-radius: 50%; background: ${secondaryColor}; border: 1px solid rgba(0,0,0,0.1);" title="Secondary"></div>
+                <div style="width: 18px; height: 18px; border-radius: 50%; background: ${accentColor}; border: 1px solid rgba(0,0,0,0.1);" title="Accent"></div>
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px;">
+                ${(pack.tags?.subject || []).map(t => `<span style="font-size: 10px; background: #E2E8F0; padding: 2px 6px; border-radius: 9999px;">${t}</span>`).join('')}
+                ${(pack.tags?.style || []).map(t => `<span style="font-size: 10px; background: #FEF3C7; color: #92400E; padding: 2px 6px; border-radius: 9999px;">${t}</span>`).join('')}
+              </div>
+            </div>
+            <button class="btn ${isSelected ? 'btn-primary' : 'btn-secondary'}" style="width: 100%; margin-top: 8px; font-size: 12px; padding: 6px;">
+              ${isSelected ? '✓ Đang chọn bộ mẫu này' : 'Chọn bộ mẫu này'}
+            </button>
+          `;
+          grid.appendChild(card);
+        }
+      }
+
+      filterGalleryPacks() {
+        const query = (document.getElementById('gallery-search-input')?.value || '').toLowerCase().trim();
+        const subject = document.getElementById('gallery-filter-subject')?.value || '';
+        const style = document.getElementById('gallery-filter-style')?.value || '';
+
+        const filtered = this.availablePacks.filter(p => {
+          if (query && !p.id.toLowerCase().includes(query) && !p.name?.toLowerCase().includes(query) && !p.description?.toLowerCase().includes(query)) {
+            return false;
+          }
+          if (subject && (!p.tags?.subject || !p.tags.subject.includes(subject))) {
+            return false;
+          }
+          if (style && (!p.tags?.style || !p.tags.style.includes(style))) {
+            return false;
+          }
+          return true;
+        });
+        this.renderGalleryGrid(filtered);
       }
 
       async init() {
@@ -1719,11 +1902,47 @@
           }
         });
 
-        // Document Upload Handlers
-        const btnUploadDoc = document.getElementById('btn-upload-doc');
+        // Template Gallery Step 1 & Pack Switcher (P2.3)
+        const btnSelectPack = document.getElementById('btn-select-pack');
+        if (btnSelectPack) {
+          btnSelectPack.onclick = () => this.openGalleryModal('switch-pack');
+        }
+
+        const btnCloseGallery = document.getElementById('btn-close-gallery-modal');
+        const btnCancelGallery = document.getElementById('btn-gallery-cancel');
+        if (btnCloseGallery) btnCloseGallery.onclick = () => this.closeGalleryModal();
+        if (btnCancelGallery) btnCancelGallery.onclick = () => this.closeGalleryModal();
+
+        const searchInput = document.getElementById('gallery-search-input');
+        const subjSelect = document.getElementById('gallery-filter-subject');
+        const styleSelect = document.getElementById('gallery-filter-style');
+        if (searchInput) searchInput.oninput = () => this.filterGalleryPacks();
+        if (subjSelect) subjSelect.onchange = () => this.filterGalleryPacks();
+        if (styleSelect) styleSelect.onchange = () => this.filterGalleryPacks();
+
+        const btnConfirmGallery = document.getElementById('btn-gallery-confirm');
         const inputDocFile = document.getElementById('input-doc-file');
+        if (btnConfirmGallery) {
+          btnConfirmGallery.onclick = () => {
+            this.closeGalleryModal();
+            if (this.galleryIntent === 'upload') {
+              this.flowMachine.transition({ type: 'SELECT_PACK', packId: this.selectedGalleryPackId });
+              if (inputDocFile) inputDocFile.click();
+            } else {
+              this.dispatch({
+                type: 'SWITCH_TEMPLATE_PACK',
+                payload: { packId: this.selectedGalleryPackId }
+              }, `Đổi Template Pack sang ${this.selectedGalleryPackId}`);
+              const packLabel = document.getElementById('current-pack-label');
+              if (packLabel) packLabel.innerText = this.selectedGalleryPackId;
+            }
+          };
+        }
+
+        // Document Upload Handlers (Step 1 -> Gallery, Step 2 -> File upload)
+        const btnUploadDoc = document.getElementById('btn-upload-doc');
         if (btnUploadDoc && inputDocFile) {
-          btnUploadDoc.onclick = () => inputDocFile.click();
+          btnUploadDoc.onclick = () => this.openGalleryModal('upload');
           inputDocFile.onchange = async (e) => {
             const file = e.target.files?.[0];
             if (file) await this.handleDocumentUpload(file);
@@ -1840,16 +2059,22 @@
         modal.classList.add('open');
 
         try {
-          // Bước 1: Tạo project mới
+          const selectedPack = this.flowMachine.getState().selectedPackId || this.scene?.templatePackId || 'basic';
+          this.flowMachine.transition({ type: 'START_UPLOAD' });
+
+          // Bước 1: Tạo project mới với Template Pack đã chọn
           iconEl.innerText = '📁';
           titleEl.innerText = 'Đang khởi tạo bài giảng...';
-          descEl.innerText = 'Tạo không gian làm việc cho: ' + file.name;
+          descEl.innerText = `Tạo không gian làm việc với bộ mẫu [${selectedPack}] cho: ` + file.name;
           barEl.style.width = '15%';
 
           const projRes = await fetch(`${API_BASE}/projects`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title: file.name.replace(/\.[^/.]+$/, '') })
+            body: JSON.stringify({ 
+              title: file.name.replace(/\.[^/.]+$/, ''),
+              packId: selectedPack
+            })
           });
           if (!projRes.ok) {
             const errTxt = await projRes.text();
@@ -2004,6 +2229,10 @@
 
           // Nạp bài giảng mới vào Canvas
           this.scene = newScene;
+          this.flowMachine.transition({ type: 'CLARIFY_SUBMIT', scene: newScene });
+          const packLabel = document.getElementById('current-pack-label');
+          if (packLabel) packLabel.innerText = this.scene.templatePackId || selectedPack;
+
           this.currentSlideIndex = 0;
           this.history = [JSON.parse(JSON.stringify(this.scene))];
           this.historyIndex = 0;

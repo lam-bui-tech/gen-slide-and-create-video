@@ -251,7 +251,33 @@ export function sceneReducer(state, action) {
       return next;
     }
 
+    case 'SWITCH_TEMPLATE_PACK': {
+      const { packId } = action.payload || {};
+      if (!packId || typeof packId !== 'string') {
+        throw new Error('SWITCH_TEMPLATE_PACK requires a valid packId string');
+      }
+      const pack = TemplateRegistry.get(packId);
+      if (!pack) {
+        throw new Error(`Pack "${packId}" not found in TemplateRegistry`);
+      }
+      next.templatePackId = packId;
+      const validLayoutIds = pack.layouts.map(l => l.id);
+      for (const slide of next.slides) {
+        slide.packId = packId;
+        const currentLayout = slide.layoutId || slide.templateId;
+        if (!validLayoutIds.includes(currentLayout) && validLayoutIds.length > 0) {
+          slide.layoutId = validLayoutIds[0];
+          slide.templateId = validLayoutIds[0];
+        }
+        validateSlide(slide);
+      }
+      return next;
+    }
+
     default:
       return next;
   }
 }
+
+export { sceneReducer as studioReducer };
+

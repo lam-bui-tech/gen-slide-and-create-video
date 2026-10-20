@@ -81,7 +81,7 @@ graph TD
 | **P1.5** | `[B]` | P1 | Xây dựng `TemplateRegistry` nạp và validate packs từ filesystem | `P1.4` | `completed` |
 | **P2.1** | `[B]` | P2 | Prototype nhanh Template Gallery (bộ lọc subject, style, effect) | `P1.5` | `completed` |
 | **P2.2** | `[A]` | P2 | API `GET /packs` (filters) & `GET /packs/{id}` & `POST /packs` | `P1.5` | `completed` |
-| **P2.3** | `[B]` | P2 | Tích hợp Gallery vào Studio làm bước 1 & chuyển đổi luồng tạo project | `P2.1`, `P2.2` | `pending` |
+| **P2.3** | `[B]` | P2 | Tích hợp Gallery vào Studio làm bước 1 & chuyển đổi luồng tạo project | `P2.1`, `P2.2` | `completed` |
 | **P3.1** | `[A]` | P3 | `AdaptiveClarificationService` (suy diễn thông minh từ doc & pack) | `P2.3` | `completed` |
 | **P3.2** | `[A]` | P3 | `SlotFillerEngine` điền slot với LLM + auto-retry tóm tắt khi tràn slot | `P1.2` | `completed` |
 | **P3.3** | `[B]` | P3 | UI Studio duyệt dàn bài & nạp nội dung theo slot chuẩn | `P3.1`, `P3.2` | `pending` |
