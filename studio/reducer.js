@@ -332,6 +332,43 @@ export function sceneReducer(state, action) {
       return next;
     }
 
+    case 'APPLY_SLIDE_CHAT_PATCH': {
+      const { slideIndex, patch } = action.payload || {};
+      if (typeof slideIndex !== 'number' || slideIndex < 0 || slideIndex >= next.slides.length) {
+        return next;
+      }
+      if (!patch || typeof patch !== 'object' || !patch.slotValues || typeof patch.slotValues !== 'object') {
+        return next;
+      }
+      const slide = next.slides[slideIndex];
+      slide.slotValues = slide.slotValues || {};
+      slide.elements = slide.elements || [];
+      slide.animations = slide.animations || [];
+
+      const sanitizeSlot = (val) => {
+        if (typeof val === 'string') {
+          return val.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+                    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+                    .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
+                    .replace(/<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi, '')
+                    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+                    .trim();
+        }
+        return val;
+      };
+
+      for (const [key, val] of Object.entries(patch.slotValues)) {
+        const cleanVal = sanitizeSlot(val);
+        slide.slotValues[key] = cleanVal;
+        if (key === 'title' && typeof cleanVal === 'string') {
+          slide.title = cleanVal;
+        }
+      }
+
+      validateSlide(slide);
+      return next;
+    }
+
     default:
       return next;
   }
