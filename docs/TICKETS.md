@@ -79,7 +79,7 @@ graph TD
 | **P1.3** | `[A]` | P1 | Viết migration `migrate_v1_to_v2` (in-memory + CLI) & snapshot tests | `P1.2` | `completed` |
 | **P1.4** | `[B]` | P1 | Đóng gói 10 layout hiện tại thành Template Pack mặc định "Basic" | `P1.2` | `completed` |
 | **P1.5** | `[B]` | P1 | Xây dựng `TemplateRegistry` nạp và validate packs từ filesystem | `P1.4` | `completed` |
-| **P2.1** | `[B]` | P2 | Prototype nhanh Template Gallery (bộ lọc subject, style, effect) | `P1.5` | `pending` |
+| **P2.1** | `[B]` | P2 | Prototype nhanh Template Gallery (bộ lọc subject, style, effect) | `P1.5` | `completed` |
 | **P2.2** | `[A]` | P2 | API `GET /packs` (filters) & `GET /packs/{id}` & `POST /packs` | `P1.5` | `completed` |
 | **P2.3** | `[B]` | P2 | Tích hợp Gallery vào Studio làm bước 1 & chuyển đổi luồng tạo project | `P2.1`, `P2.2` | `pending` |
 | **P3.1** | `[A]` | P3 | `AdaptiveClarificationService` (suy diễn thông minh từ doc & pack) | `P2.3` | `completed` |
