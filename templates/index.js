@@ -121,7 +121,7 @@ function renderConceptExplain(slide) {
   const bodyText = slide.slotValues?.body || (typeof slide.slotValues?.card === 'string' ? slide.slotValues.card : '') || cardEl?.content || '';
   const cardHtml = `
     <div class="concept-card" id="${cardEl?.id || 'txt-def'}">
-      <p class="concept-quote">“${escapeHtml(bodyText)}”</p>
+      <p class="concept-quote">“${formatSlotText(bodyText, 'Nhập nội dung định nghĩa/khái niệm...')}”</p>
     </div>
   `;
 
@@ -450,4 +450,15 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
+
+/**
+ * Format slot text with placeholder fallback when empty (P3.3)
+ */
+export function formatSlotText(str, placeholder = 'Nhấp để thêm nội dung...') {
+  if (str === null || str === undefined || String(str).trim() === '') {
+    return `<span class="slot-placeholder" data-slot-placeholder="true" style="opacity: 0.5; font-style: italic;">✎ ${escapeHtml(placeholder)}</span>`;
+  }
+  return escapeHtml(str);
+}
+
 

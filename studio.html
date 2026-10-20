@@ -950,6 +950,7 @@
     import { migrateOnRead } from '/templates/migration.js';
     import { TemplateRegistry } from '/templates/registry.js';
     import { createFlowMachine } from '/studio/flow.js';
+    import { updateOutlineSlide, addOutlineSlide, removeOutlineSlide, reorderOutlineSlides, approveOutline } from '/studio/outline_editor.js';
 
     const API_BASE = window.API_BASE || 'http://localhost:8000';
 
@@ -1090,6 +1091,143 @@
           return true;
         });
         this.renderGalleryGrid(filtered);
+      }
+
+      async reviewOutlineModal(rawOutline) {
+        let currentOutline = JSON.parse(JSON.stringify(rawOutline));
+        const modal = document.getElementById('outline-review-modal');
+        const container = document.getElementById('outline-slides-container');
+        const countHint = document.getElementById('outline-slide-count-hint');
+        const addBtn = document.getElementById('btn-outline-add-slide');
+        const approveBtn = document.getElementById('btn-outline-approve');
+        const quickApproveBtn = document.getElementById('btn-outline-quick-approve');
+
+        const activePack = TemplateRegistry.get(this.flowMachine?.getState()?.selectedPackId || 'basic') || TemplateRegistry.get('basic');
+        const availableLayouts = activePack?.layouts || [
+          { id: 'title-slide', name: '1. Tiêu Đề' },
+          { id: 'learning-objectives', name: '2. Mục Tiêu' },
+          { id: 'concept-explain', name: '3. Khái Niệm' },
+          { id: 'bullet-breakdown', name: '4. Phân Tích' },
+          { id: 'image-explain', name: '5. Sơ Đồ Trực Quan' },
+          { id: 'comparison', name: '6. So Sánh' },
+          { id: 'timeline', name: '7. Tiến Trình' },
+          { id: 'formula-explain', name: '8. Công Thức' },
+          { id: 'quiz', name: '9. Trắc Nghiệm' },
+          { id: 'summary', name: '10. Tổng Kết' }
+        ];
+
+        const renderList = () => {
+          if (!container) return;
+          container.innerHTML = '';
+          if (countHint) countHint.innerText = `Tổng số: ${currentOutline.slides.length} slides`;
+
+          currentOutline.slides.forEach((slide, idx) => {
+            const card = document.createElement('div');
+            card.style.cssText = `
+              background: #F8FAFC;
+              border: 1px solid var(--border-color);
+              border-radius: 8px;
+              padding: 12px 14px;
+              display: flex;
+              align-items: center;
+              gap: 12px;
+            `;
+
+            const layoutOpts = availableLayouts.map(l => `
+              <option value="${l.id}" ${l.id === slide.layoutId ? 'selected' : ''}>${l.name || l.id}</option>
+            `).join('');
+
+            card.innerHTML = `
+              <div style="font-weight: 800; font-size: 13px; color: var(--primary); min-width: 26px;">
+                #${idx + 1}
+              </div>
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 6px;">
+                <input type="text" class="prop-input outline-slide-title" value="${slide.title || ''}" placeholder="Tiêu đề slide..." style="font-weight: 600;" />
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-size: 11px; font-weight: 600; color: var(--text-sub);">Bố cục (Layout):</span>
+                  <select class="prop-select outline-slide-layout" style="padding: 4px 8px; font-size: 12px; width: 220px;">
+                    ${layoutOpts}
+                  </select>
+                  <span style="font-size: 11px; background: #E0F2FE; color: #0369A1; padding: 2px 6px; border-radius: 4px; font-weight: 600;">
+                    ${slide.visualNeed || 'none'}
+                  </span>
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 4px;">
+                <button class="btn btn-secondary btn-icon btn-move-up" style="padding: 2px 6px; font-size: 11px;" ${idx === 0 ? 'disabled' : ''} title="Di chuyển lên">▲</button>
+                <button class="btn btn-secondary btn-icon btn-move-down" style="padding: 2px 6px; font-size: 11px;" ${idx === currentOutline.slides.length - 1 ? 'disabled' : ''} title="Di chuyển xuống">▼</button>
+              </div>
+              <button class="btn btn-secondary btn-icon btn-delete-slide" style="color: #E11D48; padding: 6px;" title="Xóa slide">✕</button>
+            `;
+
+            // Event bindings
+            const titleInput = card.querySelector('.outline-slide-title');
+            titleInput.oninput = (e) => {
+              currentOutline = updateOutlineSlide(currentOutline, idx, { title: e.target.value });
+            };
+
+            const layoutSelect = card.querySelector('.outline-slide-layout');
+            layoutSelect.onchange = (e) => {
+              currentOutline = updateOutlineSlide(currentOutline, idx, { layoutId: e.target.value });
+            };
+
+            const upBtn = card.querySelector('.btn-move-up');
+            if (upBtn) upBtn.onclick = () => {
+              currentOutline = reorderOutlineSlides(currentOutline, idx, idx - 1);
+              renderList();
+            };
+
+            const downBtn = card.querySelector('.btn-move-down');
+            if (downBtn) downBtn.onclick = () => {
+              currentOutline = reorderOutlineSlides(currentOutline, idx, idx + 1);
+              renderList();
+            };
+
+            const delBtn = card.querySelector('.btn-delete-slide');
+            if (delBtn) delBtn.onclick = () => {
+              if (currentOutline.slides.length <= 1) {
+                alert('Dàn bài phải có ít nhất 1 slide.');
+                return;
+              }
+              currentOutline = removeOutlineSlide(currentOutline, idx);
+              renderList();
+            };
+
+            container.appendChild(card);
+          });
+        };
+
+        if (addBtn) {
+          addBtn.onclick = () => {
+            currentOutline = addOutlineSlide(currentOutline, {
+              title: `Slide Mới ${currentOutline.slides.length + 1}`,
+              layoutId: 'concept-explain',
+              visualNeed: 'diagram'
+            });
+            renderList();
+          };
+        }
+
+        renderList();
+        if (modal) modal.classList.add('open');
+
+        return new Promise((resolve) => {
+          const onApprove = () => {
+            cleanup();
+            resolve(approveOutline(currentOutline));
+          };
+          const onQuickApprove = () => {
+            cleanup();
+            resolve(approveOutline(currentOutline));
+          };
+          const cleanup = () => {
+            if (modal) modal.classList.remove('open');
+            if (approveBtn) approveBtn.removeEventListener('click', onApprove);
+            if (quickApproveBtn) quickApproveBtn.removeEventListener('click', onQuickApprove);
+          };
+          if (approveBtn) approveBtn.addEventListener('click', onApprove);
+          if (quickApproveBtn) quickApproveBtn.addEventListener('click', onQuickApprove);
+        });
       }
 
       async init() {
@@ -2194,12 +2332,21 @@
           }
           const outline = await outlineRes.json();
 
-          // Phê duyệt dàn bài
-          outline.status = 'approved';
+          // Tạm ẩn modal tiến trình để giảng viên duyệt dàn bài (P3.3)
+          modal.classList.remove('open');
+          const approvedOutline = await this.reviewOutlineModal(outline);
+
+          // Mở lại modal tiến trình để lưu dàn bài và sinh scene
+          modal.classList.add('open');
+          iconEl.innerText = '💾';
+          titleEl.innerText = 'Đang lưu dàn bài đã duyệt...';
+          descEl.innerText = 'Chuẩn bị dữ liệu để nạp nội dung theo slot chuẩn...';
+          barEl.style.width = '85%';
+
           const appRes = await fetch(`${API_BASE}/projects/${projectId}/outline`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(outline)
+            body: JSON.stringify(approvedOutline)
           });
           if (!appRes.ok) {
             const errTxt = await appRes.text();
@@ -2341,6 +2488,39 @@
       <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 14px;">
         <button id="btn-clarify-skip" class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px;">Bỏ qua & Dùng mặc định</button>
         <button id="btn-clarify-submit" class="btn btn-primary" style="padding: 8px 20px; font-size: 13px; font-weight: 600;">🚀 Bắt đầu sinh bài giảng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pedagogical Outline Review Modal (P3.3) -->
+  <div id="outline-review-modal" class="modal-overlay">
+    <div class="modal-box" style="width: 880px; max-width: 95vw; max-height: 88vh; display: flex; flex-direction: column; padding: 24px; border-radius: 14px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
+        <div>
+          <h3 style="font-size: 19px; font-weight: 800; color: var(--primary); margin: 0; display: flex; align-items: center; gap: 8px;">
+            <span>📋</span> Duyệt & Tinh Chỉnh Dàn Bài Sư Phạm (Outline Review)
+          </h3>
+          <p style="font-size: 13px; color: var(--text-sub); margin-top: 4px;">
+            Tùy chỉnh bố cục (Layouts) và tiêu đề cho từng slide trước khi hệ thống sinh nội dung chi tiết.
+          </p>
+        </div>
+        <button id="btn-outline-add-slide" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px; font-weight: 600;">
+          + Thêm Slide
+        </button>
+      </div>
+
+      <div id="outline-slides-container" style="display: flex; flex-direction: column; gap: 10px; overflow-y: auto; padding: 4px; max-height: 52vh;">
+        <!-- Injected dynamically via JS -->
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 16px;">
+        <span id="outline-slide-count-hint" style="font-size: 13px; font-weight: 600; color: var(--text-sub);">Tổng số: 0 slides</span>
+        <div style="display: flex; gap: 10px;">
+          <button id="btn-outline-quick-approve" class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px;">Duyệt Mặc Định</button>
+          <button id="btn-outline-approve" class="btn btn-primary" style="padding: 8px 22px; font-size: 13px; font-weight: 700;">
+            🚀 Phê Duyệt & Sinh Bài Giảng
+          </button>
+        </div>
       </div>
     </div>
   </div>

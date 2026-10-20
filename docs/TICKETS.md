@@ -84,7 +84,7 @@ graph TD
 | **P2.3** | `[B]` | P2 | Tích hợp Gallery vào Studio làm bước 1 & chuyển đổi luồng tạo project | `P2.1`, `P2.2` | `completed` |
 | **P3.1** | `[A]` | P3 | `AdaptiveClarificationService` (suy diễn thông minh từ doc & pack) | `P2.3` | `completed` |
 | **P3.2** | `[A]` | P3 | `SlotFillerEngine` điền slot với LLM + auto-retry tóm tắt khi tràn slot | `P1.2` | `completed` |
-| **P3.3** | `[B]` | P3 | UI Studio duyệt dàn bài & nạp nội dung theo slot chuẩn | `P3.1`, `P3.2` | `pending` |
+| **P3.3** | `[B]` | P3 | UI Studio duyệt dàn bài & nạp nội dung theo slot chuẩn | `P3.1`, `P3.2` | `completed` |
 | **P4.1** | `[A]` | P4 | Module phân tích nhu cầu thị giác `visual_need` theo từng slide | `P3.2` | `completed` |
 | **P4.2** | `[A]` | P4 | 3 MediaSource adapters: DocumentImage, Diagram SVG/Mermaid/Chart, Upload | `P4.1` | `completed` |
 | **P4.3** | `[B]` | P4 | Media Strip UI: gợi ý 3-4 ứng viên 1-chạm & variant fallback khi không có ảnh | `P4.2` | `pending` |
