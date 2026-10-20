@@ -132,16 +132,40 @@ class VieNeuProvider(TTSProviderBase):
                 raise TTSError(f"Cannot initialize local VieNeu-TTS: {e}") from e
         return VieNeuProvider._cached_model
 
+    VOICE_ALIASES = {
+        "myduyen": "Mỹ Duyên",
+        "mỹ duyên": "Mỹ Duyên",
+        "maianh": "Mai Anh",
+        "mai anh": "Mai Anh",
+        "thienminh": "Thiện Minh",
+        "thiện minh": "Thiện Minh",
+        "thuydung": "Thùy Dung",
+        "thùy dung": "Thùy Dung",
+        "haidang": "Hải Đăng",
+        "hải đăng": "Hải Đăng",
+        "minhduc": "Minh Đức",
+        "minh đức": "Minh Đức",
+        "trucly": "Trúc Ly",
+        "trúc ly": "Trúc Ly",
+        "adam": "Adam",
+        "adambua": "Adam bựa",
+    }
+
     def synthesize(self, text: str, voice_id: str, output_path: str) -> float:
         import soundfile as sf
         os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
 
-        voice = voice_id or "Mỹ Duyên"
+        norm_key = (voice_id or "").lower().replace(" ", "").replace("_", "").replace("-", "")
+        voice = self.VOICE_ALIASES.get(norm_key, voice_id) or "Mỹ Duyên"
         model = self._get_model()
+
+        # Verify voice is valid in preset list, fallback to Mỹ Duyên
+        if not model.resolve_voice_name(voice):
+            voice = "Mỹ Duyên"
 
         try:
             audio_data = model.infer(text=text, voice=voice)
-            sample_rate = 48000
+            sample_rate = model.sample_rate or 48000
             sf.write(output_path, audio_data, sample_rate)
             return round(len(audio_data) / sample_rate, 2)
         except Exception as e:

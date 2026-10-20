@@ -42,6 +42,31 @@ app.add_middleware(
 )
 
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+@app.get("/storage/projects/{project_id}/audio/{filename}")
+def serve_project_audio(project_id: str, filename: str):
+    audio_dir = os.path.join(STORAGE_DIR, project_id, "audio")
+    direct_path = os.path.join(audio_dir, filename)
+    if os.path.exists(direct_path):
+        return FileResponse(direct_path, media_type="audio/wav")
+
+    # Fallback between slide-01.wav <-> slide-1.wav
+    alt_filename = None
+    if "-0" in filename:
+        alt_filename = filename.replace("-0", "-")
+    elif "-" in filename:
+        parts = filename.split("-")
+        if len(parts) == 2 and parts[1].replace(".wav", "").isdigit():
+            num = int(parts[1].replace(".wav", ""))
+            alt_filename = f"{parts[0]}-{num:02d}.wav"
+
+    if alt_filename:
+        alt_path = os.path.join(audio_dir, alt_filename)
+        if os.path.exists(alt_path):
+            return FileResponse(alt_path, media_type="audio/wav")
+
+    raise HTTPException(status_code=404, detail="Audio file not found")
 
 storage_root = os.path.join(BASE_DIR, "storage")
 os.makedirs(storage_root, exist_ok=True)
@@ -280,6 +305,26 @@ def update_or_approve_outline(project_id: str, outline: LessonOutline):
     return saved
 
 
+from scripts.tts_provider import (
+    TTSProviderBase,
+    FakeTTSProvider,
+    VieNeuProvider,
+    sync_audio_first_timeline,
+    generate_slide_narration,
+)
+
+# Initialize TTS Provider: Use VieNeuProvider for authentic Vietnamese speech
+try:
+    if os.environ.get("TEST_MODE") == "1":
+        active_tts_provider = FakeTTSProvider()
+    else:
+        active_tts_provider = VieNeuProvider(mode="v3turbo")
+except Exception as e:
+    print(f"[WARN] Cannot initialize VieNeuProvider ({e}), falling back to FakeTTS")
+    active_tts_provider = FakeTTSProvider()
+
+
+
 @app.post("/projects/{project_id}/scene", status_code=status.HTTP_201_CREATED)
 def generate_scene_endpoint(project_id: str):
     """
@@ -335,6 +380,20 @@ def generate_scene_endpoint(project_id: str):
         with open(scene_path, "w", encoding="utf-8") as f:
             json.dump(scene_data, f, ensure_ascii=False, indent=2)
 
+    # Synthesize initial audio files for each slide so they exist on disk and don't 404
+    audio_dir = os.path.join(STORAGE_DIR, project_id, "audio")
+    os.makedirs(audio_dir, exist_ok=True)
+    for slide in scene_data.get("slides", []):
+        slide_id = slide.get("slideId", "slide-01")
+        narration = slide.get("voice", {}).get("narration") or slide.get("title", "")
+        voice_id = slide.get("voice", {}).get("voiceId", "MyDuyen")
+        out_wav = os.path.join(audio_dir, f"{slide_id}.wav")
+        if not os.path.exists(out_wav):
+            try:
+                active_tts_provider.synthesize(text=narration, voice_id=voice_id, output_path=out_wav)
+            except Exception as e:
+                print(f"[WARN] Failed to synthesize initial audio for {slide_id}: {e}")
+
     return LessonSceneJSON.model_validate(scene_data)
 
 
@@ -373,22 +432,7 @@ def update_scene_endpoint(project_id: str, scene: LessonSceneJSON):
 # Slide Narration & Audio Synthesis Endpoints
 # ==========================================
 
-from scripts.tts_provider import (
-    TTSProviderBase,
-    FakeTTSProvider,
-    VieNeuProvider,
-    sync_audio_first_timeline,
-    generate_slide_narration,
-)
 
-# Initialize TTS Provider (use FakeTTS if in test mode or local VieNeu otherwise)
-try:
-    if os.environ.get("TEST_MODE") == "1":
-        active_tts_provider = FakeTTSProvider()
-    else:
-        active_tts_provider = FakeTTSProvider()  # Fallback gracefully
-except Exception:
-    active_tts_provider = FakeTTSProvider()
 
 
 class NarrationRequest(BaseModel):

@@ -158,8 +158,10 @@ export function outlineToScene(outline, options = {}) {
     const narrationText = s.speakerNotesDraft || s.keyTakeaways?.join('. ') || s.title;
     const voiceDuration = Math.max(duration - 1.0, 4.0);
 
+    const resolvedSlideId = s.slideId || `slide-${idx + 1}`;
+
     const slideObj = {
-      slideId: s.slideId || `slide-${String(idx + 1).padStart(2, '0')}`,
+      slideId: resolvedSlideId,
       templateId: templateId,
       layoutVariant: s.layoutVariant || s.contentPayload?.layoutVariant || 'default',
       title: s.title,
@@ -170,7 +172,7 @@ export function outlineToScene(outline, options = {}) {
         narration: narrationText,
         provider: 'vieneu',
         voiceId: 'MyDuyen',
-        audioUrl: `storage/projects/${projectId}/audio/slide-${String(idx + 1).padStart(2, '0')}.wav`,
+        audioUrl: `storage/projects/${projectId}/audio/${resolvedSlideId}.wav`,
         durationSeconds: voiceDuration
       },
       durationSeconds: duration,

@@ -1256,8 +1256,12 @@
           if (slide.voice?.audioUrl) {
             audioEl.src = slide.voice.audioUrl;
             audioEl.style.display = 'block';
+            audioEl.onerror = () => {
+              audioEl.style.display = 'none';
+            };
           } else {
             audioEl.removeAttribute('src');
+            audioEl.style.display = 'none';
           }
         }
 
