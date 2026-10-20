@@ -913,7 +913,8 @@
 
         <div style="display: flex; gap: 6px; margin-bottom: 10px;">
           <button class="btn btn-secondary" id="btn-media-strip-upload" style="flex: 1; padding: 6px 8px; font-size: 12px; font-weight: 600;">📁 Tải Ảnh Lên</button>
-          <button class="btn btn-secondary" id="btn-media-strip-remove" style="color: #E11D48; padding: 6px 10px; font-size: 12px; font-weight: 600;" title="Xóa ảnh và chuyển sang bố cục no-image">✕ Xóa Ảnh</button>
+          <button class="btn btn-secondary" id="btn-media-strip-video" style="flex: 1; padding: 6px 8px; font-size: 12px; font-weight: 600; color: #0284C7; border-color: #BAE6FD;">🎬 Chèn Video</button>
+          <button class="btn btn-secondary" id="btn-media-strip-remove" style="color: #E11D48; padding: 6px 10px; font-size: 12px; font-weight: 600;" title="Xóa ảnh và chuyển sang bố cục no-image">✕ Xóa</button>
         </div>
         <input type="file" id="media-strip-file-input" accept="image/*" style="display: none;" />
 
@@ -923,6 +924,57 @@
 
         <div id="media-recommendations-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
           <!-- 3-4 Candidates rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- 1c. Video Component UI (P6.3) -->
+      <div class="prop-section" id="video-component-section" style="display: none;">
+        <div class="prop-section-title">
+          <span>🎬 Khối Video Canvas (P6.3)</span>
+          <span style="font-size: 10px; background: #FEF3C7; color: #D97706; padding: 2px 6px; border-radius: 4px; font-weight: 700;">MP4 / WebM</span>
+        </div>
+
+        <div class="prop-group">
+          <label class="prop-label">Nguồn Video (URL / Tệp)</label>
+          <div style="display: flex; gap: 6px;">
+            <input type="text" id="video-src-input" class="prop-input" placeholder="storage/projects/.../clip.mp4" style="flex: 1;" />
+            <button class="btn btn-secondary" id="btn-video-upload" style="padding: 6px 10px; font-size: 11px;">📁 Tải lên</button>
+          </div>
+          <input type="file" id="video-file-input" accept="video/mp4,video/webm" style="display: none;" />
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+          <div>
+            <label class="prop-label">Cắt đầu (Trim Start - s)</label>
+            <input type="number" id="video-trim-start" class="prop-input" min="0" step="0.1" value="0.0" />
+          </div>
+          <div>
+            <label class="prop-label">Cắt đuôi (Trim End - s)</label>
+            <input type="number" id="video-trim-end" class="prop-input" min="0.1" step="0.1" value="10.0" />
+          </div>
+        </div>
+
+        <div class="prop-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label class="prop-label" style="margin-bottom: 0;">Âm lượng Video</label>
+            <span id="video-volume-val" style="font-size: 11px; font-weight: 700; color: var(--primary);">100%</span>
+          </div>
+          <input type="range" id="video-volume-slider" min="0" max="1" step="0.05" value="1.0" style="width: 100%; accent-color: var(--primary);" />
+        </div>
+
+        <div class="prop-group" style="background: #F8FAFC; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px;">
+          <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 12px; cursor: pointer;">
+            <input type="checkbox" id="video-ducking-checkbox" checked style="margin-top: 2px;" />
+            <span>
+              <strong>Ducking âm lượng</strong>: Tự động hạ âm lượng video xuống 0.2 khi có giọng thuyết minh của giáo viên.
+            </span>
+          </label>
+        </div>
+
+        <div style="display: flex; gap: 6px; margin-top: 8px;">
+          <button class="btn btn-secondary" id="btn-video-remove" style="color: #E11D48; width: 100%; font-size: 12px; font-weight: 600; border-color: #FECDD3; background: #FFF1F2;">
+            ✕ Gỡ Khối Video Khỏi Slide
+          </button>
         </div>
       </div>
 
@@ -2019,8 +2071,49 @@
         // Media Strip (P4.3)
         this.renderMediaStrip(slide);
 
+        // Video Component Inspector (P6.3)
+        this.renderVideoInspector(slide);
+
         // Animations list
         this.renderAnimationsList(slide);
+      }
+
+      renderVideoInspector(slide) {
+        const vidSection = document.getElementById('video-component-section');
+        if (!vidSection) return;
+
+        const vidEl = slide.elements?.find(e => e.type === 'video');
+        if (!vidEl) {
+          vidSection.style.display = 'none';
+          return;
+        }
+
+        vidSection.style.display = 'block';
+        const srcInput = document.getElementById('video-src-input');
+        const trimStartInput = document.getElementById('video-trim-start');
+        const trimEndInput = document.getElementById('video-trim-end');
+        const volSlider = document.getElementById('video-volume-slider');
+        const volVal = document.getElementById('video-volume-val');
+        const duckingCheck = document.getElementById('video-ducking-checkbox');
+
+        if (srcInput) srcInput.value = vidEl.content || '';
+        if (trimStartInput) trimStartInput.value = vidEl.trimStart ?? 0.0;
+        if (trimEndInput) trimEndInput.value = vidEl.trimEnd ?? (slide.durationSeconds || 16.0);
+        const curVol = vidEl.volume ?? 1.0;
+        if (volSlider) volSlider.value = curVol;
+        if (volVal) volVal.innerText = `${Math.round(curVol * 100)}%`;
+        if (duckingCheck) duckingCheck.checked = vidEl.ducking !== false;
+      }
+
+      syncVideoTime(time) {
+        const vid = document.querySelector('#slide-canvas video');
+        if (!vid) return;
+        const trimStart = parseFloat(vid.getAttribute('data-media-start') || '0');
+        const trimEnd = parseFloat(vid.getAttribute('data-media-end') || String(vid.duration || 9999));
+        const targetTime = trimStart + time;
+        if (targetTime <= trimEnd) {
+          vid.currentTime = targetTime;
+        }
       }
 
       async renderMediaStrip(slide) {
@@ -2196,12 +2289,15 @@
               const time = this.currentTimeline.time();
               slider.value = time;
               if (curTimeEl) curTimeEl.innerText = this.formatSeconds(time);
+              this.syncVideoTime(time);
             }
           });
           this.currentTimeline.eventCallback('onComplete', () => {
             this.isPlaying = false;
             const playBtn = document.getElementById('btn-timeline-play');
             if (playBtn) playBtn.innerText = '▶';
+            const vid = document.querySelector('#slide-canvas video');
+            if (vid) vid.pause();
           });
         }
       }
@@ -2217,6 +2313,9 @@
         }
         const playBtn = document.getElementById('btn-timeline-play');
         if (playBtn) playBtn.innerText = '⏸';
+
+        const vid = document.querySelector('#slide-canvas video');
+        if (vid) vid.play().catch(() => {});
       }
 
       pauseSlideTimeline() {
@@ -2225,6 +2324,9 @@
         this.currentTimeline.pause();
         const playBtn = document.getElementById('btn-timeline-play');
         if (playBtn) playBtn.innerText = '▶';
+
+        const vid = document.querySelector('#slide-canvas video');
+        if (vid) vid.pause();
       }
 
       stopSlideTimeline() {
@@ -2238,6 +2340,13 @@
         if (playBtn) playBtn.innerText = '▶';
         if (slider) slider.value = 0;
         if (curTimeEl) curTimeEl.innerText = '00:00.0';
+
+        const vid = document.querySelector('#slide-canvas video');
+        if (vid) {
+          vid.pause();
+          const trimStart = parseFloat(vid.getAttribute('data-media-start') || '0');
+          vid.currentTime = trimStart;
+        }
       }
 
       formatSeconds(s) {
@@ -2477,6 +2586,7 @@
             }
             const curTimeEl = document.getElementById('time-current');
             if (curTimeEl) curTimeEl.innerText = this.formatSeconds(time);
+            this.syncVideoTime(time);
           };
         }
 
@@ -2529,6 +2639,36 @@
           };
         }
 
+        const btnMediaVideo = document.getElementById('btn-media-strip-video');
+        if (btnMediaVideo) {
+          btnMediaVideo.onclick = () => {
+            const slide = this.getCurrentSlide();
+            const existingVid = slide?.elements?.find(e => e.type === 'video');
+            if (existingVid) return;
+            const newVid = {
+              id: 'vid-' + Date.now().toString(36),
+              type: 'video',
+              content: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+              trimStart: 0.0,
+              trimEnd: Math.min(10.0, slide.durationSeconds || 16.0),
+              volume: 1.0,
+              ducking: true
+            };
+            const updatedElements = (slide.elements || []).filter(e => e.type !== 'image');
+            updatedElements.push(newVid);
+            this.dispatch({
+              type: 'UPDATE_SLIDE',
+              payload: {
+                slideIndex: this.currentSlideIndex,
+                changes: {
+                  elements: updatedElements,
+                  layoutVariant: slide.layoutVariant === 'no-image' ? 'default' : slide.layoutVariant
+                }
+              }
+            }, 'Chèn khối video minh họa vào slide');
+          };
+        }
+
         const btnMediaUpload = document.getElementById('btn-media-strip-upload');
         const mediaFileInput = document.getElementById('media-strip-file-input');
         if (btnMediaUpload && mediaFileInput) {
@@ -2548,6 +2688,152 @@
               };
               reader.readAsDataURL(file);
             }
+          };
+        }
+
+        // ==========================================
+        // Video Component Event Handlers (P6.3)
+        // ==========================================
+        const videoSrcInput = document.getElementById('video-src-input');
+        if (videoSrcInput) {
+          videoSrcInput.onchange = (e) => {
+            const slide = this.getCurrentSlide();
+            const vidEl = slide?.elements?.find(el => el.type === 'video');
+            if (vidEl) {
+              this.dispatch({
+                type: 'UPDATE_VIDEO_COMPONENT',
+                payload: {
+                  slideIndex: this.currentSlideIndex,
+                  elementId: vidEl.id,
+                  changes: { content: e.target.value.trim() }
+                }
+              }, 'Đổi nguồn video');
+            }
+          };
+        }
+
+        const videoTrimStart = document.getElementById('video-trim-start');
+        if (videoTrimStart) {
+          videoTrimStart.onchange = (e) => {
+            const slide = this.getCurrentSlide();
+            const vidEl = slide?.elements?.find(el => el.type === 'video');
+            if (vidEl) {
+              const val = Math.max(0, parseFloat(e.target.value) || 0);
+              this.dispatch({
+                type: 'UPDATE_VIDEO_COMPONENT',
+                payload: {
+                  slideIndex: this.currentSlideIndex,
+                  elementId: vidEl.id,
+                  changes: { trimStart: val }
+                }
+              }, 'Cập nhật trim start video');
+            }
+          };
+        }
+
+        const videoTrimEnd = document.getElementById('video-trim-end');
+        if (videoTrimEnd) {
+          videoTrimEnd.onchange = (e) => {
+            const slide = this.getCurrentSlide();
+            const vidEl = slide?.elements?.find(el => el.type === 'video');
+            if (vidEl) {
+              const val = Math.max(0.1, parseFloat(e.target.value) || 10.0);
+              this.dispatch({
+                type: 'UPDATE_VIDEO_COMPONENT',
+                payload: {
+                  slideIndex: this.currentSlideIndex,
+                  elementId: vidEl.id,
+                  changes: { trimEnd: val }
+                }
+              }, 'Cập nhật trim end video');
+            }
+          };
+        }
+
+        const videoVolumeSlider = document.getElementById('video-volume-slider');
+        const videoVolumeVal = document.getElementById('video-volume-val');
+        if (videoVolumeSlider) {
+          videoVolumeSlider.oninput = (e) => {
+            const vol = parseFloat(e.target.value);
+            if (videoVolumeVal) videoVolumeVal.innerText = `${Math.round(vol * 100)}%`;
+          };
+          videoVolumeSlider.onchange = (e) => {
+            const slide = this.getCurrentSlide();
+            const vidEl = slide?.elements?.find(el => el.type === 'video');
+            if (vidEl) {
+              const vol = parseFloat(e.target.value);
+              this.dispatch({
+                type: 'UPDATE_VIDEO_COMPONENT',
+                payload: {
+                  slideIndex: this.currentSlideIndex,
+                  elementId: vidEl.id,
+                  changes: { volume: vol }
+                }
+              }, 'Điều chỉnh âm lượng video');
+            }
+          };
+        }
+
+        const videoDuckingCheckbox = document.getElementById('video-ducking-checkbox');
+        if (videoDuckingCheckbox) {
+          videoDuckingCheckbox.onchange = (e) => {
+            const slide = this.getCurrentSlide();
+            const vidEl = slide?.elements?.find(el => el.type === 'video');
+            if (vidEl) {
+              this.dispatch({
+                type: 'UPDATE_VIDEO_COMPONENT',
+                payload: {
+                  slideIndex: this.currentSlideIndex,
+                  elementId: vidEl.id,
+                  changes: { ducking: e.target.checked }
+                }
+              }, 'Bật/tắt ducking âm lượng');
+            }
+          };
+        }
+
+        const btnVideoUpload = document.getElementById('btn-video-upload');
+        const videoFileInput = document.getElementById('video-file-input');
+        if (btnVideoUpload && videoFileInput) {
+          btnVideoUpload.onclick = () => videoFileInput.click();
+          videoFileInput.onchange = (e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = (re) => {
+                const slide = this.getCurrentSlide();
+                const vidEl = slide?.elements?.find(el => el.type === 'video');
+                if (vidEl) {
+                  this.dispatch({
+                    type: 'UPDATE_VIDEO_COMPONENT',
+                    payload: {
+                      slideIndex: this.currentSlideIndex,
+                      elementId: vidEl.id,
+                      changes: { content: re.target.result }
+                    }
+                  }, 'Tải video lên slide');
+                }
+              };
+              reader.readAsDataURL(file);
+            }
+          };
+        }
+
+        const btnVideoRemove = document.getElementById('btn-video-remove');
+        if (btnVideoRemove) {
+          btnVideoRemove.onclick = () => {
+            const slide = this.getCurrentSlide();
+            const filteredElements = (slide?.elements || []).filter(e => e.type !== 'video');
+            this.dispatch({
+              type: 'UPDATE_SLIDE',
+              payload: {
+                slideIndex: this.currentSlideIndex,
+                changes: {
+                  elements: filteredElements,
+                  layoutVariant: 'no-image'
+                }
+              }
+            }, 'Gỡ bỏ video khỏi slide');
           };
         }
 

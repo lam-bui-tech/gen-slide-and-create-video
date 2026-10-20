@@ -93,7 +93,7 @@ graph TD
 | **P5.3** | `[A]` | P5 | API `POST /packs/{id}/layouts` lưu Layout JSON vào pack & sinh thumbnail | `P5.2` | `completed` |
 | **P6.1** | `[A/B]`| P6 | Spike test kiểm chứng HyperFrames render video MP4 qua `--video-frame-format` | Không | `completed` |
 | **P6.2** | `[A]` | P6 | Pipeline upload video cục bộ & trích xuất poster frame tự động cho PDF/PPTX | `P6.1` | `completed` |
-| **P6.3** | `[B]` | P6 | Component Video trên Canvas: trim start/end, ducking âm lượng dưới narration | `P6.2` | `pending` |
+| **P6.3** | `[B]` | P6 | Component Video trên Canvas: trim start/end, ducking âm lượng dưới narration | `P6.2` | `completed` |
 | **P7.1** | `[A]` | P7 | Tạo phụ đề SRT/VTT từ timeline narration, hỗ trợ burn-in MP4 | Không | `completed` |
 | **P7.2** | `[A]` | P7 | Lớp chuẩn hóa phát âm tiếng Việt cho VieNeu (thuật ngữ + công thức toán) | Không | `completed` |
 | **P7.3** | `[B]` | P7 | Ô chat AI sửa từng slide bằng natural language (patch slotValues) | `P3.2` | `pending` |

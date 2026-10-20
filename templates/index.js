@@ -35,6 +35,46 @@ if (basicPack?.layouts) {
 }
 
 /**
+ * Helper to render either a standard image or an embedded video component (P6.3)
+ */
+function renderMediaBlock(slide, imgEl, defaultId, wrapClass) {
+  const vidEl = slide.elements?.find(e => e.type === 'video');
+  if (vidEl && vidEl.content) {
+    const videoSrc = vidEl.content;
+    const trimStart = vidEl.trimStart ?? 0.0;
+    const trimEnd = vidEl.trimEnd ?? (slide.durationSeconds || 16.0);
+    const duration = Math.min(Math.max(1.0, trimEnd - trimStart), slide.durationSeconds || 16.0);
+    const hasNarration = Boolean(slide.voice?.narration && (slide.voice?.durationSeconds > 0 || slide.voice.narration.trim().length > 0));
+    const rawVolume = vidEl.volume ?? 1.0;
+    const effectiveVolume = (vidEl.ducking && hasNarration) ? 0.2 : rawVolume;
+    const isMuted = effectiveVolume <= 0 || Boolean(vidEl.muted);
+    const hasAudioAttr = isMuted ? 'data-has-audio="false"' : 'data-has-audio="true"';
+    const mutedAttr = isMuted ? 'muted' : '';
+    const posterAttr = vidEl.poster ? `poster="${escapeHtml(vidEl.poster)}"` : '';
+
+    return `
+      <div class="${wrapClass}">
+        <video id="${vidEl.id || defaultId}" class="clip" src="${escapeHtml(videoSrc)}"
+          data-start="${slide.start || 0}" data-duration="${duration}"
+          data-media-start="${trimStart}" data-media-end="${trimEnd}"
+          data-volume="${effectiveVolume.toFixed(1)}" data-ducking="${vidEl.ducking ? 'true' : 'false'}"
+          ${hasAudioAttr} ${mutedAttr} ${posterAttr} playsinline preload="metadata"
+          style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+        </video>
+      </div>`;
+  }
+
+  const mediaVal = slide.slotValues?.media || imgEl?.content;
+  const imgSrc = (typeof mediaVal === 'string') ? mediaVal.trim() : (mediaVal?.url?.trim() || '');
+  if (!imgSrc) return '';
+
+  return `
+    <div class="${wrapClass}">
+      <img id="${imgEl?.id || defaultId}" src="${escapeHtml(imgSrc)}" alt="${escapeHtml(slide.title)}" onerror="this.style.display='none'" />
+    </div>`;
+}
+
+/**
  * 1. Title Slide (Hero)
  */
 function renderTitleSlide(slide) {
@@ -42,12 +82,13 @@ function renderTitleSlide(slide) {
   const badgeEl = slide.elements?.find(e => e.type === 'badge');
   const authorEl = slide.elements?.find(e => e.id === 'txt-author' || e.type === 'text');
   const imgEl = slide.elements?.find(e => e.type === 'image');
+  const vidEl = slide.elements?.find(e => e.type === 'video');
 
-  const mediaVal = slide.slotValues?.media || imgEl?.content;
+  const mediaVal = slide.slotValues?.media || imgEl?.content || vidEl?.content;
   const imgSrc = (typeof mediaVal === 'string') ? mediaVal.trim() : (mediaVal?.url?.trim() || '');
-  const hasValidImg = Boolean(imgSrc);
+  const hasValidMedia = Boolean(imgSrc);
 
-  if (!hasValidImg && variant === 'default') {
+  if (!hasValidMedia && variant === 'default') {
     variant = 'no-image';
   }
 
@@ -56,10 +97,7 @@ function renderTitleSlide(slide) {
   const authorText = slide.slotValues?.author || authorEl?.content;
   const authorHtml = authorText ? `<div id="${authorEl?.id || 'txt-author'}" class="title-hero-author"><span>👨‍🏫</span> ${escapeHtml(authorText)}</div>` : '';
 
-  const imgHtml = hasValidImg ? `
-    <div class="title-hero-image-wrap">
-      <img id="${imgEl?.id || 'img-hero'}" src="${escapeHtml(imgSrc)}" alt="${escapeHtml(slide.title)}" onerror="this.style.display='none'" />
-    </div>` : '';
+  const mediaHtml = hasValidMedia ? renderMediaBlock(slide, imgEl, 'img-hero', 'title-hero-image-wrap') : '';
 
   return `
     <div class="hf-template-title-slide variant-${variant}">
@@ -69,7 +107,7 @@ function renderTitleSlide(slide) {
         ${slide.subtitle ? `<p class="title-hero-sub">${escapeHtml(slide.subtitle)}</p>` : ''}
         ${authorHtml}
       </div>
-      ${imgHtml}
+      ${mediaHtml}
     </div>
   `;
 }
@@ -109,12 +147,13 @@ function renderConceptExplain(slide) {
   let variant = slide.variantId || slide.layoutVariant || 'default';
   const cardEl = slide.elements?.find(e => e.type === 'card' || e.type === 'text');
   const imgEl = slide.elements?.find(e => e.type === 'image');
+  const vidEl = slide.elements?.find(e => e.type === 'video');
 
-  const mediaVal = slide.slotValues?.media || imgEl?.content;
+  const mediaVal = slide.slotValues?.media || imgEl?.content || vidEl?.content;
   const imgSrc = (typeof mediaVal === 'string') ? mediaVal.trim() : (mediaVal?.url?.trim() || '');
-  const hasValidImg = Boolean(imgSrc);
+  const hasValidMedia = Boolean(imgSrc);
 
-  if (!hasValidImg && (variant === 'default' || variant === 'text-left-image-right' || variant === 'text-right-image-left')) {
+  if (!hasValidMedia && (variant === 'default' || variant === 'text-left-image-right' || variant === 'text-right-image-left')) {
     variant = 'no-image';
   }
 
@@ -125,10 +164,7 @@ function renderConceptExplain(slide) {
     </div>
   `;
 
-  const imgHtml = hasValidImg ? `
-    <div class="concept-image-wrap">
-      <img id="${imgEl?.id || 'img-concept'}" src="${escapeHtml(imgSrc)}" alt="${escapeHtml(slide.title)}" onerror="this.style.display='none'" />
-    </div>` : '';
+  const mediaHtml = hasValidMedia ? renderMediaBlock(slide, imgEl, 'img-concept', 'concept-image-wrap') : '';
 
   return `
     <div class="hf-template-concept-explain variant-${variant}">
@@ -139,7 +175,7 @@ function renderConceptExplain(slide) {
         </div>
         ${cardHtml}
       </div>
-      ${imgHtml}
+      ${mediaHtml}
     </div>
   `;
 }
@@ -183,25 +219,23 @@ function renderBulletBreakdown(slide) {
 function renderImageExplain(slide) {
   let variant = slide.variantId || slide.layoutVariant || 'default';
   const imgEl = slide.elements?.find(e => e.type === 'image');
+  const vidEl = slide.elements?.find(e => e.type === 'video');
   const txtEl = slide.elements?.find(e => e.type === 'text');
 
-  const mediaVal = slide.slotValues?.media || imgEl?.content;
+  const mediaVal = slide.slotValues?.media || imgEl?.content || vidEl?.content;
   const imgSrc = (typeof mediaVal === 'string') ? mediaVal.trim() : (mediaVal?.url?.trim() || '');
-  const hasValidImg = Boolean(imgSrc);
+  const hasValidMedia = Boolean(imgSrc);
 
-  if (!hasValidImg && (variant === 'default' || variant === 'text-left-image-right' || variant === 'text-right-image-left')) {
+  if (!hasValidMedia && (variant === 'default' || variant === 'text-left-image-right' || variant === 'text-right-image-left')) {
     variant = 'no-image';
   }
 
   const sideText = slide.slotValues?.sideText || txtEl?.content || '';
-  const imgHtml = hasValidImg ? `
-      <div class="explain-image-wrap">
-        <img id="${imgEl?.id || 'img-diagram'}" src="${escapeHtml(imgSrc)}" alt="${escapeHtml(slide.title)}" onerror="this.style.display='none'" />
-      </div>` : '';
+  const mediaHtml = hasValidMedia ? renderMediaBlock(slide, imgEl, 'img-diagram', 'explain-image-wrap') : '';
 
   return `
     <div class="hf-template-image-explain variant-${variant}">
-      ${imgHtml}
+      ${mediaHtml}
       <div>
         <div class="hf-slide-header">
           <h2 class="slide-title hf-slide-title">${escapeHtml(slide.title)}</h2>

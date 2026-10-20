@@ -318,6 +318,20 @@ export function sceneReducer(state, action) {
       return next;
     }
 
+    case 'UPDATE_VIDEO_COMPONENT': {
+      const { slideIndex, elementId, changes } = action.payload;
+      if (slideIndex < 0 || slideIndex >= next.slides.length) {
+        throw new Error(`Slide index out of bounds: ${slideIndex}`);
+      }
+      const slide = next.slides[slideIndex];
+      const el = slide.elements.find(e => e.id === elementId || e.type === 'video');
+      if (el) {
+        Object.assign(el, changes);
+      }
+      validateSlide(slide);
+      return next;
+    }
+
     default:
       return next;
   }
