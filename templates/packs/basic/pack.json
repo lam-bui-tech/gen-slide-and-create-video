@@ -12,21 +12,28 @@
   },
   "tokens": {
     "colors": {
-      "primary": "#0F4C81",
-      "primaryHover": "#0A365C",
-      "accent": "#F59E0B",
-      "bgCanvas": "#F8FAFC",
+      "primary": "#0369A1",
+      "primaryHover": "#075985",
+      "accent": "#D97706",
+      "bgCanvas": "#F5FAFF",
       "bgCard": "#FFFFFF",
       "textMain": "#0F172A",
-      "textSub": "#475569",
-      "border": "#E2E8F0"
+      "textSub": "#334155",
+      "border": "#BAE6FD"
     },
     "fonts": {
       "heading": "Be Vietnam Pro, sans-serif",
       "body": "Be Vietnam Pro, sans-serif",
       "code": "JetBrains Mono, monospace"
     },
-    "spacing": {}
+    "spacing": {
+      "headerHeight": "88px",
+      "footerHeight": "76px",
+      "contentHeight": "916px",
+      "padScreenX": "72px",
+      "padScreenY": "28px",
+      "gapCards": "28px"
+    }
   },
   "layouts": [
     {
@@ -43,7 +50,10 @@
       "decor": [],
       "variants": [
         { "id": "default", "name": "Mặc định (Chữ trái - Ảnh phải)" },
-        { "id": "stacked-top", "name": "Xếp chồng (Chữ trên - Ảnh dưới)" }
+        { "id": "fullscreen", "name": "Toàn màn hình (Fullscreen)" },
+        { "id": "stacked-top", "name": "Xếp chồng (Chữ trên - Ảnh dưới)" },
+        { "id": "text-left-image-right", "name": "Chữ trái - Ảnh phải" },
+        { "id": "text-right-image-left", "name": "Chữ phải - Ảnh trái" }
       ],
       "defaultAnimations": [
         { "target": ".slide-title", "preset": "slide-in", "delay": 0.5, "duration": 1.0, "easing": "power2.out" }
@@ -61,7 +71,8 @@
       "decor": [],
       "variants": [
         { "id": "default", "name": "Mặc định (Dạng lưới thẻ số)" },
-        { "id": "stacked-top", "name": "Dạng danh sách xếp dọc" }
+        { "id": "stacked-top", "name": "Dạng danh sách xếp dọc" },
+        { "id": "no-image", "name": "Không ảnh (Toàn màn hình chữ)" }
       ],
       "defaultAnimations": [
         { "target": ".objective-item", "preset": "step-by-step", "delay": 0.8, "duration": 0.6, "easing": "power2.out" }
@@ -80,6 +91,8 @@
       "decor": [],
       "variants": [
         { "id": "default", "name": "Mặc định (Chữ trái - Ảnh phải)" },
+        { "id": "text-left-image-right", "name": "Chữ trái - Ảnh phải" },
+        { "id": "text-right-image-left", "name": "Chữ phải - Ảnh trái" },
         { "id": "no-image", "name": "Không ảnh (Toàn màn hình chữ)" }
       ],
       "defaultAnimations": [
@@ -97,7 +110,8 @@
       ],
       "decor": [],
       "variants": [
-        { "id": "default", "name": "Lưới thẻ ngang/dọc" }
+        { "id": "default", "name": "Mặc định (Lưới thẻ ngang/dọc)" },
+        { "id": "stacked-top", "name": "Xếp chồng dọc" }
       ],
       "defaultAnimations": [
         { "target": ".breakdown-card", "preset": "slide-in", "delay": 0.8, "duration": 0.8, "easing": "power2.out" }
@@ -115,7 +129,9 @@
       ],
       "decor": [],
       "variants": [
-        { "id": "default", "name": "Ảnh trái - Chữ phải" },
+        { "id": "default", "name": "Mặc định (Ảnh trái - Chữ phải)" },
+        { "id": "text-left-image-right", "name": "Chữ trái - Ảnh phải" },
+        { "id": "text-right-image-left", "name": "Chữ phải - Ảnh trái" },
         { "id": "fullscreen", "name": "Ảnh toàn màn hình" }
       ],
       "defaultAnimations": [
@@ -134,7 +150,8 @@
       ],
       "decor": [],
       "variants": [
-        { "id": "default", "name": "Hai cột đối xứng" }
+        { "id": "default", "name": "Mặc định (Hai cột đối xứng)" },
+        { "id": "stacked-top", "name": "Hai hàng xếp chồng" }
       ],
       "defaultAnimations": [
         { "target": ".comparison-card", "preset": "slide-in", "delay": 0.6, "duration": 0.8, "easing": "power2.out" }
@@ -151,7 +168,8 @@
       ],
       "decor": [],
       "variants": [
-        { "id": "default", "name": "Trục ngang các bước" }
+        { "id": "default", "name": "Mặc định (Trục ngang các bước)" },
+        { "id": "stacked-top", "name": "Trục dọc các bước" }
       ],
       "defaultAnimations": [
         { "target": ".timeline-node", "preset": "fade-in", "delay": 0.6, "duration": 0.8, "easing": "power2.out" }
@@ -169,7 +187,8 @@
       ],
       "decor": [],
       "variants": [
-        { "id": "default", "name": "Công thức trung tâm nổi bật" }
+        { "id": "default", "name": "Mặc định (Công thức trung tâm nổi bật)" },
+        { "id": "stacked-top", "name": "Công thức trên - Ghi chú dưới" }
       ],
       "defaultAnimations": [
         { "target": ".formula-card", "preset": "zoom-in", "delay": 0.5, "duration": 1.0, "easing": "back.out" }
@@ -186,7 +205,8 @@
       ],
       "decor": [],
       "variants": [
-        { "id": "default", "name": "Câu hỏi kèm 4 lựa chọn" }
+        { "id": "default", "name": "Mặc định (Câu hỏi kèm 4 lựa chọn)" },
+        { "id": "stacked-top", "name": "Câu hỏi trên - Lựa chọn dọc" }
       ],
       "defaultAnimations": [
         { "target": ".quiz-container", "preset": "fade-in", "delay": 0.5, "duration": 0.8, "easing": "power2.out" }
@@ -203,7 +223,9 @@
       ],
       "decor": [],
       "variants": [
-        { "id": "default", "name": "Danh sách luận điểm cốt lõi" }
+        { "id": "default", "name": "Mặc định (Danh sách luận điểm cốt lõi)" },
+        { "id": "no-image", "name": "Không ảnh (Toàn màn hình chữ)" },
+        { "id": "stacked-top", "name": "Thẻ xếp chồng" }
       ],
       "defaultAnimations": [
         { "target": ".summary-point", "preset": "fade-in", "delay": 0.8, "duration": 0.8, "easing": "power2.out" }

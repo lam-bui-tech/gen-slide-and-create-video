@@ -144,3 +144,18 @@ IMPORTANT: AI outputs structured JSON only; providers (LLM/TTS) only via interfa
 IMPORTANT: v1 projects must keep opening (migrate_v1_to_v2). Never delete v1 code paths
 until docs/TICKETS.md says so.
 Run tests: pytest tests/pipeline tests/test_contracts.py. Env: Windows, PYTHONUTF8=1.
+
+---
+
+## Person B (Engine / Studio) Ownership Rules
+IMPORTANT: Person B owns templates/, studio.html, studio/, outline_to_hyperframes.js,
+tests/engine/. YOU MUST NOT edit server/, scripts/, schemas/, server.js, storage/
+(Person A). Schema changes go through a small PR that both approve.
+IMPORTANT: every edit in Studio/Builder produces a patch to LessonSceneJSON v2
+(slotValues/elements/media/animations); never edit generated HTML by hand.
+IMPORTANT: keep the visual output of the existing 10 layouts unchanged; the snapshot
+tests in tests/engine/test_templates_snapshot.py must stay green.
+Never emit an <img> with an empty or missing src; render a no-image variant instead.
+Verify HyperFrames behavior via `npx hyperframes docs ...` / --help; do not assume.
+Run tests: pytest tests/engine.
+
