@@ -720,10 +720,27 @@
         </div>
 
         <div style="display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--text-sub);">
+          <button class="btn btn-secondary" id="btn-toggle-builder-mode" style="padding: 4px 10px; font-size: 12px; font-weight: 700;">
+            🛠️ Chế Độ Builder
+          </button>
           <span>Độ phân giải: <strong>1920 × 1080 (16:9)</strong></span>
           <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #059669;"></span>
           <span id="canvas-template-badge" style="background: #E0F2FE; color: #0369A1; padding: 2px 8px; border-radius: 4px; font-weight: 600;">title-slide</span>
         </div>
+      </div>
+
+      <!-- Builder Mode Toolbar (P5.1) -->
+      <div id="builder-toolbar" style="display: none; align-items: center; gap: 8px; padding: 8px 16px; background: #0F172A; color: white; border-bottom: 1px solid #334155; flex-shrink: 0;">
+        <span style="font-weight: 700; font-size: 12px; color: #38BDF8; margin-right: 6px;">🛠️ Thêm Khối:</span>
+        <button class="btn btn-secondary" id="builder-add-text" style="padding: 4px 8px; font-size: 11px; color: white; background: #1E293B; border-color: #475569;">+ Chữ</button>
+        <button class="btn btn-secondary" id="builder-add-card" style="padding: 4px 8px; font-size: 11px; color: white; background: #1E293B; border-color: #475569;">+ Khung Card</button>
+        <button class="btn btn-secondary" id="builder-add-image" style="padding: 4px 8px; font-size: 11px; color: white; background: #1E293B; border-color: #475569;">+ Hình Ảnh</button>
+        <button class="btn btn-secondary" id="builder-add-badge" style="padding: 4px 8px; font-size: 11px; color: white; background: #1E293B; border-color: #475569;">+ Huy Hiệu</button>
+        <button class="btn btn-secondary" id="builder-add-decor" style="padding: 4px 8px; font-size: 11px; color: white; background: #1E293B; border-color: #475569;">+ Trang Trí</button>
+        <button class="btn btn-secondary" id="builder-add-video" style="padding: 4px 8px; font-size: 11px; color: white; background: #1E293B; border-color: #475569;">+ Video</button>
+        <div style="flex: 1;"></div>
+        <button class="btn btn-primary" id="builder-save-layout" style="background: #059669; color: white; padding: 5px 14px; font-size: 12px; font-weight: 700;">💾 Lưu Layout Vào Pack</button>
+        <button class="btn btn-secondary" id="builder-exit-btn" style="padding: 4px 8px; font-size: 11px; color: #CBD5E1; background: #334155;">✕ Thoát Builder</button>
       </div>
 
       <!-- Viewport with 1920x1080 Scaled Canvas -->
@@ -752,6 +769,99 @@
 
     <!-- Right Pane: Properties & Voice Inspector -->
     <aside class="props-panel">
+      <!-- Builder Inspector (P5.2) -->
+      <div id="builder-inspector-panel" style="display: none; flex-direction: column;">
+        <div class="props-header" style="color: #0369A1; background: #E0F2FE;">🛠️ Builder: Thuộc Tính Khối</div>
+        <div class="prop-section">
+          <div class="prop-section-title">Định Danh & Kích Thước</div>
+          <div class="prop-group">
+            <label class="prop-label">Mã khối (ID)</label>
+            <input type="text" id="builder-el-id" class="prop-input" readonly style="background: #F1F5F9;" />
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <div>
+              <label class="prop-label">X (px)</label>
+              <input type="number" id="builder-el-x" class="prop-input" step="8" />
+            </div>
+            <div>
+              <label class="prop-label">Y (px)</label>
+              <input type="number" id="builder-el-y" class="prop-input" step="8" />
+            </div>
+            <div>
+              <label class="prop-label">Rộng (px)</label>
+              <input type="number" id="builder-el-w" class="prop-input" step="8" />
+            </div>
+            <div>
+              <label class="prop-label">Cao (px)</label>
+              <input type="number" id="builder-el-h" class="prop-input" step="8" />
+            </div>
+          </div>
+        </div>
+
+        <div class="prop-section">
+          <div class="prop-section-title">Vai Trò Dữ Liệu (Slot vs Decor)</div>
+          <div class="prop-group">
+            <label class="prop-label">Loại vai trò</label>
+            <select id="builder-slot-role-type" class="prop-select">
+              <option value="slot">Slot Động (Nhận nội dung sinh từ AI)</option>
+              <option value="decor">Decor Tĩnh (Không nhận dữ liệu AI)</option>
+            </select>
+          </div>
+          <div class="prop-group" id="builder-slot-name-group">
+            <label class="prop-label">Tên Slot (Slot Role)</label>
+            <select id="builder-slot-name-select" class="prop-select">
+              <option value="title">title (Tiêu đề chính)</option>
+              <option value="body">body (Đoạn giải thích/nội dung)</option>
+              <option value="card">card (Khối nội dung)</option>
+              <option value="media">media (Ảnh / Sơ đồ)</option>
+              <option value="badge">badge (Huy hiệu)</option>
+              <option value="author">author (Tác giả/giảng viên)</option>
+              <option value="sideText">sideText (Chú thích bên lề)</option>
+              <option value="formula">formula (Công thức/Định lý)</option>
+            </select>
+          </div>
+          <div class="prop-group" id="builder-constraints-group">
+            <label class="prop-label">Giới hạn ký tự tối đa (maxLength)</label>
+            <input type="number" id="builder-constraint-max-len" class="prop-input" value="300" step="50" />
+            <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; margin-top: 6px; cursor: pointer;">
+              <input type="checkbox" id="builder-constraint-required" checked /> Bắt buộc có nội dung (required)
+            </label>
+          </div>
+        </div>
+
+        <div class="prop-section">
+          <div class="prop-section-title">Hiệu Ứng Hoạt Họa GSAP</div>
+          <div class="prop-group">
+            <label class="prop-label">Preset Hoạt Họa</label>
+            <select id="builder-anim-preset" class="prop-select">
+              <option value="fade-in">Fade In (Hiện dần)</option>
+              <option value="slide-in">Slide In (Trượt vào)</option>
+              <option value="zoom-in">Zoom In (Phóng to nhẹ)</option>
+              <option value="typewriter">Typewriter (Đánh máy)</option>
+              <option value="step-by-step">Step-by-Step (Từng bước)</option>
+            </select>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <div>
+              <label class="prop-label">Độ trễ (s)</label>
+              <input type="number" id="builder-anim-delay" class="prop-input" value="0.5" step="0.1" />
+            </div>
+            <div>
+              <label class="prop-label">Thời lượng (s)</label>
+              <input type="number" id="builder-anim-dur" class="prop-input" value="1.0" step="0.1" />
+            </div>
+          </div>
+        </div>
+
+        <div class="prop-section">
+          <button class="btn btn-secondary" id="btn-builder-delete-element" style="color: #E11D48; width: 100%; border-color: #FECDD3; background: #FFF1F2; font-weight: 600;">
+            ✕ Xóa Khối Này Khỏi Layout
+          </button>
+        </div>
+      </div>
+
+      <!-- Slide Normal Properties Panel -->
+      <div id="slide-normal-props-panel" style="display: flex; flex-direction: column;">
       <div class="props-header">Thuộc Tính & Giọng Đọc</div>
 
       <!-- 1. Template & Layout Variant -->
@@ -878,6 +988,7 @@
           <textarea id="prop-notes-input" class="prop-textarea" rows="3" placeholder="Ghi chú thêm cho người thuyết trình..."></textarea>
         </div>
       </div>
+      </div> <!-- Close #slide-normal-props-panel -->
     </aside>
 
   </div>
@@ -973,6 +1084,7 @@
     import { TemplateRegistry } from '/templates/registry.js';
     import { createFlowMachine } from '/studio/flow.js';
     import { updateOutlineSlide, addOutlineSlide, removeOutlineSlide, reorderOutlineSlides, approveOutline } from '/studio/outline_editor.js';
+    import { createDraftLayout, addDraftBlock, updateDraftBlock, removeDraftBlock, setElementSlotRole, assignElementAnimation, validateDraftLayout, exportLayoutForSave, snapToGrid } from '/studio/builder.js';
 
     const API_BASE = window.API_BASE || 'http://localhost:8000';
 
@@ -993,6 +1105,10 @@
         this.selectedGalleryPackId = 'basic';
         this.galleryIntent = 'upload';
         this.availablePacks = [];
+
+        this.mode = 'slide'; // 'slide' | 'builder'
+        this.draftLayout = null;
+        this.activeBuilderElementId = null;
       }
 
       async loadAvailablePacks() {
@@ -1250,6 +1366,290 @@
           if (approveBtn) approveBtn.addEventListener('click', onApprove);
           if (quickApproveBtn) quickApproveBtn.addEventListener('click', onQuickApprove);
         });
+      }
+
+      // ==========================================
+      // TEMPLATE BUILDER MODE (P5.1, P5.2)
+      // ==========================================
+      toggleBuilderMode(enable = null) {
+        const shouldEnable = enable !== null ? enable : (this.mode !== 'builder');
+        this.mode = shouldEnable ? 'builder' : 'slide';
+
+        const toggleBtn = document.getElementById('btn-toggle-builder-mode');
+        const toolbar = document.getElementById('builder-toolbar');
+        const normalProps = document.getElementById('slide-normal-props-panel');
+        const inspectorPanel = document.getElementById('builder-inspector-panel');
+        const timelineBar = document.querySelector('.canvas-timeline-bar');
+
+        if (this.mode === 'builder') {
+          if (toggleBtn) {
+            toggleBtn.innerText = '🖥️ Chế Độ Slide';
+            toggleBtn.classList.add('btn-primary');
+            toggleBtn.classList.remove('btn-secondary');
+          }
+          if (toolbar) toolbar.style.display = 'flex';
+          if (normalProps) normalProps.style.display = 'none';
+          if (inspectorPanel) inspectorPanel.style.display = 'flex';
+          if (timelineBar) timelineBar.style.display = 'none';
+
+          if (!this.draftLayout) {
+            this.draftLayout = createDraftLayout(`custom-${Date.now().toString().slice(-4)}`, 'Bố Cục Tùy Biến');
+            this.draftLayout = addDraftBlock(this.draftLayout, {
+              id: 'title-heading',
+              type: 'text',
+              x: 120,
+              y: 80,
+              width: 900,
+              height: 120,
+              content: 'Tiêu Đề Bài Giảng Mới'
+            });
+            this.draftLayout = setElementSlotRole(this.draftLayout, 'title-heading', {
+              slotName: 'title',
+              role: 'slot',
+              constraints: { maxLength: 100, required: true }
+            });
+          }
+          this.activeBuilderElementId = this.draftLayout.elements[0]?.id || null;
+          this.renderBuilderCanvas();
+          this.renderBuilderInspector();
+        } else {
+          if (toggleBtn) {
+            toggleBtn.innerText = '🛠️ Chế Độ Builder';
+            toggleBtn.classList.remove('btn-primary');
+            toggleBtn.classList.add('btn-secondary');
+          }
+          if (toolbar) toolbar.style.display = 'none';
+          if (normalProps) normalProps.style.display = 'flex';
+          if (inspectorPanel) inspectorPanel.style.display = 'none';
+          if (timelineBar) timelineBar.style.display = 'flex';
+
+          this.renderAll();
+        }
+      }
+
+      addBuilderBlock(type) {
+        if (!this.draftLayout) return;
+        const count = (this.draftLayout.elements?.length || 0) + 1;
+        const newId = `${type}-${count}-${Date.now().toString().slice(-3)}`;
+        let defaultContent = '';
+        let w = 400, h = 160;
+
+        if (type === 'text') {
+          defaultContent = 'Đoạn văn bản mới...';
+          w = 600; h = 100;
+        } else if (type === 'card') {
+          defaultContent = 'Nội dung thẻ giải thích...';
+          w = 500; h = 240;
+        } else if (type === 'image') {
+          defaultContent = 'https://images.unsplash.com/photo-1507842229451-7f01be7fe7ab?w=800&q=80';
+          w = 560; h = 380;
+        } else if (type === 'badge') {
+          defaultContent = 'CHUYÊN ĐỀ SƯ PHẠM';
+          w = 220; h = 48;
+        } else if (type === 'decor') {
+          defaultContent = 'decorative-shape';
+          w = 300; h = 300;
+        } else if (type === 'video') {
+          defaultContent = 'video-clip';
+          w = 640; h = 360;
+        }
+
+        this.draftLayout = addDraftBlock(this.draftLayout, {
+          id: newId,
+          type,
+          x: 160 + (count % 5) * 40,
+          y: 160 + (count % 5) * 40,
+          width: w,
+          height: h,
+          content: defaultContent
+        });
+
+        if (type !== 'decor') {
+          this.draftLayout = setElementSlotRole(this.draftLayout, newId, {
+            slotName: type === 'image' || type === 'video' ? 'media' : (type === 'badge' ? 'badge' : 'body'),
+            role: 'slot'
+          });
+        }
+
+        this.activeBuilderElementId = newId;
+        this.renderBuilderCanvas();
+        this.renderBuilderInspector();
+      }
+
+      renderBuilderCanvas() {
+        const canvas = document.getElementById('live-canvas');
+        if (!canvas || !this.draftLayout) return;
+
+        canvas.innerHTML = '';
+        canvas.style.position = 'relative';
+        canvas.style.width = '1920px';
+        canvas.style.height = '1080px';
+        canvas.style.background = 'radial-gradient(#CBD5E1 1.5px, #F8FAFC 1.5px)';
+        canvas.style.backgroundSize = '16px 16px';
+
+        this.draftLayout.elements.forEach(el => {
+          const isSelected = el.id === this.activeBuilderElementId;
+          const box = document.createElement('div');
+          box.id = `builder-box-${el.id}`;
+          box.style.cssText = `
+            position: absolute;
+            left: ${el.x}px;
+            top: ${el.y}px;
+            width: ${el.width}px;
+            height: ${el.height}px;
+            border: 2px ${isSelected ? 'solid #0284C7' : 'dashed #94A3B8'};
+            background: ${isSelected ? 'rgba(224, 242, 254, 0.4)' : 'rgba(255, 255, 255, 0.85)'};
+            border-radius: 8px;
+            box-shadow: ${isSelected ? '0 8px 20px rgba(2, 132, 199, 0.25)' : '0 2px 6px rgba(0,0,0,0.06)'};
+            cursor: move;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            user-select: none;
+            transition: border-color 0.1s;
+          `;
+
+          const slot = this.draftLayout.slots?.find(s => s.targetElementId === el.id);
+          const roleLabel = slot ? `[Slot: ${slot.name}]` : '[Decor]';
+
+          box.innerHTML = `
+            <div style="background: ${isSelected ? '#0284C7' : '#475569'}; color: white; padding: 4px 8px; font-size: 11px; font-weight: 700; display: flex; justify-content: space-between; align-items: center;">
+              <span>${el.id} · ${roleLabel}</span>
+              <span style="font-size: 10px; opacity: 0.8;">${el.type}</span>
+            </div>
+            <div style="flex: 1; padding: 8px; font-size: 13px; color: #1E293B; overflow: hidden; display: flex; align-items: center; justify-content: center; text-align: center;">
+              ${el.type === 'image' 
+                ? `<img src="${el.content}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://placehold.co/400x300/e2e8f0/475569?text=Image';" />`
+                : (el.type === 'video' 
+                    ? `<div style="background: #0F172A; color: white; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 24px;">🎬 Video Block</div>`
+                    : `<div>${el.content || 'Khối nội dung trống'}</div>`)}
+            </div>
+          `;
+
+          box.onclick = (e) => {
+            e.stopPropagation();
+            this.activeBuilderElementId = el.id;
+            this.renderBuilderCanvas();
+            this.renderBuilderInspector();
+          };
+
+          let startX, startY, origX, origY;
+          box.onmousedown = (e) => {
+            if (e.button !== 0) return;
+            e.stopPropagation();
+            this.activeBuilderElementId = el.id;
+            this.renderBuilderInspector();
+
+            startX = e.clientX;
+            startY = e.clientY;
+            origX = el.x;
+            origY = el.y;
+
+            const onMouseMove = (moveEvent) => {
+              const dx = moveEvent.clientX - startX;
+              const dy = moveEvent.clientY - startY;
+              const scale = 0.5;
+              const newX = snapToGrid(origX + dx / scale, 8);
+              const newY = snapToGrid(origY + dy / scale, 8);
+              this.draftLayout = updateDraftBlock(this.draftLayout, el.id, { x: newX, y: newY });
+              box.style.left = `${newX}px`;
+              box.style.top = `${newY}px`;
+              this.updateInspectorCoords(newX, newY, el.width, el.height);
+            };
+
+            const onMouseUp = () => {
+              window.removeEventListener('mousemove', onMouseMove);
+              window.removeEventListener('mouseup', onMouseUp);
+              this.renderBuilderCanvas();
+            };
+
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('mouseup', onMouseUp);
+          };
+
+          canvas.appendChild(box);
+        });
+      }
+
+      updateInspectorCoords(x, y, w, h) {
+        const xIn = document.getElementById('builder-el-x');
+        const yIn = document.getElementById('builder-el-y');
+        const wIn = document.getElementById('builder-el-w');
+        const hIn = document.getElementById('builder-el-h');
+        if (xIn) xIn.value = x;
+        if (yIn) yIn.value = y;
+        if (wIn) wIn.value = w;
+        if (hIn) hIn.value = h;
+      }
+
+      renderBuilderInspector() {
+        const idIn = document.getElementById('builder-el-id');
+        const roleType = document.getElementById('builder-slot-role-type');
+        const slotNameSelect = document.getElementById('builder-slot-name-select');
+        const maxLenIn = document.getElementById('builder-constraint-max-len');
+        const reqCheck = document.getElementById('builder-constraint-required');
+        const animPreset = document.getElementById('builder-anim-preset');
+        const animDelay = document.getElementById('builder-anim-delay');
+        const animDur = document.getElementById('builder-anim-dur');
+
+        const el = this.draftLayout?.elements?.find(e => e.id === this.activeBuilderElementId);
+        if (!el) {
+          if (idIn) idIn.value = '(Chưa chọn khối nào)';
+          return;
+        }
+
+        if (idIn) idIn.value = el.id;
+        this.updateInspectorCoords(el.x, el.y, el.width, el.height);
+
+        const slot = this.draftLayout.slots?.find(s => s.targetElementId === el.id);
+        if (roleType) roleType.value = slot ? 'slot' : 'decor';
+        if (slotNameSelect && slot) slotNameSelect.value = slot.name || 'body';
+        if (maxLenIn && slot) maxLenIn.value = slot.constraints?.maxLength || 300;
+        if (reqCheck && slot) reqCheck.checked = slot.constraints?.required ?? true;
+
+        const anim = this.draftLayout.defaultAnimations?.find(a => a.target === `#${el.id}`);
+        if (animPreset && anim) animPreset.value = anim.preset || 'fade-in';
+        if (animDelay && anim) animDelay.value = anim.delay || 0.5;
+        if (animDur && anim) animDur.value = anim.duration || 1.0;
+      }
+
+      async saveDraftLayoutToPack() {
+        if (!this.draftLayout) return;
+        const validation = validateDraftLayout(this.draftLayout);
+        if (!validation.valid) {
+          alert('Không thể lưu layout:\n' + validation.errors.join('\n'));
+          return;
+        }
+
+        const packId = prompt('Nhập mã Template Pack muốn lưu vào (ví dụ: test-pack hoặc pack tùy biến):', 'custom-pack');
+        if (!packId) return;
+
+        if (packId === 'basic') {
+          alert('Bộ mẫu "basic" là read-only mặc định. Vui lòng lưu vào pack tùy biến (ví dụ: custom-pack).');
+          return;
+        }
+
+        const layoutPayload = exportLayoutForSave(this.draftLayout);
+        try {
+          const apiBase = window.location.port === '8000' ? '' : (window.location.port === '3000' ? '' : 'http://localhost:8000');
+          const res = await fetch(`${apiBase}/packs/${packId}/layouts`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(layoutPayload)
+          });
+
+          if (!res.ok) {
+            const errTxt = await res.text();
+            throw new Error(`(${res.status}): ${errTxt}`);
+          }
+
+          const updatedPack = await res.json();
+          alert(`✅ Đã lưu layout "${layoutPayload.name}" thành công vào pack "${packId}"!`);
+          TemplateRegistry.register(updatedPack);
+          this.toggleBuilderMode(false);
+        } catch (err) {
+          alert('Lỗi lưu layout vào pack: ' + err.message);
+        }
       }
 
       async init() {
@@ -2150,6 +2550,110 @@
             }
           };
         }
+
+        // ==========================================
+        // Template Builder Event Handlers (P5.1, P5.2)
+        // ==========================================
+        const btnToggleBuilder = document.getElementById('btn-toggle-builder-mode');
+        if (btnToggleBuilder) {
+          btnToggleBuilder.onclick = () => this.toggleBuilderMode();
+        }
+
+        const btnExitBuilder = document.getElementById('builder-exit-btn');
+        if (btnExitBuilder) {
+          btnExitBuilder.onclick = () => this.toggleBuilderMode(false);
+        }
+
+        // Add blocks
+        const addMap = [
+          ['builder-add-text', 'text'],
+          ['builder-add-card', 'card'],
+          ['builder-add-image', 'image'],
+          ['builder-add-badge', 'badge'],
+          ['builder-add-decor', 'decor'],
+          ['builder-add-video', 'video']
+        ];
+        addMap.forEach(([btnId, type]) => {
+          const btn = document.getElementById(btnId);
+          if (btn) btn.onclick = () => this.addBuilderBlock(type);
+        });
+
+        // Save layout
+        const btnSaveLayout = document.getElementById('builder-save-layout');
+        if (btnSaveLayout) {
+          btnSaveLayout.onclick = () => this.saveDraftLayoutToPack();
+        }
+
+        // Delete active element
+        const btnDelEl = document.getElementById('btn-builder-delete-element');
+        if (btnDelEl) {
+          btnDelEl.onclick = () => {
+            if (!this.activeBuilderElementId) return;
+            this.draftLayout = removeDraftBlock(this.draftLayout, this.activeBuilderElementId);
+            this.activeBuilderElementId = this.draftLayout.elements[0]?.id || null;
+            this.renderBuilderCanvas();
+            this.renderBuilderInspector();
+          };
+        }
+
+        // Inspector inputs change listeners
+        const bindInspectorChange = () => {
+          const xIn = document.getElementById('builder-el-x');
+          const yIn = document.getElementById('builder-el-y');
+          const wIn = document.getElementById('builder-el-w');
+          const hIn = document.getElementById('builder-el-h');
+          const roleType = document.getElementById('builder-slot-role-type');
+          const slotNameSelect = document.getElementById('builder-slot-name-select');
+          const maxLenIn = document.getElementById('builder-constraint-max-len');
+          const reqCheck = document.getElementById('builder-constraint-required');
+          const animPreset = document.getElementById('builder-anim-preset');
+          const animDelay = document.getElementById('builder-anim-delay');
+          const animDur = document.getElementById('builder-anim-dur');
+
+          const updateCoords = () => {
+            if (!this.activeBuilderElementId) return;
+            const x = parseInt(xIn.value, 10) || 0;
+            const y = parseInt(yIn.value, 10) || 0;
+            const w = parseInt(wIn.value, 10) || 100;
+            const h = parseInt(hIn.value, 10) || 40;
+            this.draftLayout = updateDraftBlock(this.draftLayout, this.activeBuilderElementId, { x, y, width: w, height: h });
+            this.renderBuilderCanvas();
+          };
+          [xIn, yIn, wIn, hIn].forEach(input => {
+            if (input) input.onchange = updateCoords;
+          });
+
+          const updateSlotRole = () => {
+            if (!this.activeBuilderElementId) return;
+            const role = roleType?.value || 'slot';
+            const slotName = slotNameSelect?.value || 'body';
+            const maxLength = parseInt(maxLenIn?.value, 10) || 300;
+            const required = reqCheck?.checked ?? true;
+            this.draftLayout = setElementSlotRole(this.draftLayout, this.activeBuilderElementId, {
+              role,
+              slotName,
+              constraints: { maxLength, required }
+            });
+            this.renderBuilderCanvas();
+          };
+          if (roleType) roleType.onchange = updateSlotRole;
+          if (slotNameSelect) slotNameSelect.onchange = updateSlotRole;
+          if (maxLenIn) maxLenIn.onchange = updateSlotRole;
+          if (reqCheck) reqCheck.onchange = updateSlotRole;
+
+          const updateAnim = () => {
+            if (!this.activeBuilderElementId) return;
+            this.draftLayout = assignElementAnimation(this.draftLayout, this.activeBuilderElementId, {
+              preset: animPreset?.value || 'fade-in',
+              delay: parseFloat(animDelay?.value) || 0.5,
+              duration: parseFloat(animDur?.value) || 1.0
+            });
+          };
+          if (animPreset) animPreset.onchange = updateAnim;
+          if (animDelay) animDelay.onchange = updateAnim;
+          if (animDur) animDur.onchange = updateAnim;
+        };
+        bindInspectorChange();
 
         // Keyboard Shortcuts
         window.addEventListener('keydown', (e) => {
