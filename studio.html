@@ -677,6 +677,10 @@
       </button>
       <input type="file" id="input-doc-file" accept=".pptx,.pdf,.docx,.md" style="display: none;" />
 
+      <button class="btn btn-secondary" id="btn-pedagogy-review" title="Bảng kiểm tra chất lượng sư phạm (mật độ chữ, tốc độ đọc, trợ năng)" style="padding: 7px 12px; font-weight: 600; color: #0284C7; border-color: #BAE6FD; background: #F0F9FF;">
+        🎯 Sư Phạm (<span id="pedagogy-badge">100%</span>)
+      </button>
+
       <div style="height: 20px; width: 1px; background: var(--border-color); margin: 0 4px;"></div>
 
       <button class="btn btn-secondary btn-icon" id="btn-undo" title="Hoàn tác (Ctrl+Z)">↶</button>
@@ -1171,6 +1175,67 @@
             Tiếp Tục Với Bộ Mẫu Đã Chọn ➜
           </button>
         </div>
+  <!-- Pedagogical Quality Review Modal (P7.4) -->
+  <div class="modal-overlay" id="pedagogy-modal">
+    <div class="modal-box" style="width: 760px; max-width: 95vw; max-height: 85vh; display: flex; flex-direction: column; padding: 22px; border-radius: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 14px;">
+        <div>
+          <h3 style="font-size: 18px; font-weight: 800; color: #0369A1; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <span>🎯</span> Bảng Kiểm Tra Chất Lượng Sư Phạm (P7.4)
+          </h3>
+          <p style="font-size: 12px; color: var(--text-sub); margin: 4px 0 0 0;">
+            Đánh giá tự động theo các tiêu chuẩn: mật độ chữ, tốc độ đọc narration, thời lượng slide và khả năng tiếp thu.
+          </p>
+        </div>
+        <button class="btn btn-secondary btn-icon" id="btn-close-pedagogy-modal">✕</button>
+      </div>
+
+      <!-- Score & Summary Bar -->
+      <div style="display: grid; grid-template-columns: 140px 1fr; gap: 16px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px; margin-bottom: 14px;">
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 1px solid #E2E8F0; padding-right: 12px;">
+          <div style="font-size: 11px; font-weight: 700; color: #64748B;">ĐIỂM SƯ PHẠM</div>
+          <div id="pedagogy-score-val" style="font-size: 32px; font-weight: 900; color: #16A34A; line-height: 1.1;">100</div>
+          <div id="pedagogy-rating-label" style="font-size: 11px; font-weight: 700; color: #16A34A;">Rất Tốt</div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; align-items: center;">
+          <div style="background: white; border: 1px solid #FECDD3; border-radius: 6px; padding: 8px; text-align: center;">
+            <div style="font-size: 18px; font-weight: 800; color: #E11D48;" id="pedagogy-error-count">0</div>
+            <div style="font-size: 11px; color: #64748B;">Lỗi cần sửa</div>
+          </div>
+          <div style="background: white; border: 1px solid #FED7AA; border-radius: 6px; padding: 8px; text-align: center;">
+            <div style="font-size: 18px; font-weight: 800; color: #D97706;" id="pedagogy-warning-count">0</div>
+            <div style="font-size: 11px; color: #64748B;">Cảnh báo</div>
+          </div>
+          <div style="background: white; border: 1px solid #BBF7D0; border-radius: 6px; padding: 8px; text-align: center;">
+            <div style="font-size: 18px; font-weight: 800; color: #16A34A;" id="pedagogy-passed-count">0</div>
+            <div style="font-size: 11px; color: #64748B;">Slide chuẩn</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Issues List Table -->
+      <div style="flex: 1; overflow-y: auto; max-height: 45vh; border: 1px solid #E2E8F0; border-radius: 6px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+          <thead style="background: #F1F5F9; position: sticky; top: 0; z-index: 10;">
+            <tr style="text-align: left; color: #475569; border-bottom: 1px solid #CBD5E1;">
+              <th style="padding: 8px 10px; width: 75px;">Slide</th>
+              <th style="padding: 8px 10px; width: 140px;">Quy chuẩn</th>
+              <th style="padding: 8px 10px;">Chi tiết phát hiện & Khuyến nghị</th>
+              <th style="padding: 8px 10px; width: 95px; text-align: right;">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="pedagogy-issues-tbody">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Footer CTA -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 14px;">
+        <span style="font-size: 11px; color: var(--text-sub);">
+          💡 Nhấn "Đến Slide" để chuyển ngay đến slide và sử dụng AI Copilot hoặc chỉnh sửa thủ công.
+        </span>
+        <button class="btn btn-secondary" id="btn-pedagogy-close">Đóng Bảng Đánh Giá</button>
       </div>
     </div>
   </div>
@@ -1183,6 +1248,7 @@
     import { createFlowMachine } from '/studio/flow.js';
     import { updateOutlineSlide, addOutlineSlide, removeOutlineSlide, reorderOutlineSlides, approveOutline } from '/studio/outline_editor.js';
     import { createDraftLayout, addDraftBlock, updateDraftBlock, removeDraftBlock, setElementSlotRole, assignElementAnimation, validateDraftLayout, exportLayoutForSave, snapToGrid } from '/studio/builder.js';
+    import { auditDeckQuality, DEFAULT_THRESHOLDS } from '/studio/quality.js';
 
     const API_BASE = window.API_BASE || 'http://localhost:8000';
 
@@ -1879,6 +1945,7 @@
         this.renderCanvas();
         this.renderProperties();
         this.setupSlideTimeline();
+        this.updatePedagogyReview();
       }
 
       renderNavbar() {
@@ -2522,6 +2589,121 @@
         if (input) input.value = '';
       }
 
+      openPedagogyModal() {
+        this.updatePedagogyReview();
+        const modal = document.getElementById('pedagogy-modal');
+        if (modal) modal.classList.add('open');
+      }
+
+      closePedagogyModal() {
+        const modal = document.getElementById('pedagogy-modal');
+        if (modal) modal.classList.remove('open');
+      }
+
+      updatePedagogyReview() {
+        if (!this.scene) return;
+        const report = auditDeckQuality(this.scene);
+
+        // Update topbar badge
+        const badge = document.getElementById('pedagogy-badge');
+        if (badge) {
+          badge.innerText = `${report.score}%`;
+          if (report.score >= 85) {
+            badge.style.background = '#16A34A';
+          } else if (report.score >= 60) {
+            badge.style.background = '#D97706';
+          } else {
+            badge.style.background = '#E11D48';
+          }
+        }
+
+        // Update modal summary
+        const scoreVal = document.getElementById('pedagogy-score-val');
+        const ratingLabel = document.getElementById('pedagogy-rating-label');
+        const errorCount = document.getElementById('pedagogy-error-count');
+        const warnCount = document.getElementById('pedagogy-warning-count');
+        const passCount = document.getElementById('pedagogy-passed-count');
+
+        if (scoreVal) scoreVal.innerText = report.score;
+        if (ratingLabel) {
+          if (report.score >= 90) {
+            ratingLabel.innerText = 'Xuất Sắc';
+            ratingLabel.style.color = '#16A34A';
+          } else if (report.score >= 75) {
+            ratingLabel.innerText = 'Tốt';
+            ratingLabel.style.color = '#0284C7';
+          } else if (report.score >= 50) {
+            ratingLabel.innerText = 'Cần Cải Thiện';
+            ratingLabel.style.color = '#D97706';
+          } else {
+            ratingLabel.innerText = 'Chưa Đạt';
+            ratingLabel.style.color = '#E11D48';
+          }
+        }
+
+        if (errorCount) errorCount.innerText = report.summary.errors;
+        if (warnCount) warnCount.innerText = report.summary.warnings;
+        if (passCount) passCount.innerText = report.summary.passedSlides;
+
+        // Render table rows
+        const tbody = document.getElementById('pedagogy-issues-tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        if (report.issues.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="4" style="text-align: center; padding: 24px; color: #16A34A; font-weight: 600;">
+                🎉 Tuyệt vời! Toàn bộ slide đều đạt chuẩn chất lượng sư phạm cao.
+              </td>
+            </tr>`;
+          return;
+        }
+
+        const ruleLabels = {
+          TEXT_DENSITY_HIGH: '📄 Mật độ chữ cao',
+          READING_SPEED_FAST: '⚡ Tốc độ đọc nhanh',
+          READING_SPEED_SLOW: '🐢 Tốc độ đọc chậm',
+          SLIDE_TOO_SHORT: '⏱️ Slide quá ngắn',
+          SLIDE_TOO_LONG: '⏳ Slide quá dài',
+          MISSING_ALT_TEXT: '♿ Thiếu Alt Text',
+          SLIDE_EMPTY: '⚠️ Slide rỗng'
+        };
+
+        report.issues.forEach(issue => {
+          const tr = document.createElement('tr');
+          tr.style.cssText = 'border-bottom: 1px solid #E2E8F0;';
+
+          const levelColor = issue.level === 'error' ? '#E11D48' : (issue.level === 'warning' ? '#D97706' : '#0284C7');
+          const levelBg = issue.level === 'error' ? '#FFF1F2' : (issue.level === 'warning' ? '#FFFBEB' : '#F0F9FF');
+
+          tr.innerHTML = `
+            <td style="padding: 8px 10px; font-weight: 700; color: #334155;">Slide ${issue.slideIndex + 1}</td>
+            <td style="padding: 8px 10px;">
+              <span style="display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; background: ${levelBg}; color: ${levelColor};">
+                ${ruleLabels[issue.rule] || issue.rule}
+              </span>
+            </td>
+            <td style="padding: 8px 10px; color: #475569; line-height: 1.4;">${issue.message}</td>
+            <td style="padding: 8px 10px; text-align: right;">
+              <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px; font-weight: 600;">
+                Đến Slide ➜
+              </button>
+            </td>
+          `;
+
+          const jumpBtn = tr.querySelector('button');
+          if (jumpBtn) {
+            jumpBtn.onclick = () => {
+              this.closePedagogyModal();
+              this.setSlideIndex(issue.slideIndex);
+            };
+          }
+
+          tbody.appendChild(tr);
+        });
+      }
+
       bindEvents() {
         // Project title edit
         const titleInput = document.getElementById('project-title-input');
@@ -3017,6 +3199,24 @@
         const btnSlideChatDiscard = document.getElementById('btn-slide-chat-discard');
         if (btnSlideChatDiscard) {
           btnSlideChatDiscard.onclick = () => this.discardSlideChatPatch();
+        }
+
+        // ==========================================
+        // Pedagogical Quality Review Event Handlers (P7.4)
+        // ==========================================
+        const btnPedagogyReview = document.getElementById('btn-pedagogy-review');
+        if (btnPedagogyReview) {
+          btnPedagogyReview.onclick = () => this.openPedagogyModal();
+        }
+
+        const btnClosePedagogyModal = document.getElementById('btn-close-pedagogy-modal');
+        if (btnClosePedagogyModal) {
+          btnClosePedagogyModal.onclick = () => this.closePedagogyModal();
+        }
+
+        const btnPedagogyClose = document.getElementById('btn-pedagogy-close');
+        if (btnPedagogyClose) {
+          btnPedagogyClose.onclick = () => this.closePedagogyModal();
         }
 
         // ==========================================

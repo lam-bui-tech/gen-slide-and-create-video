@@ -97,4 +97,4 @@ graph TD
 | **P7.1** | `[A]` | P7 | Tạo phụ đề SRT/VTT từ timeline narration, hỗ trợ burn-in MP4 | Không | `completed` |
 | **P7.2** | `[A]` | P7 | Lớp chuẩn hóa phát âm tiếng Việt cho VieNeu (thuật ngữ + công thức toán) | Không | `completed` |
 | **P7.3** | `[B]` | P7 | Ô chat AI sửa từng slide bằng natural language (patch slotValues) | `P3.2` | `completed` |
-| **P7.4** | `[B]` | P7 | Bảng kiểm tra chất lượng sư phạm (cảnh báo quá tải chữ, tốc độ đọc) | `P3.2` | `pending` |
+| **P7.4** | `[B]` | P7 | Bảng kiểm tra chất lượng sư phạm (cảnh báo quá tải chữ, tốc độ đọc) | `P3.2` | `completed` |
