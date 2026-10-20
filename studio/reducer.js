@@ -274,6 +274,50 @@ export function sceneReducer(state, action) {
       return next;
     }
 
+    case 'SET_MEDIA_SLOT': {
+      const { slideIndex, mediaUrl, variant } = action.payload;
+      if (slideIndex < 0 || slideIndex >= next.slides.length) {
+        throw new Error(`Slide index out of bounds: ${slideIndex}`);
+      }
+      const slide = next.slides[slideIndex];
+      if (!slide.slotValues) slide.slotValues = {};
+      slide.slotValues.media = mediaUrl;
+      if (variant) {
+        slide.layoutVariant = variant;
+        slide.variantId = variant;
+      } else if (slide.layoutVariant === 'no-image') {
+        slide.layoutVariant = 'default';
+        slide.variantId = 'default';
+      }
+      const imgEl = slide.elements.find(e => e.type === 'image');
+      if (imgEl) {
+        imgEl.content = mediaUrl;
+      } else {
+        slide.elements.push({ id: 'img-media', type: 'image', content: mediaUrl });
+      }
+      validateSlide(slide);
+      return next;
+    }
+
+    case 'REMOVE_MEDIA_SLOT': {
+      const { slideIndex } = action.payload;
+      if (slideIndex < 0 || slideIndex >= next.slides.length) {
+        throw new Error(`Slide index out of bounds: ${slideIndex}`);
+      }
+      const slide = next.slides[slideIndex];
+      if (slide.slotValues) {
+        delete slide.slotValues.media;
+      }
+      slide.layoutVariant = 'no-image';
+      slide.variantId = 'no-image';
+      const imgEl = slide.elements.find(e => e.type === 'image');
+      if (imgEl) {
+        imgEl.content = '';
+      }
+      validateSlide(slide);
+      return next;
+    }
+
     default:
       return next;
   }

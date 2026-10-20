@@ -87,7 +87,7 @@ graph TD
 | **P3.3** | `[B]` | P3 | UI Studio duyệt dàn bài & nạp nội dung theo slot chuẩn | `P3.1`, `P3.2` | `completed` |
 | **P4.1** | `[A]` | P4 | Module phân tích nhu cầu thị giác `visual_need` theo từng slide | `P3.2` | `completed` |
 | **P4.2** | `[A]` | P4 | 3 MediaSource adapters: DocumentImage, Diagram SVG/Mermaid/Chart, Upload | `P4.1` | `completed` |
-| **P4.3** | `[B]` | P4 | Media Strip UI: gợi ý 3-4 ứng viên 1-chạm & variant fallback khi không có ảnh | `P4.2` | `pending` |
+| **P4.3** | `[B]` | P4 | Media Strip UI: gợi ý 3-4 ứng viên 1-chạm & variant fallback khi không có ảnh | `P4.2` | `completed` |
 | **P5.1** | `[B]` | P5 | Template Builder: kéo thả khối trên Canvas Studio | `P1.5` | `pending` |
 | **P5.2** | `[B]` | P5 | Đánh dấu Slot/Decor, gán constraints, gán preset animation GSAP | `P5.1` | `pending` |
 | **P5.3** | `[A]` | P5 | API `POST /packs/{id}/layouts` lưu Layout JSON vào pack & sinh thumbnail | `P5.2` | `completed` |

@@ -794,6 +794,28 @@
         </div>
       </div>
 
+      <!-- 1b. Media Strip UI (P4.3) -->
+      <div class="prop-section" id="media-strip-section">
+        <div class="prop-section-title">
+          <span>Khối Hình Ảnh / Media Strip</span>
+          <span id="media-visual-need-badge" style="font-size: 10px; background: #E0F2FE; color: #0369A1; padding: 2px 6px; border-radius: 4px; font-weight: 700;">diagram</span>
+        </div>
+
+        <div style="display: flex; gap: 6px; margin-bottom: 10px;">
+          <button class="btn btn-secondary" id="btn-media-strip-upload" style="flex: 1; padding: 6px 8px; font-size: 12px; font-weight: 600;">📁 Tải Ảnh Lên</button>
+          <button class="btn btn-secondary" id="btn-media-strip-remove" style="color: #E11D48; padding: 6px 10px; font-size: 12px; font-weight: 600;" title="Xóa ảnh và chuyển sang bố cục no-image">✕ Xóa Ảnh</button>
+        </div>
+        <input type="file" id="media-strip-file-input" accept="image/*" style="display: none;" />
+
+        <div style="margin-bottom: 8px;">
+          <span style="font-size: 11px; font-weight: 600; color: var(--text-sub);">Gợi ý ứng viên (1-chạm để áp dụng):</span>
+        </div>
+
+        <div id="media-recommendations-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+          <!-- 3-4 Candidates rendered dynamically -->
+        </div>
+      </div>
+
       <!-- 2. Voice-Over & Audio-First Sync (Phase 4.1 UI) -->
       <div class="prop-section">
         <div class="prop-section-title">
@@ -1594,8 +1616,84 @@
         const notesInput = document.getElementById('prop-notes-input');
         if (notesInput) notesInput.value = slide.notes || '';
 
+        // Media Strip (P4.3)
+        this.renderMediaStrip(slide);
+
         // Animations list
         this.renderAnimationsList(slide);
+      }
+
+      async renderMediaStrip(slide) {
+        const badge = document.getElementById('media-visual-need-badge');
+        const grid = document.getElementById('media-recommendations-grid');
+        if (badge) badge.innerText = slide.visualNeed || 'auto';
+        if (!grid) return;
+
+        grid.innerHTML = '<div style="font-size: 11px; color: var(--text-sub); grid-column: span 2;">Đang nạp gợi ý...</div>';
+
+        let candidates = [];
+        try {
+          const apiBase = window.location.port === '8000' ? '' : (window.location.port === '3000' ? '' : 'http://localhost:8000');
+          const res = await fetch(`${apiBase}/projects/${this.scene.projectId || 'demo'}/media-recommendations/${slide.slideId}`);
+          if (res.ok) {
+            candidates = await res.json();
+          }
+        } catch (e) {
+          // Fallback to default candidates
+        }
+
+        if (!Array.isArray(candidates) || candidates.length === 0) {
+          candidates = [
+            {
+              url: 'https://images.unsplash.com/photo-1507842229451-7f01be7fe7ab?w=400&q=80',
+              type: 'document',
+              label: 'Tài Liệu Gốc'
+            },
+            {
+              url: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400&q=80',
+              type: 'diagram',
+              label: 'Sơ Đồ SVG'
+            },
+            {
+              url: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=400&q=80',
+              type: 'stock',
+              label: 'Kho Mẫu'
+            }
+          ];
+        }
+
+        grid.innerHTML = '';
+        candidates.slice(0, 4).forEach(c => {
+          const card = document.createElement('div');
+          card.style.cssText = `
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            overflow: hidden;
+            cursor: pointer;
+            background: white;
+            transition: all 0.15s;
+            position: relative;
+          `;
+          card.innerHTML = `
+            <img src="${c.url}" style="width: 100%; height: 60px; object-fit: cover; display: block;" onerror="this.src='https://placehold.co/400x300/e2e8f0/475569?text=Image';" />
+            <div style="padding: 4px; font-size: 10px; font-weight: 600; text-align: center; background: #F8FAFC; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              ${c.label || c.type || 'Ứng viên'}
+            </div>
+          `;
+          card.onmouseenter = () => { card.style.borderColor = 'var(--primary)'; card.style.transform = 'scale(1.02)'; };
+          card.onmouseleave = () => { card.style.borderColor = 'var(--border-color)'; card.style.transform = 'scale(1)'; };
+          card.onclick = () => {
+            this.dispatch({
+              type: 'SET_MEDIA_SLOT',
+              payload: {
+                slideIndex: this.currentSlideIndex,
+                mediaUrl: c.url,
+                variant: slide.layoutVariant === 'no-image' ? 'default' : slide.layoutVariant
+              }
+            }, 'Áp dụng ảnh gợi ý 1-chạm');
+          };
+          grid.appendChild(card);
+        });
       }
 
       updateNarrationStats(text) {
@@ -2019,6 +2117,39 @@
           }
           this.closeImageModal();
         };
+
+        // Media Strip Actions (P4.3)
+        const btnMediaRemove = document.getElementById('btn-media-strip-remove');
+        if (btnMediaRemove) {
+          btnMediaRemove.onclick = () => {
+            this.dispatch({
+              type: 'REMOVE_MEDIA_SLOT',
+              payload: { slideIndex: this.currentSlideIndex }
+            }, 'Xóa ảnh & chuyển sang layout no-image');
+          };
+        }
+
+        const btnMediaUpload = document.getElementById('btn-media-strip-upload');
+        const mediaFileInput = document.getElementById('media-strip-file-input');
+        if (btnMediaUpload && mediaFileInput) {
+          btnMediaUpload.onclick = () => mediaFileInput.click();
+          mediaFileInput.onchange = (e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = (re) => {
+                this.dispatch({
+                  type: 'SET_MEDIA_SLOT',
+                  payload: {
+                    slideIndex: this.currentSlideIndex,
+                    mediaUrl: re.target.result
+                  }
+                }, 'Tải ảnh minh họa lên slide');
+              };
+              reader.readAsDataURL(file);
+            }
+          };
+        }
 
         // Keyboard Shortcuts
         window.addEventListener('keydown', (e) => {
