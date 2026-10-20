@@ -1,10 +1,11 @@
 .hyperframes
-1_Khái_luận_về_triết_học_và_triết_học_Mác_Lênin.pptx
-server.js
-studio.html
 __pycache__/
 .pytest_cache/
 storage/*.db
 storage/projects/
 storage/spike/
-
+scratch/
+node_modules/
+.venv/
+.env
+folder_test/

@@ -11,6 +11,12 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Type, TypeVar, Optional, List, Any, Dict
 from pydantic import BaseModel, ValidationError
+import warnings
+from dotenv import load_dotenv
+
+load_dotenv()
+warnings.filterwarnings("ignore", message=".*automatic function calling.*")
+logging.getLogger("google_genai").setLevel(logging.ERROR)
 
 T = TypeVar("T", bound=BaseModel)
 logger = logging.getLogger("LLMProvider")
@@ -44,6 +50,7 @@ class LLMProvider(ABC):
         schema_class: Type[T],
         system_instruction: Optional[str] = None,
         max_retries: int = 3,
+        pre_validate_hook: Optional[Any] = None,
     ) -> T:
         """
         Executes structured generation with automatic schema validation and error feedback retry loop.
@@ -56,6 +63,8 @@ class LLMProvider(ABC):
                 raw_text = self._call_model(current_prompt, system_instruction=system_instruction)
                 cleaned_json = self._clean_json_markdown(raw_text)
                 parsed_data = json.loads(cleaned_json)
+                if pre_validate_hook:
+                    parsed_data = pre_validate_hook(parsed_data)
                 return schema_class.model_validate(parsed_data)
             except (json.JSONDecodeError, ValidationError) as e:
                 last_error = e
@@ -123,14 +132,14 @@ class GeminiProvider(LLMProvider):
     def __init__(
         self,
         api_key: Optional[str] = None,
-        model: str = "gemini-3.7-flash",
+        model: Optional[str] = None,
     ):
-        self.api_key = api_key or os.environ.get("GEMINI_API_KEY")
+        self.api_key = api_key or os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
         if not self.api_key:
             raise MissingAPIKeyError(
-                "GEMINI_API_KEY is required. Please set the GEMINI_API_KEY environment variable or provide it in the configuration."
+                "GEMINI_API_KEY is required. Please set the GEMINI_API_KEY environment variable or provide it in .env file."
             )
-        self.model = model
+        self.model = model or os.environ.get("GEMINI_MODEL") or "gemini-flash-lite-latest"
 
         try:
             from google import genai
@@ -139,22 +148,33 @@ class GeminiProvider(LLMProvider):
             raise LLMError(f"Failed to initialize Google GenAI client: {e}") from e
 
     def _call_model(self, prompt: str, system_instruction: Optional[str] = None) -> str:
-        try:
-            from google.genai import types
+        from google.genai import types
 
-            config = types.GenerateContentConfig(
-                response_mime_type="application/json",
-                system_instruction=system_instruction,
-                temperature=0.3,
-            )
-            response = self.client.models.generate_content(
-                model=self.model,
-                contents=prompt,
-                config=config,
-            )
-            return response.text or "{}"
-        except Exception as e:
-            raise LLMError(f"Gemini API request failed: {e}") from e
+        config = types.GenerateContentConfig(
+            response_mime_type="application/json",
+            system_instruction=system_instruction,
+            temperature=0.3,
+        )
+
+        models_to_try = [self.model]
+        for fallback in ["gemini-flash-lite-latest", "gemini-2.5-flash-lite", "gemini-flash-latest"]:
+            if fallback not in models_to_try:
+                models_to_try.append(fallback)
+
+        last_err = None
+        for m in models_to_try:
+            try:
+                response = self.client.models.generate_content(
+                    model=m,
+                    contents=prompt,
+                    config=config,
+                )
+                return response.text or "{}"
+            except Exception as e:
+                last_err = e
+                logger.warning(f"Model {m} failed: {e}. Trying fallback...")
+
+        raise LLMError(f"Gemini API request failed across all models: {last_err}") from last_err
 
 
 # ==========================================

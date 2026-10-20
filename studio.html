@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Lecture Studio — Canvas WYSIWYG Editor</title>
+  <script>
+    if (window.location.pathname && window.location.pathname.startsWith('/studio')) {
+      window.history.replaceState(null, '', '/');
+    }
+  </script>
   <!-- Google Fonts: Be Vietnam Pro & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,8 +16,8 @@
   <!-- GSAP for animations -->
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
   <!-- Design Tokens & Template Styles -->
-  <link rel="stylesheet" href="../templates/tokens.css">
-  <link rel="stylesheet" href="../templates/templates.css">
+  <link rel="stylesheet" href="/templates/tokens.css">
+  <link rel="stylesheet" href="/templates/templates.css">
   <style>
     :root {
       --sidebar-width: 320px;
@@ -357,6 +362,11 @@
       pointer-events: auto;
     }
 
+    #live-canvas .clip {
+      opacity: 1 !important;
+      pointer-events: auto !important;
+    }
+
     /* ContentEditable styling inside live canvas */
     [contenteditable="true"] {
       outline: 2px dashed transparent;
@@ -658,6 +668,13 @@
     </div>
 
     <div class="nav-actions">
+      <button class="btn btn-primary" id="btn-upload-doc" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: white; padding: 7px 16px; font-weight: 700;">
+        📥 Tải Tài Liệu (PPTX/PDF/DOCX/MD)
+      </button>
+      <input type="file" id="input-doc-file" accept=".pptx,.pdf,.docx,.md" style="display: none;" />
+
+      <div style="height: 20px; width: 1px; background: var(--border-color); margin: 0 4px;"></div>
+
       <button class="btn btn-secondary btn-icon" id="btn-undo" title="Hoàn tác (Ctrl+Z)">↶</button>
       <button class="btn btn-secondary btn-icon" id="btn-redo" title="Làm lại (Ctrl+Y)">↷</button>
 
@@ -872,8 +889,10 @@
   </div>
 
   <script type="module">
-    import { sceneReducer, validateSlide, computeSlideDuration, recomputeTotalDuration, ALLOWED_PRESETS, ALLOWED_VARIANTS } from './reducer.js';
-    import { TEMPLATES, renderSlide, buildGsapTimelineForSlide } from '../templates/index.js';
+    import { sceneReducer, validateSlide, computeSlideDuration, recomputeTotalDuration, ALLOWED_PRESETS, ALLOWED_VARIANTS } from '/studio/reducer.js';
+    import { TEMPLATES, renderSlide, buildGsapTimelineForSlide } from '/templates/index.js';
+
+    const API_BASE = window.API_BASE || 'http://localhost:8000';
 
     class StudioApp {
       constructor() {
@@ -900,7 +919,7 @@
 
         if (!this.scene) {
           try {
-            const res = await fetch('../fixtures/scene.sample.json');
+            const res = await fetch('/fixtures/scene.sample.json');
             this.scene = await res.json();
           } catch (e) {
             console.error('Failed to load sample fixture, creating minimal scene:', e);
@@ -980,7 +999,7 @@
         this.saveTimeout = setTimeout(async () => {
           localStorage.setItem('lecture_scene_state', JSON.stringify(this.scene));
           try {
-            await fetch(`/projects/${this.scene.projectId || 'sample'}/scene`, {
+            await fetch(`${API_BASE}/projects/${this.scene.projectId || 'sample'}/scene`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(this.scene)
@@ -1137,7 +1156,7 @@
         const slide = this.getCurrentSlide();
         if (!slide) return;
 
-        canvas.innerHTML = renderSlide(slide, this.currentSlideIndex, 0);
+        canvas.innerHTML = renderSlide(slide, 0, 0);
 
         const badge = document.getElementById('canvas-template-badge');
         if (badge) badge.innerText = `${slide.templateId} (${slide.layoutVariant || 'default'})`;
@@ -1327,6 +1346,11 @@
         const canvas = document.getElementById('live-canvas');
         this.currentTimeline = buildGsapTimelineForSlide(slide, canvas);
 
+        // Chế độ Studio WYSIWYG: hiển thị slide ở trạng thái hoàn thiện để giảng viên biên tập trực quan
+        if (this.currentTimeline) {
+          this.currentTimeline.progress(1);
+        }
+
         const slider = document.getElementById('timeline-slider');
         const maxDur = slide.durationSeconds || 16.0;
         if (slider) {
@@ -1358,7 +1382,12 @@
       playSlideTimeline() {
         if (!this.currentTimeline) return;
         this.isPlaying = true;
-        this.currentTimeline.play();
+        // Nếu đang ở cuối timeline hoặc vừa vào slide thì phát lại từ đầu
+        if (this.currentTimeline.progress() >= 1 || this.currentTimeline.time() === 0) {
+          this.currentTimeline.restart();
+        } else {
+          this.currentTimeline.play();
+        }
         const playBtn = document.getElementById('btn-timeline-play');
         if (playBtn) playBtn.innerText = '⏸';
       }
@@ -1374,7 +1403,8 @@
       stopSlideTimeline() {
         if (!this.currentTimeline) return;
         this.isPlaying = false;
-        this.currentTimeline.pause(0);
+        // Trả về trạng thái hiển thị đầy đủ để giảng viên chỉnh sửa
+        this.currentTimeline.progress(1);
         const playBtn = document.getElementById('btn-timeline-play');
         const slider = document.getElementById('timeline-slider');
         const curTimeEl = document.getElementById('time-current');
@@ -1515,7 +1545,7 @@
 
           try {
             // Attempt to hit Person A's API: POST /projects/{id}/slides/{sid}/audio
-            const res = await fetch(`/projects/${this.scene.projectId || 'sample'}/slides/${slide.slideId}/audio`, {
+            const res = await fetch(`${API_BASE}/projects/${this.scene.projectId || 'sample'}/slides/${slide.slideId}/audio`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -1681,16 +1711,302 @@
           }
         });
 
-        // Export Buttons Handler (Triggers Person A's /export or notification)
-        document.getElementById('btn-export-mp4').onclick = () => {
-          alert('Khởi chạy render MP4 (HyperFrames 1080p). Tiến trình sẽ tạo video chất lượng cao kèm thuyết minh VieNeu.');
+        // Document Upload Handlers
+        const btnUploadDoc = document.getElementById('btn-upload-doc');
+        const inputDocFile = document.getElementById('input-doc-file');
+        if (btnUploadDoc && inputDocFile) {
+          btnUploadDoc.onclick = () => inputDocFile.click();
+          inputDocFile.onchange = async (e) => {
+            const file = e.target.files?.[0];
+            if (file) await this.handleDocumentUpload(file);
+          };
+        }
+
+        // Export Buttons Handler (Triggers Person A's real /export pipeline)
+        document.getElementById('btn-export-mp4').onclick = async () => {
+          if (!confirm('Khởi chạy kết xuất video bài giảng MP4 (1080p 30fps)?')) return;
+          try {
+            const apiBase = window.location.port === '8000' ? '' : (window.location.port === '3000' ? '' : 'http://localhost:8000');
+            const res = await fetch(`${apiBase}/projects/${this.scene.projectId || 'demo'}/export`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ type: 'mp4' })
+            });
+            const data = await res.json();
+            alert(`🎬 Đã khởi tạo tiến trình kết xuất MP4 (Job ID: ${data.exportId})!\nHệ thống đang chạy ngầm bằng HyperFrames CLI 1080p.`);
+          } catch (err) {
+            alert('Lỗi khởi tạo kết xuất MP4: ' + err.message);
+          }
         };
-        document.getElementById('btn-export-pdf').onclick = () => {
-          window.print();
+
+        document.getElementById('btn-export-pdf').onclick = async () => {
+          try {
+            const apiBase = window.location.port === '8000' ? '' : (window.location.port === '3000' ? '' : 'http://localhost:8000');
+            const res = await fetch(`${apiBase}/projects/${this.scene.projectId || 'demo'}/export`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ type: 'pdf' })
+            });
+            const data = await res.json();
+            this.pollExportDownload(data.exportId, 'PDF');
+          } catch (err) {
+            alert('Lỗi xuất PDF: ' + err.message);
+          }
         };
-        document.getElementById('btn-export-pptx').onclick = () => {
-          alert('Đang đóng gói slide dạng PPTX Image Pack độ phân giải cao.');
+
+        document.getElementById('btn-export-pptx').onclick = async () => {
+          try {
+            const apiBase = window.location.port === '8000' ? '' : (window.location.port === '3000' ? '' : 'http://localhost:8000');
+            const res = await fetch(`${apiBase}/projects/${this.scene.projectId || 'demo'}/export`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ type: 'pptx' })
+            });
+            const data = await res.json();
+            this.pollExportDownload(data.exportId, 'PPTX');
+          } catch (err) {
+            alert('Lỗi xuất PPTX: ' + err.message);
+          }
         };
+      }
+
+      async pollExportDownload(exportId, formatName) {
+        const apiBase = window.location.port === '8000' ? '' : (window.location.port === '3000' ? '' : 'http://localhost:8000');
+        const modal = document.getElementById('upload-progress-modal');
+        const titleEl = document.getElementById('upload-step-title');
+        const descEl = document.getElementById('upload-step-desc');
+        const iconEl = document.getElementById('upload-step-icon');
+        const barEl = document.getElementById('upload-progress-bar');
+
+        if (modal) {
+          modal.classList.add('open');
+          iconEl.innerText = '⚙️';
+          titleEl.innerText = `Đang kết xuất ${formatName}...`;
+          descEl.innerText = 'Vui lòng chờ trong giây lát...';
+          barEl.style.width = '30%';
+        }
+
+        const maxWait = 40;
+        let waited = 0;
+        const interval = setInterval(async () => {
+          waited += 1;
+          try {
+            const res = await fetch(`${apiBase}/exports/${exportId}`);
+            if (res.ok) {
+              const job = await res.json();
+              if (job.status === 'completed' && job.downloadUrl) {
+                clearInterval(interval);
+                if (barEl) barEl.style.width = '100%';
+                if (titleEl) titleEl.innerText = `✅ Hoàn tất kết xuất ${formatName}!`;
+                setTimeout(() => {
+                  if (modal) modal.classList.remove('open');
+                  window.open(job.downloadUrl.startsWith('http') ? job.downloadUrl : `${apiBase}${job.downloadUrl}`, '_blank');
+                }, 800);
+                return;
+              } else if (job.status === 'failed') {
+                clearInterval(interval);
+                if (modal) modal.classList.remove('open');
+                alert(`Lỗi kết xuất ${formatName}: ` + (job.error || 'Thất bại'));
+                return;
+              }
+            }
+          } catch (e) {
+            console.error('Polling error:', e);
+          }
+          if (waited >= maxWait) {
+            clearInterval(interval);
+            if (modal) modal.classList.remove('open');
+            alert(`Quá thời gian chờ kết xuất ${formatName}. Vui lòng thử lại.`);
+          }
+        }, 1000);
+      }
+
+      async handleDocumentUpload(file) {
+        const modal = document.getElementById('upload-progress-modal');
+        const titleEl = document.getElementById('upload-step-title');
+        const descEl = document.getElementById('upload-step-desc');
+        const iconEl = document.getElementById('upload-step-icon');
+        const barEl = document.getElementById('upload-progress-bar');
+        const apiBase = window.location.port === '8000' ? '' : (window.location.port === '3000' ? '' : 'http://localhost:8000');
+
+        modal.classList.add('open');
+
+        try {
+          // Bước 1: Tạo project mới
+          iconEl.innerText = '📁';
+          titleEl.innerText = 'Đang khởi tạo bài giảng...';
+          descEl.innerText = 'Tạo không gian làm việc cho: ' + file.name;
+          barEl.style.width = '15%';
+
+          const projRes = await fetch(`${API_BASE}/projects`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: file.name.replace(/\.[^/.]+$/, '') })
+          });
+          if (!projRes.ok) {
+            const errTxt = await projRes.text();
+            throw new Error(`Khởi tạo project thất bại (${projRes.status}): ${errTxt}`);
+          }
+          const projData = await projRes.json();
+          const projectId = projData.projectId;
+
+          // Bước 2: Tải lên tài liệu
+          iconEl.innerText = '📤';
+          titleEl.innerText = 'Đang bóc tách nội dung...';
+          descEl.innerText = 'Trích xuất văn bản, cấu trúc luận điểm từ ' + file.name;
+          barEl.style.width = '40%';
+
+          const formData = new FormData();
+          formData.append('file', file);
+          const docRes = await fetch(`${API_BASE}/projects/${projectId}/documents`, {
+            method: 'POST',
+            body: formData
+          });
+          if (!docRes.ok) {
+            const errTxt = await docRes.text();
+            throw new Error(`Bóc tách tài liệu thất bại (${docRes.status}): ${errTxt}`);
+          }
+          const docContext = await docRes.json();
+
+          // Tạm ẩn modal tiến trình để mở Pop-up Phỏng vấn Sư phạm
+          modal.classList.remove('open');
+
+          const clarifyModal = document.getElementById('clarification-modal');
+          const clarifyDocTitle = document.getElementById('clarification-doc-title');
+          if (clarifyDocTitle) clarifyDocTitle.innerText = 'Tài liệu: ' + (docContext.title || file.name);
+
+          // Lấy gợi ý câu trả lời từ backend
+          try {
+            const qRes = await fetch(`${API_BASE}/projects/${projectId}/clarification`);
+            if (qRes.ok) {
+              const qData = await qRes.json();
+              const questions = qData.questions || [];
+              const audQ = questions.find(q => q.id === 'targetAudience');
+              if (audQ && audQ.suggestedAnswer) {
+                const audSelect = document.getElementById('clarify-audience');
+                if (audSelect) audSelect.value = audQ.suggestedAnswer;
+              }
+              const durQ = questions.find(q => q.id === 'durationMinutes');
+              if (durQ && durQ.suggestedAnswer) {
+                const durSelect = document.getElementById('clarify-duration');
+                if (durSelect) durSelect.value = String(durQ.suggestedAnswer);
+              }
+              const slideQ = questions.find(q => q.id === 'slideCount');
+              if (slideQ && slideQ.suggestedAnswer) {
+                const slideSelect = document.getElementById('clarify-slides');
+                if (slideSelect) slideSelect.value = String(slideQ.suggestedAnswer);
+              }
+            }
+          } catch (e) {
+            console.log('Using default suggested answers');
+          }
+
+          clarifyModal.classList.add('open');
+
+          // Đợi người dùng phản hồi qua modal
+          const userAnswers = await new Promise((resolve) => {
+            const onSubmit = () => {
+              cleanup();
+              resolve({
+                targetAudience: document.getElementById('clarify-audience').value,
+                durationMinutes: parseInt(document.getElementById('clarify-duration').value, 10) || 15,
+                slideCount: parseInt(document.getElementById('clarify-slides').value, 10) || 10,
+                includeQuiz: document.getElementById('clarify-quiz').value === 'true',
+                voiceOver: document.getElementById('clarify-voice').value,
+                style: 'academic-ocean'
+              });
+            };
+            const onSkip = () => {
+              cleanup();
+              resolve({
+                targetAudience: 'Sinh viên đại học năm thứ nhất',
+                durationMinutes: 15,
+                slideCount: 10,
+                includeQuiz: true,
+                voiceOver: 'MyDuyen',
+                style: 'academic-ocean'
+              });
+            };
+            const cleanup = () => {
+              clarifyModal.classList.remove('open');
+              document.getElementById('btn-clarify-submit').removeEventListener('click', onSubmit);
+              document.getElementById('btn-clarify-skip').removeEventListener('click', onSkip);
+            };
+            document.getElementById('btn-clarify-submit').addEventListener('click', onSubmit);
+            document.getElementById('btn-clarify-skip').addEventListener('click', onSkip);
+          });
+
+          // Gửi câu trả lời làm rõ đến backend
+          await fetch(`${API_BASE}/projects/${projectId}/clarification`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ answers: userAnswers })
+          });
+
+          // Mở lại modal tiến trình để sinh dàn bài
+          modal.classList.add('open');
+
+          // Bước 3: Sinh dàn bài sư phạm
+          iconEl.innerText = '🧠';
+          titleEl.innerText = 'Đang sinh dàn bài sư phạm...';
+          descEl.innerText = `Gemini AI phân bổ ${userAnswers.slideCount} slides (${userAnswers.durationMinutes} phút) cho: ` + (docContext.title || file.name);
+          barEl.style.width = '70%';
+
+          const outlineRes = await fetch(`${API_BASE}/projects/${projectId}/outline`, {
+            method: 'POST'
+          });
+          if (!outlineRes.ok) {
+            const errTxt = await outlineRes.text();
+            throw new Error(`Sinh dàn bài thất bại (${outlineRes.status}): ${errTxt}`);
+          }
+          const outline = await outlineRes.json();
+
+          // Phê duyệt dàn bài
+          outline.status = 'approved';
+          const appRes = await fetch(`${API_BASE}/projects/${projectId}/outline`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(outline)
+          });
+          if (!appRes.ok) {
+            const errTxt = await appRes.text();
+            throw new Error(`Duyệt dàn bài thất bại (${appRes.status}): ${errTxt}`);
+          }
+
+          // Bước 4: Sinh slide HyperFrames Scene
+          iconEl.innerText = '🎨';
+          titleEl.innerText = 'Đang tạo slide tương tác...';
+          descEl.innerText = 'Khởi tạo bố cục và hiệu ứng hoạt họa...';
+          barEl.style.width = '95%';
+
+          const sceneRes = await fetch(`${API_BASE}/projects/${projectId}/scene`, {
+            method: 'POST'
+          });
+          if (!sceneRes.ok) {
+            const errTxt = await sceneRes.text();
+            throw new Error(`Tạo slide scene thất bại (${sceneRes.status}): ${errTxt}`);
+          }
+          const newScene = await sceneRes.json();
+
+          barEl.style.width = '100%';
+          titleEl.innerText = '✅ Hoàn tất bóc tách!';
+          descEl.innerText = 'Đang nạp slide vào phòng biên tập Studio...';
+
+          await new Promise(r => setTimeout(r, 600));
+
+          // Nạp bài giảng mới vào Canvas
+          this.scene = newScene;
+          this.currentSlideIndex = 0;
+          this.history = [JSON.parse(JSON.stringify(this.scene))];
+          this.historyIndex = 0;
+          localStorage.setItem('lecture_scene_state', JSON.stringify(this.scene));
+          this.renderAll();
+        } catch (err) {
+          alert('Lỗi xử lý tài liệu: ' + err.message);
+        } finally {
+          modal.classList.remove('open');
+          document.getElementById('input-doc-file').value = '';
+        }
       }
     }
 
@@ -1698,5 +2014,98 @@
     window.studioApp = app;
     window.addEventListener('DOMContentLoaded', () => app.init());
   </script>
+
+  <!-- Upload Progress Modal -->
+  <div id="upload-progress-modal" class="modal-overlay">
+    <div class="modal-box" style="text-align: center; max-width: 440px;">
+      <div style="font-size: 42px; margin-bottom: 12px;" id="upload-step-icon">📤</div>
+      <h3 style="font-size: 18px; font-weight: 700; color: var(--text-main); margin-bottom: 8px;" id="upload-step-title">Đang xử lý tài liệu</h3>
+      <p style="font-size: 13px; color: var(--text-sub); margin-bottom: 20px;" id="upload-step-desc">Vui lòng chờ trong giây lát...</p>
+      <div style="width: 100%; height: 8px; background: #E2E8F0; border-radius: 9999px; overflow: hidden;">
+        <div id="upload-progress-bar" style="width: 20%; height: 100%; background: linear-gradient(90deg, #0284c7, #38bdf8); transition: width 0.3s ease;"></div>
+      </div>
+  <!-- Clarification Questions Modal -->
+  <div id="clarification-modal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 560px; text-align: left; padding: 24px; border-radius: 14px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);">
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+        <div style="font-size: 30px;">🎯</div>
+        <div>
+          <h3 style="font-size: 18px; font-weight: 700; color: var(--text-main); margin: 0;">Thiết lập Sư phạm cho Bài giảng</h3>
+          <p id="clarification-doc-title" style="font-size: 13px; color: var(--primary); font-weight: 500; margin: 4px 0 0 0;">Tài liệu...</p>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 22px;">
+        <!-- Câu 1: Đối tượng người học -->
+        <div>
+          <label style="font-size: 12px; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">
+            1. Đối tượng người học trọng tâm là ai?
+          </label>
+          <select id="clarify-audience" class="prop-select" style="width: 100%; padding: 8px 12px; font-size: 13px;">
+            <option value="Sinh viên đại học năm thứ nhất" selected>Sinh viên đại học năm thứ nhất (Nhập môn, dễ hiểu)</option>
+            <option value="Sinh viên chuyên ngành nâng cao">Sinh viên chuyên ngành nâng cao (Hàn lâm, chuyên sâu)</option>
+            <option value="Học sinh THPT">Học sinh THPT (Trực quan, sinh động)</option>
+            <option value="Người đi làm / Chuyên gia">Người đi làm / Chuyên gia (Ứng dụng thực tiễn)</option>
+          </select>
+        </div>
+
+        <!-- Câu 2: Thời lượng & Số lượng slide -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div>
+            <label style="font-size: 12px; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">
+              2. Thời lượng bài giảng
+            </label>
+            <select id="clarify-duration" class="prop-select" style="width: 100%; padding: 8px 12px; font-size: 13px;">
+              <option value="5">5 phút (Ngắn gọn / Tóm tắt)</option>
+              <option value="10">10 phút (Chuẩn)</option>
+              <option value="15" selected>15 phút (Đầy đủ chi tiết)</option>
+              <option value="20">20 phút (Chuyên đề sâu)</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size: 12px; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">
+              3. Số lượng slide
+            </label>
+            <select id="clarify-slides" class="prop-select" style="width: 100%; padding: 8px 12px; font-size: 13px;">
+              <option value="6">6 slides</option>
+              <option value="8">8 slides</option>
+              <option value="10" selected>10 slides (Khuyến nghị)</option>
+              <option value="12">12 slides</option>
+              <option value="15">15 slides</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Câu 3: Trắc nghiệm & Giọng đọc -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div>
+            <label style="font-size: 12px; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">
+              4. Câu hỏi trắc nghiệm
+            </label>
+            <select id="clarify-quiz" class="prop-select" style="width: 100%; padding: 8px 12px; font-size: 13px;">
+              <option value="true" selected>Có kèm Quiz kiểm tra nhanh</option>
+              <option value="false">Không (Chỉ giảng lý thuyết)</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size: 12px; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">
+              5. Giọng đọc thuyết minh (TTS)
+            </label>
+            <select id="clarify-voice" class="prop-select" style="width: 100%; padding: 8px 12px; font-size: 13px;">
+              <option value="MyDuyen" selected>Mỹ Duyên (Nữ Nam Bộ)</option>
+              <option value="HaMy">Hà My (Nữ Bắc Bộ)</option>
+              <option value="BanMai">Ban Mai (Nữ Bắc Bộ)</option>
+              <option value="Viettel">Viettel (Chuẩn hàn lâm)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+        <button id="btn-clarify-skip" class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px;">Bỏ qua & Dùng mặc định</button>
+        <button id="btn-clarify-submit" class="btn btn-primary" style="padding: 8px 20px; font-size: 13px; font-weight: 600;">🚀 Bắt đầu sinh bài giảng</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

@@ -8,6 +8,9 @@ import os
 import shutil
 import sqlite3
 from typing import Optional
+from dotenv import load_dotenv
+
+load_dotenv()
 from fastapi import FastAPI, UploadFile, File, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -37,6 +40,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+from fastapi.staticfiles import StaticFiles
+
+storage_root = os.path.join(BASE_DIR, "storage")
+os.makedirs(storage_root, exist_ok=True)
+app.mount("/storage", StaticFiles(directory=storage_root), name="storage")
 
 ingestion_service = DocumentIngestionService(storage_base=STORAGE_DIR)
 
@@ -216,7 +225,21 @@ def generate_outline_endpoint(project_id: str):
         with open(answers_path, "r", encoding="utf-8") as f:
             answers = json.load(f)
 
-    outline = outline_generator.generate_outline(doc_context, answers)
+    # Dynamically check for Gemini API key
+    from scripts.llm_provider import GeminiProvider
+
+    api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+    if api_key:
+        try:
+            provider = GeminiProvider(api_key=api_key)
+            active_generator = OutlineGenerator(llm_provider=provider)
+            outline = active_generator.generate_outline(doc_context, answers)
+        except Exception as e:
+            print(f"[WARN] Gemini generation failed ({e}), falling back to default provider")
+            outline = outline_generator.generate_outline(doc_context, answers)
+    else:
+        outline = outline_generator.generate_outline(doc_context, answers)
+
     saved = outline_manager.save_outline(project_id, outline)
 
     with sqlite3.connect(DB_PATH) as conn:
@@ -276,21 +299,41 @@ def generate_scene_endpoint(project_id: str):
 
     # Load approved outline
     outline = outline_manager.get_outline(project_id)
-
-    # Use sample fixture as initial scene stub until Person B mapper lands
-    fixture_scene_path = os.path.join(BASE_DIR, "fixtures", "scene.sample.json")
-    import json
-    with open(fixture_scene_path, "r", encoding="utf-8") as f:
-        scene_data = json.load(f)
-
-    scene_data["projectId"] = project_id
-    if outline:
-        scene_data["title"] = outline.topic
-
-    # Save to storage
     scene_path = os.path.join(STORAGE_DIR, project_id, "scene.json")
-    with open(scene_path, "w", encoding="utf-8") as f:
-        json.dump(scene_data, f, ensure_ascii=False, indent=2)
+    outline_path = os.path.join(STORAGE_DIR, project_id, "lesson_outline.json")
+    mapper_script = os.path.join(BASE_DIR, "scripts", "map_outline_to_scene.mjs")
+
+    import subprocess
+    import json
+
+    scene_data = None
+    if outline and os.path.exists(outline_path) and os.path.exists(mapper_script):
+        try:
+            res = subprocess.run(
+                ["node", mapper_script, outline_path, scene_path, project_id],
+                cwd=BASE_DIR,
+                capture_output=True,
+                text=True,
+                timeout=15,
+            )
+            if res.returncode == 0 and os.path.exists(scene_path):
+                with open(scene_path, "r", encoding="utf-8") as f:
+                    scene_data = json.load(f)
+            else:
+                print(f"[WARN] Node mapper failed (code {res.returncode}): {res.stderr}")
+        except Exception as e:
+            print(f"[WARN] Failed to invoke Node mapper: {e}")
+
+    # Fallback to sample fixture only if mapping failed or no outline
+    if not scene_data:
+        fixture_scene_path = os.path.join(BASE_DIR, "fixtures", "scene.sample.json")
+        with open(fixture_scene_path, "r", encoding="utf-8") as f:
+            scene_data = json.load(f)
+        scene_data["projectId"] = project_id
+        if outline:
+            scene_data["title"] = outline.topic
+        with open(scene_path, "w", encoding="utf-8") as f:
+            json.dump(scene_data, f, ensure_ascii=False, indent=2)
 
     return LessonSceneJSON.model_validate(scene_data)
 
@@ -360,7 +403,8 @@ class AudioSynthesisRequest(BaseModel):
 @app.post("/projects/{project_id}/slides/{slide_id}/narration")
 def regenerate_narration_endpoint(project_id: str, slide_id: str, req: NarrationRequest):
     scene = get_scene_endpoint(project_id)
-    target_slide = next((s for s in scene.slides if s.slideId == slide_id), None)
+    clean_target = slide_id.replace("-0", "-")
+    target_slide = next((s for s in scene.slides if s.slideId == slide_id or s.slideId.replace("-0", "-") == clean_target), None)
     if not target_slide:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -387,7 +431,8 @@ def regenerate_narration_endpoint(project_id: str, slide_id: str, req: Narration
 @app.post("/projects/{project_id}/slides/{slide_id}/audio")
 def synthesize_slide_audio_endpoint(project_id: str, slide_id: str, req: AudioSynthesisRequest):
     scene = get_scene_endpoint(project_id)
-    target_slide = next((s for s in scene.slides if s.slideId == slide_id), None)
+    clean_target = slide_id.replace("-0", "-")
+    target_slide = next((s for s in scene.slides if s.slideId == slide_id or s.slideId.replace("-0", "-") == clean_target), None)
     if not target_slide:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -421,13 +466,15 @@ def synthesize_slide_audio_endpoint(project_id: str, slide_id: str, req: AudioSy
     with open(scene_path, "w", encoding="utf-8") as f:
         f.write(synced_scene.model_dump_json(indent=2))
 
+    actual_id = target_slide.slideId
+    shift_meta = meta.get(slide_id) or meta.get(actual_id) or {"durationSeconds": measured_duration}
     return {
         "slideId": slide_id,
         "audioUrl": rel_audio_url,
         "durationSeconds": measured_duration,
         "timelineShift": {
             "slideId": slide_id,
-            "newDurationSeconds": meta[slide_id]["durationSeconds"],
+            "newDurationSeconds": shift_meta["durationSeconds"],
             "subsequentStartTimesUpdated": True,
         },
     }
