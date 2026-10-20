@@ -51,3 +51,35 @@ _Avoid_: custom theme, template clone
 **Editable PPTX**:
 Tệp bài giảng Microsoft PowerPoint chứa các shape và khung chữ (text frames) nguyên bản có thể chỉnh sửa trực tiếp, được ánh xạ từ LessonSceneJSON.
 _Avoid_: image-only slide, screenshot pack
+
+**TemplatePack**:
+Gói chủ đề bài giảng hoàn chỉnh gồm bộ nhận diện trực quan (Design Tokens: màu sắc, phông chữ, khoảng cách), nhãn phân loại (môn học, phong cách, hiệu ứng) và một tập hợp các Layout có sẵn để AI/giảng viên lựa chọn cho toàn bộ bài học.
+_Avoid_: theme, skin, slide deck thô
+
+**Layout**:
+Cấu trúc bố cục trực quan của một slide bài giảng phục vụ mục đích sư phạm cụ thể (giải thích khái niệm, so sánh, dòng thời gian, câu hỏi kiểm tra), định nghĩa các Slot chứa nội dung, phần tử trang trí cố định (Decor), các biến thể bố cục (Variants) và hiệu ứng chuyển động mặc định.
+_Avoid_: slide template v1, raw HTML template
+
+**Slot**:
+Vị trí được xác định ranh giới và vai trò ngữ nghĩa trên Layout (như tiêu đề, nội dung chính, danh sách, công thức, ảnh/video, sơ đồ), quy định rõ các kiểu dữ liệu chấp nhận và ràng buộc hiển thị để AI hoặc người dùng điền nội dung vào.
+_Avoid_: container, placeholder, div box
+
+**Variant**:
+Biến thể sắp đặt bố cục không gian của một Layout (như chữ trái - ảnh phải, ảnh trái - chữ phải, xếp dọc trên dưới, toàn màn hình, không ảnh) mà không làm thay đổi cấu trúc dữ liệu của các Slot.
+_Avoid_: new layout, sub-template
+
+**MediaCandidate**:
+Ứng viên hình ảnh, sơ đồ hoặc video minh họa được hệ thống chuẩn bị sẵn (trích xuất từ tài liệu, sinh từ dữ liệu, hoặc giáo viên tải lên) kèm thông tin nguồn gốc, giấy phép và mức độ phù hợp để gợi ý cho slide.
+_Avoid_: image asset, raw file
+
+**SlotFiller**:
+Bộ máy AI xử lý ngôn ngữ tự nhiên nhận nội dung tài liệu và schema của Layout để điền chính xác, có kiểm định cấu trúc vào các Slot tương ứng, tự động kích hoạt vòng lặp tóm tắt khi tràn chữ.
+_Avoid_: outline mapper cứng, prompt generator
+
+**MediaRecommender**:
+Bộ phân tích nhu cầu thị giác (visual_need) của từng slide để xếp hạng và đề xuất 3-4 ứng viên MediaCandidate phù hợp nhất cho giáo viên chọn 1-chạm.
+_Avoid_: image searcher, stock picker
+
+**TemplateBuilder**:
+Môi trường thiết kế đồ họa kéo thả trực quan trên nền tảng Canvas Engine của Studio, cho phép giáo viên tự tạo Layout mới, đánh dấu Slot/Decor, gán hiệu ứng GSAP và lưu vào Template Pack.
+_Avoid_: slide designer, video editor
