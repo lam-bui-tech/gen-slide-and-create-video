@@ -891,6 +891,7 @@
   <script type="module">
     import { sceneReducer, validateSlide, computeSlideDuration, recomputeTotalDuration, ALLOWED_PRESETS, ALLOWED_VARIANTS } from '/studio/reducer.js';
     import { TEMPLATES, renderSlide, buildGsapTimelineForSlide } from '/templates/index.js';
+    import { migrateOnRead } from '/templates/migration.js';
 
     const API_BASE = window.API_BASE || 'http://localhost:8000';
 
@@ -941,6 +942,9 @@
             };
           }
         }
+
+        // Transparent migration from v1 to v2 if needed
+        this.scene = migrateOnRead(this.scene);
 
         // Initialize history
         this.history = [JSON.parse(JSON.stringify(this.scene))];

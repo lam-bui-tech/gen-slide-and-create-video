@@ -13,6 +13,8 @@
  */
 
 import { TEMPLATES, renderSlide } from './templates/index.js';
+import { TemplateRegistry } from './templates/registry.js';
+import { migrateSceneV1ToV2 } from './templates/migration.js';
 
 export class SchemaValidationError extends Error {
   constructor(message, details = []) {
@@ -22,18 +24,20 @@ export class SchemaValidationError extends Error {
   }
 }
 
-const VALID_TEMPLATES = new Set([
-  'title-slide',
-  'learning-objectives',
-  'concept-explain',
-  'bullet-breakdown',
-  'image-explain',
-  'comparison',
-  'timeline',
-  'formula-explain',
-  'quiz',
-  'summary'
-]);
+export const VALID_TEMPLATES = new Set(
+  TemplateRegistry.get('basic')?.layouts.map(l => l.id) || [
+    'title-slide',
+    'learning-objectives',
+    'concept-explain',
+    'bullet-breakdown',
+    'image-explain',
+    'comparison',
+    'timeline',
+    'formula-explain',
+    'quiz',
+    'summary'
+  ]
+);
 
 /**
  * Validate LessonOutline according to schemas/lesson_outline.json
@@ -68,9 +72,10 @@ export function validateOutline(outline) {
     if (sMissing.length > 0) {
       throw new SchemaValidationError(`Slide [${s.slideId || idx}] missing required fields: ${sMissing.join(', ')}`, sMissing);
     }
-    if (!VALID_TEMPLATES.has(s.suggestedTemplateId)) {
+    const templateId = s.suggestedLayoutId || s.suggestedTemplateId;
+    if (!VALID_TEMPLATES.has(templateId) && !TemplateRegistry.hasLayout('basic', templateId)) {
       throw new SchemaValidationError(
-        `Slide [${s.slideId}] has unknown suggestedTemplateId: "${s.suggestedTemplateId}". Must be one of: ${Array.from(VALID_TEMPLATES).join(', ')}`
+        `Slide [${s.slideId}] has unknown suggestedTemplateId: "${templateId}". Must be one of: ${Array.from(VALID_TEMPLATES).join(', ')}`
       );
     }
     if (!Array.isArray(s.keyTakeaways)) {
@@ -113,9 +118,11 @@ export function validateScene(scene) {
     if (sMissing.length > 0) {
       throw new SchemaValidationError(`Scene slide [${s.slideId || idx}] missing required fields: ${sMissing.join(', ')}`, sMissing);
     }
-    if (!VALID_TEMPLATES.has(s.templateId)) {
+    const layoutId = s.layoutId || s.templateId;
+    const packId = s.packId || scene.packId || 'basic';
+    if (!VALID_TEMPLATES.has(layoutId) && !TemplateRegistry.hasLayout(packId, layoutId)) {
       throw new SchemaValidationError(
-        `Scene slide [${s.slideId}] has invalid templateId: "${s.templateId}". Must be one of: ${Array.from(VALID_TEMPLATES).join(', ')}`
+        `Scene slide [${s.slideId}] has invalid templateId: "${layoutId}". Must be one of: ${Array.from(VALID_TEMPLATES).join(', ')}`
       );
     }
     if (typeof s.durationSeconds !== 'number' || s.durationSeconds <= 0) {
@@ -159,11 +166,15 @@ export function outlineToScene(outline, options = {}) {
     const voiceDuration = Math.max(duration - 1.0, 4.0);
 
     const resolvedSlideId = s.slideId || `slide-${idx + 1}`;
+    const variantId = s.variantId || s.layoutVariant || s.contentPayload?.layoutVariant || 'default';
 
     const slideObj = {
       slideId: resolvedSlideId,
       templateId: templateId,
-      layoutVariant: s.layoutVariant || s.contentPayload?.layoutVariant || 'default',
+      layoutId: templateId,
+      layoutVariant: variantId,
+      variantId: variantId,
+      packId: options.packId || 'basic',
       title: s.title,
       subtitle: s.subtitle || (outline.sections?.[0]?.sectionTitle || ''),
       elements: elements,
@@ -184,6 +195,8 @@ export function outlineToScene(outline, options = {}) {
   });
 
   const sceneResult = {
+    schemaVersion: 2,
+    packId: options.packId || 'basic',
     projectId: projectId,
     title: outline.topic,
     theme: {
@@ -211,13 +224,16 @@ export function sceneToHyperFramesHtml(scene, options = {}) {
   // Fail loudly on invalid input
   validateScene(scene);
 
+  // Transparently migrate v1 scenes to v2
+  const activeScene = migrateSceneV1ToV2(scene);
+
   let currentStart = 0;
   const slideSections = [];
   const audioTags = [];
   const slideTimingMetadata = [];
   const voiceCues = [];
 
-  scene.slides.forEach((slide, idx) => {
+  activeScene.slides.forEach((slide, idx) => {
     // Start times strictly derived from durationSeconds (Audio-First Sync)
     const duration = slide.durationSeconds;
     const start = Math.round(currentStart * 100) / 100;

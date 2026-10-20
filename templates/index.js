@@ -1,96 +1,64 @@
 /**
  * templates/index.js
- * Template Registry and Component Renderers for 10 HyperFrames Academic Pro Templates
- * Works directly from fixtures/scene.sample.json and schemas/lesson_scene.json
+ * Template Registry and Component Renderers for HyperFrames Academic Pro Templates
+ * Integrates with templates/registry.js and schemas/lesson_scene.json v2.
  */
 
-export const TEMPLATES = {
-  'title-slide': {
-    id: 'title-slide',
-    name: 'Slide Tiêu Đề (Hero Title)',
-    category: 'intro',
-    supportedVariants: ['default', 'fullscreen', 'text-left-image-right', 'text-right-image-left'],
-    render: renderTitleSlide
-  },
-  'learning-objectives': {
-    id: 'learning-objectives',
-    name: 'Mục Tiêu Bài Học (Learning Objectives)',
-    category: 'intro',
-    supportedVariants: ['default', 'stacked-top', 'no-image'],
-    render: renderLearningObjectives
-  },
-  'concept-explain': {
-    id: 'concept-explain',
-    name: 'Giải Thích Khái Niệm (Concept Explain)',
-    category: 'core',
-    supportedVariants: ['default', 'text-left-image-right', 'text-right-image-left', 'no-image'],
-    render: renderConceptExplain
-  },
-  'bullet-breakdown': {
-    id: 'bullet-breakdown',
-    name: 'Phân Tích Luận Điểm (Bullet Breakdown)',
-    category: 'core',
-    supportedVariants: ['default', 'stacked-top'],
-    render: renderBulletBreakdown
-  },
-  'image-explain': {
-    id: 'image-explain',
-    name: 'Sơ Đồ / Hình Ảnh Trực Quan (Image Explain)',
-    category: 'diagram',
-    supportedVariants: ['default', 'text-left-image-right', 'text-right-image-left'],
-    render: renderImageExplain
-  },
-  'comparison': {
-    id: 'comparison',
-    name: 'So Sánh Đối Chiếu 2 Cột (Comparison)',
-    category: 'analysis',
-    supportedVariants: ['default', 'stacked-top'],
-    render: renderComparison
-  },
-  'timeline': {
-    id: 'timeline',
-    name: 'Trục Tiến Trình Thời Gian (Timeline)',
-    category: 'process',
-    supportedVariants: ['default', 'stacked-top'],
-    render: renderTimeline
-  },
-  'formula-explain': {
-    id: 'formula-explain',
-    name: 'Công Thức & Định Lý (Formula Explain)',
-    category: 'core',
-    supportedVariants: ['default', 'stacked-top'],
-    render: renderFormulaExplain
-  },
-  'quiz': {
-    id: 'quiz',
-    name: 'Câu Hỏi Tương Tác (Interactive Quiz)',
-    category: 'interaction',
-    supportedVariants: ['default', 'stacked-top'],
-    render: renderQuiz
-  },
-  'summary': {
-    id: 'summary',
-    name: 'Tổng Kết Bài Học (Summary & Takeaways)',
-    category: 'conclusion',
-    supportedVariants: ['default', 'no-image', 'stacked-top'],
-    render: renderSummary
-  }
+import { TemplateRegistry } from './registry.js';
+import { migrateSceneV1ToV2 } from './migration.js';
+
+const RENDERERS = {
+  'title-slide': renderTitleSlide,
+  'learning-objectives': renderLearningObjectives,
+  'concept-explain': renderConceptExplain,
+  'bullet-breakdown': renderBulletBreakdown,
+  'image-explain': renderImageExplain,
+  'comparison': renderComparison,
+  'timeline': renderTimeline,
+  'formula-explain': renderFormulaExplain,
+  'quiz': renderQuiz,
+  'summary': renderSummary
 };
+
+export const TEMPLATES = {};
+const basicPack = TemplateRegistry.get('basic');
+if (basicPack?.layouts) {
+  for (const layout of basicPack.layouts) {
+    TEMPLATES[layout.id] = {
+      id: layout.id,
+      name: layout.name,
+      purpose: layout.purpose,
+      supportedVariants: layout.variants.map(v => v.id),
+      render: RENDERERS[layout.id] || renderConceptExplain
+    };
+  }
+}
 
 /**
  * 1. Title Slide (Hero)
  */
 function renderTitleSlide(slide) {
-  const variant = slide.layoutVariant || 'default';
+  let variant = slide.variantId || slide.layoutVariant || 'default';
   const badgeEl = slide.elements?.find(e => e.type === 'badge');
   const authorEl = slide.elements?.find(e => e.id === 'txt-author' || e.type === 'text');
   const imgEl = slide.elements?.find(e => e.type === 'image');
 
-  const badgeHtml = badgeEl ? `<div id="${badgeEl.id || 'badge-course'}" class="hf-badge">${escapeHtml(badgeEl.content)}</div>` : '';
-  const authorHtml = authorEl ? `<div id="${authorEl.id || 'txt-author'}" class="title-hero-author"><span>👨‍🏫</span> ${escapeHtml(authorEl.content)}</div>` : '';
-  const imgHtml = imgEl ? `
+  const mediaVal = slide.slotValues?.media || imgEl?.content;
+  const imgSrc = (typeof mediaVal === 'string') ? mediaVal.trim() : (mediaVal?.url?.trim() || '');
+  const hasValidImg = Boolean(imgSrc);
+
+  if (!hasValidImg && variant === 'default') {
+    variant = 'no-image';
+  }
+
+  const badgeText = slide.slotValues?.badge || badgeEl?.content;
+  const badgeHtml = badgeText ? `<div id="${badgeEl?.id || 'badge-course'}" class="hf-badge">${escapeHtml(badgeText)}</div>` : '';
+  const authorText = slide.slotValues?.author || authorEl?.content;
+  const authorHtml = authorText ? `<div id="${authorEl?.id || 'txt-author'}" class="title-hero-author"><span>👨‍🏫</span> ${escapeHtml(authorText)}</div>` : '';
+
+  const imgHtml = hasValidImg ? `
     <div class="title-hero-image-wrap">
-      <img id="${imgEl.id || 'img-hero'}" src="${escapeHtml(imgEl.content)}" alt="${escapeHtml(slide.title)}" onerror="this.src='https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800&auto=format&fit=crop&q=80'" />
+      <img id="${imgEl?.id || 'img-hero'}" src="${escapeHtml(imgSrc)}" alt="${escapeHtml(slide.title)}" onerror="this.style.display='none'" />
     </div>` : '';
 
   return `
@@ -105,6 +73,7 @@ function renderTitleSlide(slide) {
     </div>
   `;
 }
+
 
 /**
  * 2. Learning Objectives
@@ -137,19 +106,28 @@ function renderLearningObjectives(slide) {
  * 3. Concept Explain
  */
 function renderConceptExplain(slide) {
-  const variant = slide.layoutVariant || 'default';
+  let variant = slide.variantId || slide.layoutVariant || 'default';
   const cardEl = slide.elements?.find(e => e.type === 'card' || e.type === 'text');
   const imgEl = slide.elements?.find(e => e.type === 'image');
 
+  const mediaVal = slide.slotValues?.media || imgEl?.content;
+  const imgSrc = (typeof mediaVal === 'string') ? mediaVal.trim() : (mediaVal?.url?.trim() || '');
+  const hasValidImg = Boolean(imgSrc);
+
+  if (!hasValidImg && (variant === 'default' || variant === 'text-left-image-right' || variant === 'text-right-image-left')) {
+    variant = 'no-image';
+  }
+
+  const bodyText = slide.slotValues?.body || (typeof slide.slotValues?.card === 'string' ? slide.slotValues.card : '') || cardEl?.content || '';
   const cardHtml = `
     <div class="concept-card" id="${cardEl?.id || 'txt-def'}">
-      <p class="concept-quote">“${escapeHtml(cardEl?.content || '')}”</p>
+      <p class="concept-quote">“${escapeHtml(bodyText)}”</p>
     </div>
   `;
 
-  const imgHtml = imgEl ? `
+  const imgHtml = hasValidImg ? `
     <div class="concept-image-wrap">
-      <img id="${imgEl.id || 'img-concept'}" src="${escapeHtml(imgEl.content)}" alt="${escapeHtml(slide.title)}" onerror="this.src='https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=800&auto=format&fit=crop&q=80'" />
+      <img id="${imgEl?.id || 'img-concept'}" src="${escapeHtml(imgSrc)}" alt="${escapeHtml(slide.title)}" onerror="this.style.display='none'" />
     </div>` : '';
 
   return `
@@ -203,22 +181,34 @@ function renderBulletBreakdown(slide) {
  * 5. Image Explain
  */
 function renderImageExplain(slide) {
-  const variant = slide.layoutVariant || 'default';
+  let variant = slide.variantId || slide.layoutVariant || 'default';
   const imgEl = slide.elements?.find(e => e.type === 'image');
   const txtEl = slide.elements?.find(e => e.type === 'text');
 
+  const mediaVal = slide.slotValues?.media || imgEl?.content;
+  const imgSrc = (typeof mediaVal === 'string') ? mediaVal.trim() : (mediaVal?.url?.trim() || '');
+  const hasValidImg = Boolean(imgSrc);
+
+  if (!hasValidImg && (variant === 'default' || variant === 'text-left-image-right' || variant === 'text-right-image-left')) {
+    variant = 'no-image';
+  }
+
+  const sideText = slide.slotValues?.sideText || txtEl?.content || '';
+  const imgHtml = hasValidImg ? `
+      <div class="explain-image-wrap">
+        <img id="${imgEl?.id || 'img-diagram'}" src="${escapeHtml(imgSrc)}" alt="${escapeHtml(slide.title)}" onerror="this.style.display='none'" />
+      </div>` : '';
+
   return `
     <div class="hf-template-image-explain variant-${variant}">
-      <div class="explain-image-wrap">
-        <img id="${imgEl?.id || 'img-diagram'}" src="${escapeHtml(imgEl?.content || '')}" alt="${escapeHtml(slide.title)}" onerror="this.src='https://images.unsplash.com/photo-1507842229451-7f01be7fe7ab?w=800&auto=format&fit=crop&q=80'" />
-      </div>
+      ${imgHtml}
       <div>
         <div class="hf-slide-header">
           <h2 class="slide-title hf-slide-title">${escapeHtml(slide.title)}</h2>
           ${slide.subtitle ? `<p class="hf-slide-subtitle">${escapeHtml(slide.subtitle)}</p>` : ''}
         </div>
         <div class="explain-text-card" id="${txtEl?.id || 'txt-side'}">
-          <p>${escapeHtml(txtEl?.content || '')}</p>
+          <p>${escapeHtml(sideText)}</p>
         </div>
       </div>
     </div>
@@ -387,15 +377,17 @@ function renderSummary(slide) {
  * Render a complete slide section element conforming to HyperFrames specifications
  */
 export function renderSlide(slide, index = 0, startOffset = 0) {
-  const templateMeta = TEMPLATES[slide.templateId] || TEMPLATES['concept-explain'];
-  const innerHtml = templateMeta.render(slide);
+  const packId = slide.packId || 'basic';
+  const layoutId = slide.layoutId || slide.templateId || 'concept-explain';
+  const renderer = RENDERERS[layoutId] || TEMPLATES[layoutId]?.render || renderConceptExplain;
+  const innerHtml = renderer(slide);
   const start = slide.start !== undefined ? slide.start : startOffset;
   const duration = slide.durationSeconds || 16.0;
   const slideId = slide.slideId || `slide-${String(index + 1).padStart(2, '0')}`;
   const activeClass = index === 0 ? 'clip active' : 'clip';
 
   return `
-    <!-- Slide ${index + 1}: [${slide.templateId}] ${escapeHtml(slide.title)} -->
+    <!-- Slide ${index + 1}: [${packId}/${layoutId}] ${escapeHtml(slide.title)} -->
     <section id="${slideId}" class="${activeClass}" data-start="${start}" data-duration="${duration}">
       ${innerHtml}
     </section>

@@ -4,7 +4,9 @@
  * Implements immutable updates, schema validation, and audio-first sync calculation.
  */
 
-export const ALLOWED_TEMPLATES = [
+import { TemplateRegistry } from '../templates/registry.js';
+
+export const ALLOWED_TEMPLATES = TemplateRegistry.get('basic')?.layouts.map(l => l.id) || [
   'title-slide',
   'learning-objectives',
   'concept-explain',
@@ -48,8 +50,11 @@ export function validateSlide(slide) {
   if (!slide.slideId || typeof slide.slideId !== 'string') {
     throw new Error('Slide must have a valid string slideId');
   }
-  if (!ALLOWED_TEMPLATES.includes(slide.templateId)) {
-    throw new Error(`Invalid templateId: "${slide.templateId}". Must be one of ${ALLOWED_TEMPLATES.join(', ')}`);
+  const layoutId = slide.layoutId || slide.templateId;
+  const packId = slide.packId || 'basic';
+  const isValid = TemplateRegistry.hasLayout(packId, layoutId) || ALLOWED_TEMPLATES.includes(layoutId);
+  if (!isValid) {
+    throw new Error(`Invalid templateId: "${layoutId}". Must be one of ${ALLOWED_TEMPLATES.join(', ')}`);
   }
   if (!Array.isArray(slide.elements)) {
     throw new Error('Slide elements must be an array');
