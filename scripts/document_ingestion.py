@@ -407,8 +407,125 @@ class DocumentIngestionService:
         )
 
     # ==========================================
-    # 4. PDF Parser
     # ==========================================
+    # 4. PDF Parser (Supports both native text & AI Multimodal for scanned PDFs)
+    # ==========================================
+    def _parse_scanned_pdf_with_gemini(
+        self, file_path: str, project_id: str, images_dir: str, doc
+    ) -> Optional[DocumentContext]:
+        api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+        if not api_key:
+            return None
+
+        try:
+            from google import genai
+            from google.genai import types
+
+            client = genai.Client(api_key=api_key)
+            with open(file_path, "rb") as f:
+                pdf_bytes = f.read()
+
+            prompt = """Bạn là chuyên gia phân tích tài liệu sư phạm hàng đầu.
+Hãy phân tích tài liệu PDF (dạng giáo trình/sách giáo khoa scan hoặc tài liệu bài giảng) đính kèm.
+Trích xuất thông tin chi tiết dưới dạng JSON theo đúng schema sau:
+{
+  "title": "Tiêu đề chính xác của bài giảng (ví dụ: Bài 16: Bạn có thường đến thư viện không? 《你常去图书馆吗》)",
+  "subject": "Môn học / Lĩnh vực (ví dụ: Tiếng Trung / Hán ngữ, Ngoại ngữ, Khoa học xã hội...)",
+  "author": "Đơn vị/Tác giả (nếu có, không có thì để null)",
+  "sections": [
+    {
+      "title": "Tiêu đề phần học (ví dụ: Từ Mới (生词 - Shēngcí), Ngữ Pháp Trọng Điểm, Bài Khóa...)",
+      "bullets": [
+        "Nội dung chi tiết từng từ vựng, phiên âm pinyin, từ loại, nghĩa tiếng Việt hoặc quy tắc ngữ pháp kèm ví dụ song ngữ"
+      ],
+      "speakerNotes": "Lời giảng gợi ý cho giảng viên"
+    }
+  ]
+}
+Chỉ trả về chuỗi JSON hợp lệ."""
+
+            config = types.GenerateContentConfig(
+                response_mime_type="application/json",
+                temperature=0.2,
+            )
+
+            models_to_try = ["gemini-flash-lite-latest", "gemini-flash-latest", "gemini-3.8-flash"]
+            raw_text = None
+            for m in models_to_try:
+                try:
+                    resp = client.models.generate_content(
+                        model=m,
+                        contents=[
+                            types.Part.from_bytes(data=pdf_bytes, mime_type="application/pdf"),
+                            prompt
+                        ],
+                        config=config
+                    )
+                    if resp.text:
+                        raw_text = resp.text.strip()
+                        break
+                except Exception as ex:
+                    print(f"[WARN] Gemini multimodal model {m} failed: {ex}")
+
+            if not raw_text:
+                return None
+
+            if raw_text.startswith("```"):
+                lines = raw_text.split("\n")
+                if lines[0].startswith("```"):
+                    lines = lines[1:]
+                if lines and lines[-1].strip() == "```":
+                    lines = lines[:-1]
+                raw_text = "\n".join(lines).strip()
+
+            parsed = json.loads(raw_text)
+            title = parsed.get("title") or "Tài liệu bài giảng PDF"
+            subject = parsed.get("subject")
+            author = parsed.get("author")
+
+            # Extract page images to provide visual assets for slides
+            extracted_images: List[ExtractedImage] = []
+            for page_idx in range(min(len(doc), 10)):
+                pix = doc[page_idx].get_pixmap(dpi=150)
+                img_name = f"page_{page_idx+1:02d}.png"
+                img_dest = os.path.join(images_dir, img_name)
+                pix.save(img_dest)
+                extracted_images.append(
+                    ExtractedImage(
+                        id=f"img-{page_idx+1:02d}",
+                        filePath=f"storage/projects/{project_id}/images/{img_name}",
+                        originalName=img_name,
+                        format="png"
+                    )
+                )
+
+            sections: List[DocumentSection] = []
+            for s_idx, sec_data in enumerate(parsed.get("sections") or []):
+                sections.append(
+                    DocumentSection(
+                        sectionId=f"sec-{s_idx+1:02d}",
+                        title=sec_data.get("title") or f"Phần {s_idx+1}",
+                        contentOrder=s_idx,
+                        bullets=sec_data.get("bullets") or [],
+                        tables=[],
+                        speakerNotes=sec_data.get("speakerNotes")
+                    )
+                )
+
+            return DocumentContext(
+                title=title,
+                subject=subject,
+                author=author,
+                sourceFileName=os.path.basename(file_path),
+                fileType=FileType.PDF,
+                sections=sections,
+                extractedImages=extracted_images,
+                metadata={"pageCount": len(doc), "isScannedPdf": True, "parsedVia": "GeminiMultimodal"}
+            )
+        except Exception as e:
+            print(f"[WARN] _parse_scanned_pdf_with_gemini encountered error: {e}")
+            return None
+
     def _parse_pdf(self, file_path: str, project_id: str, images_dir: str) -> DocumentContext:
         try:
             import pymupdf
@@ -416,8 +533,33 @@ class DocumentIngestionService:
         except Exception as e:
             raise ParseFailureError(f"Corrupted or invalid PDF document: {e}") from e
 
+        total_text_len = sum(len(doc[i].get_text("text").strip()) for i in range(len(doc)))
+
+        # If scanned document (no embedded text layer) or very low text, use Gemini Multimodal
+        if total_text_len < 60:
+            ai_context = self._parse_scanned_pdf_with_gemini(file_path, project_id, images_dir, doc)
+            if ai_context and ai_context.sections:
+                return ai_context
+
+        # Regular text-based PDF fallback
         title = "Tài liệu bài giảng PDF"
         sections: List[DocumentSection] = []
+        extracted_images: List[ExtractedImage] = []
+
+        # Extract page images
+        for page_idx in range(min(len(doc), 10)):
+            pix = doc[page_idx].get_pixmap(dpi=150)
+            img_name = f"page_{page_idx+1:02d}.png"
+            img_dest = os.path.join(images_dir, img_name)
+            pix.save(img_dest)
+            extracted_images.append(
+                ExtractedImage(
+                    id=f"img-{page_idx+1:02d}",
+                    filePath=f"storage/projects/{project_id}/images/{img_name}",
+                    originalName=img_name,
+                    format="png"
+                )
+            )
 
         for page_idx in range(len(doc)):
             page = doc[page_idx]
@@ -456,6 +598,6 @@ class DocumentIngestionService:
             sourceFileName=os.path.basename(file_path),
             fileType=FileType.PDF,
             sections=sections,
-            extractedImages=[],
+            extractedImages=extracted_images,
             metadata={"pageCount": len(doc)}
         )

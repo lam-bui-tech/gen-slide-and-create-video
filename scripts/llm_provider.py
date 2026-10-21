@@ -157,7 +157,7 @@ class GeminiProvider(LLMProvider):
         )
 
         models_to_try = [self.model]
-        for fallback in ["gemini-flash-lite-latest", "gemini-2.5-flash-lite", "gemini-flash-latest"]:
+        for fallback in ["gemini-flash-lite-latest", "gemini-flash-latest", "gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-2.5-pro"]:
             if fallback not in models_to_try:
                 models_to_try.append(fallback)
 
