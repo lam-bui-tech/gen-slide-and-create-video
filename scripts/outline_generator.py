@@ -169,7 +169,7 @@ class OutlineGenerator:
     def _build_prompt(self, doc_context: DocumentContext, answers: Dict[str, Any]) -> str:
         sections_summary = []
         for s in doc_context.sections[:15]:
-            bullets_txt = "; ".join(s.bullets[:4])
+            bullets_txt = " | ".join(s.bullets[:15])
             sections_summary.append(f"- [{s.title}]: {bullets_txt}")
 
         target_audience = answers.get("targetAudience", "Sinh viên đại học năm thứ nhất")
@@ -177,12 +177,13 @@ class OutlineGenerator:
         slide_count = answers.get("slideCount", 10)
         style = answers.get("style", "academic-ocean")
         include_quiz = answers.get("includeQuiz", True)
+        subject_hint = doc_context.subject or doc_context.title
 
         return f"""Hãy tạo Dàn bài Sư phạm (LessonOutline) cho bài giảng sau:
 
 THÔNG TIN BÀI GIẢNG ĐẦU VÀO:
 - Tiêu đề gốc: {doc_context.title}
-- Môn học / Lĩnh vực: {doc_context.subject or doc_context.title}
+- Môn học / Lĩnh vực: {subject_hint}
 - Tác giả / Đơn vị: {doc_context.author or 'Bộ môn'}
 - Nội dung trích xuất từ tài liệu:
 {chr(10).join(sections_summary)}
@@ -193,6 +194,15 @@ YÊU CẦU SƯ PHẠM CỦA GIẢNG VIÊN:
 - Số lượng slide dự kiến: {slide_count} slides
 - Phong cách hình ảnh: {style}
 - Tích hợp câu hỏi trắc nghiệm kiểm tra: {include_quiz}
+
+QUY TẮC NỘI DUNG THEO MÔN HỌC BẮT BUỘC:
+1. NẾU LÀ BÀI HỌC NGOẠI NGỮ (TIẾNG TRUNG, TIẾNG ANH...):
+   - Phải bám sát toàn bộ từ vựng, ngữ pháp, mẫu câu có trong tài liệu đầu vào.
+   - Bố cục gồm: Tiêu đề bìa song ngữ -> Mục tiêu bài học -> Từ mới (chữ Hán + Pinyin + Nghĩa) -> Cấu trúc ngữ pháp & Ví dụ -> Bài tập/Câu hỏi trắc nghiệm -> Tổng kết.
+   - TUYỆT ĐỐI KHÔNG gán template 'formula-explain' kiểu toán học trừ khi bài học có công thức ngữ pháp dạng A + 跟 + B + V (ghi rõ là công thức ngữ pháp).
+2. NỘI DUNG SLIDE VÀ LỜI GIẢNG:
+   - 'title' và 'keyTakeaways' phải chứa nội dung chuyên môn cụ thể của bài học, không dùng các câu chung chung như "Nội dung trọng tâm 1".
+   - 'speakerNotesDraft' là kịch bản lời giảng tiếng Việt tự nhiên, giải thích rõ ngữ nghĩa và cách dùng cho học viên.
 
 BẮT BUỘC TRẢ VỀ JSON HỢP LỆ VỚI CẤU TRÚC ĐÚNG NHƯ SAU:
 {{
@@ -211,8 +221,8 @@ BẮT BUỘC TRẢ VỀ JSON HỢP LỆ VỚI CẤU TRÚC ĐÚNG NHƯ SAU:
     }},
     {{
       "slideId": "slide-2",
-      "suggestedTemplateId": "concept-explain",
-      "title": "Tiêu đề nội dung tiếp theo",
+      "suggestedTemplateId": "learning-objectives",
+      "title": "Mục Tiêu Bài Học",
       "keyTakeaways": ["Ý 1", "Ý 2"],
       "speakerNotesDraft": "Kịch bản thuyết minh tiếng Việt chuẩn cho slide 2..."
     }}
@@ -221,7 +231,7 @@ BẮT BUỘC TRẢ VỀ JSON HỢP LỆ VỚI CẤU TRÚC ĐÚNG NHƯ SAU:
 
 LƯU Ý QUAN TRỌNG VỀ suggestedTemplateId:
 Chỉ được dùng 1 trong 10 giá trị chính xác sau:
-'title-slide', 'learning-objectives', 'concept-explain', 'bullet-breakdown', 'image-explain', 'comparison', 'timeline', 'formula-explain', 'quiz', 'summary'. Không được dùng 'content-slide' hay tên tự đặt khác."""
+'title-slide', 'learning-objectives', 'concept-explain', 'bullet-breakdown', 'image-explain', 'comparison', 'timeline', 'formula-explain', 'quiz', 'summary'."""
 
 
 class OutlineManager:
