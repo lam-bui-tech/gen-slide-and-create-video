@@ -93,7 +93,7 @@
       "slots": [
         { "id": "title", "role": "title", "accepts": ["text"] },
         { "id": "subtitle", "role": "subtitle", "accepts": ["text"], "optional": true },
-        { "id": "cards", "role": "cards", "accepts": ["list"] }
+        { "id": "cards", "role": "bullets", "accepts": ["list"] }
       ],
       "decor": [],
       "variants": [
@@ -135,8 +135,8 @@
       "slots": [
         { "id": "title", "role": "title", "accepts": ["text"] },
         { "id": "subtitle", "role": "subtitle", "accepts": ["text"], "optional": true },
-        { "id": "leftCol", "role": "card", "accepts": ["text"] },
-        { "id": "rightCol", "role": "card", "accepts": ["text"] }
+        { "id": "leftCol", "role": "body", "accepts": ["text"] },
+        { "id": "rightCol", "role": "body", "accepts": ["text"] }
       ],
       "decor": [],
       "variants": [

@@ -31,6 +31,7 @@ export function OutlineReviewModal() {
   const setUploadProgress = useStudioStore((s) => s.setUploadProgress);
   const setScene = useStudioStore((s) => s.setScene);
   const scene = useStudioStore((s) => s.scene);
+  const currentUploadProjectId = useStudioStore((s) => s.currentUploadProjectId);
 
   const [currentOutline, setCurrentOutline] = useState<LessonOutline | null>(null);
 
@@ -81,18 +82,33 @@ export function OutlineReviewModal() {
 
   const handleApprove = async () => {
     closeOutlineReviewModal();
-    const projectId = (currentOutline as any).projectId || scene?.projectId || 'sample';
+    const projectId = (currentOutline as any).projectId || currentUploadProjectId || scene?.projectId || 'sample';
 
     setUploadProgress({
       isOpen: true,
-      step: 'Đang tạo slide tương tác...',
-      percent: 85,
-      desc: 'Khởi tạo bố cục và hiệu ứng hoạt họa từ dàn bài đã duyệt...',
-      icon: '🎨',
+      step: 'Đang phê duyệt dàn bài...',
+      percent: 50,
+      desc: 'Lưu trạng thái dàn bài và khởi tạo bố cục slide...',
+      icon: '⏳',
     });
 
     try {
-      await api.approveOutline(projectId, currentOutline);
+      // Ensure status is explicitly approved before sending
+      const approvedPayload: LessonOutline = {
+        ...currentOutline,
+        status: 'approved' as const,
+      };
+
+      await api.approveOutline(projectId, approvedPayload);
+
+      setUploadProgress({
+        isOpen: true,
+        step: 'Đang tạo slide tương tác...',
+        percent: 85,
+        desc: 'Khởi tạo bố cục và hiệu ứng hoạt họa từ dàn bài đã duyệt...',
+        icon: '🎨',
+      });
+
       const newScene = await api.generateSceneFromOutline(projectId);
 
       setUploadProgress({
@@ -108,6 +124,7 @@ export function OutlineReviewModal() {
       }, 500);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
+      console.error('[OutlineReviewModal] Approve & Generate failed:', err);
       setUploadProgress({
         isOpen: true,
         step: 'Tạo slide thất bại',

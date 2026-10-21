@@ -52,6 +52,17 @@ export function useSlideTimeline(
       const tl = buildGsapTimelineForSlide(currentSlideData, container);
       if (tl) {
         timelineRef.current = tl;
+
+        // Register on window.__timelines per HyperFrames standard
+        if (typeof window !== 'undefined') {
+          const w = window as any;
+          w.__timelines = w.__timelines || {};
+          w.__timelines['active-slide'] = tl;
+          if (currentSlideData?.slideId) {
+            w.__timelines[currentSlideData.slideId] = tl;
+          }
+        }
+
         // WYSIWYG Studio mode: set to progress(1) initially so user sees final state
         tl.progress(1);
 
@@ -72,6 +83,15 @@ export function useSlideTimeline(
     return () => {
       ctx.revert();
       timelineRef.current = null;
+      if (typeof window !== 'undefined') {
+        const w = window as any;
+        if (w.__timelines) {
+          delete w.__timelines['active-slide'];
+          if (currentSlideData?.slideId) {
+            delete w.__timelines[currentSlideData.slideId];
+          }
+        }
+      }
     };
   }, [slideHash, syncVideoTime, containerRef]);
 

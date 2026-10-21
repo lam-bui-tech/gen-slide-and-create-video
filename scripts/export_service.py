@@ -421,6 +421,104 @@ def render_mp4_hyperframes(
         raise TimeoutError(f"HyperFrames render timed out after {timeout_seconds} seconds.")
 
 
+def render_mp4_ffmpeg_fallback(scene: LessonSceneJSON, output_mp4_path: str) -> str:
+    """
+    Renders high-quality 1080p MP4 video using ffmpeg from rendered slide frames & audio tracks.
+    Serves as an automatic resilient fallback when hyperframes CLI is not present or project HTML is not configured.
+    """
+    os.makedirs(os.path.dirname(os.path.abspath(output_mp4_path)), exist_ok=True)
+    temp_dir = output_mp4_path + "_mp4_frames"
+    os.makedirs(temp_dir, exist_ok=True)
+
+    title_font = get_vietnamese_font(48)
+    body_font = get_vietnamese_font(30)
+    badge_font = get_vietnamese_font(22)
+
+    slide_clips = []
+    try:
+        for idx, slide in enumerate(scene.slides):
+            img = Image.new("RGB", (1920, 1080), color="#f8fafc")
+            draw = ImageDraw.Draw(img)
+            draw.rectangle([80, 80, 1840, 1000], fill="#ffffff", outline="#e2e8f0", width=2)
+            badge_text = f"SLIDE {idx + 1:02d} • {slide.templateId.upper()}"
+            draw.text((120, 120), badge_text, fill="#0369a1", font=badge_font)
+            draw.text((120, 180), slide.title, fill="#0f172a", font=title_font)
+
+            y_offset = 320
+            for el in slide.elements:
+                content_str = str(el.content) if el.content is not None else ""
+                draw.text((120, y_offset), f"• {content_str}", fill="#334155", font=body_font)
+                y_offset += 80
+
+            draw.text((120, 930), f"AI Lecture Studio • {scene.title}", fill="#94a3b8", font=badge_font)
+            frame_png = os.path.join(temp_dir, f"frame_{idx:03d}.png")
+            img.save(frame_png, format="PNG")
+
+            duration = max(2.0, float(slide.durationSeconds or 5.0))
+            clip_mp4 = os.path.join(temp_dir, f"clip_{idx:03d}.mp4")
+
+            has_audio = False
+            audio_path = None
+            if slide.voice and slide.voice.audioUrl:
+                candidate = os.path.join(BASE_DIR, slide.voice.audioUrl.lstrip("/").replace("/", os.sep))
+                if os.path.exists(candidate):
+                    has_audio = True
+                    audio_path = candidate
+
+            if has_audio and audio_path:
+                cmd = [
+                    "ffmpeg", "-y",
+                    "-loop", "1", "-i", frame_png,
+                    "-i", audio_path,
+                    "-c:v", "libx264", "-tune", "stillimage",
+                    "-c:a", "aac", "-b:a", "192k",
+                    "-pix_fmt", "yuv420p",
+                    "-shortest",
+                    clip_mp4,
+                ]
+            else:
+                cmd = [
+                    "ffmpeg", "-y",
+                    "-loop", "1", "-i", frame_png,
+                    "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo",
+                    "-c:v", "libx264", "-tune", "stillimage",
+                    "-c:a", "aac", "-b:a", "192k",
+                    "-t", str(duration),
+                    "-pix_fmt", "yuv420p",
+                    "-shortest",
+                    clip_mp4,
+                ]
+
+            subprocess.run(cmd, capture_output=True, check=True)
+            slide_clips.append(clip_mp4)
+
+        if not slide_clips:
+            raise RuntimeError("No slides to render into MP4.")
+
+        concat_txt = os.path.join(temp_dir, "concat.txt")
+        with open(concat_txt, "w", encoding="utf-8") as f:
+            for c in slide_clips:
+                f.write(f"file '{c.replace(os.sep, '/')}'\n")
+
+        final_cmd = [
+            "ffmpeg", "-y",
+            "-f", "concat", "-safe", "0",
+            "-i", concat_txt,
+            "-c", "copy",
+            "-movflags", "+faststart",
+            os.path.abspath(output_mp4_path),
+        ]
+        subprocess.run(final_cmd, capture_output=True, check=True)
+        return os.path.abspath(output_mp4_path)
+    finally:
+        if os.path.exists(temp_dir):
+            import shutil
+            try:
+                shutil.rmtree(temp_dir)
+            except Exception:
+                pass
+
+
 # ==========================================
 # 4. Export Service & Job Coordinator
 # ==========================================
@@ -511,17 +609,34 @@ class ExportService:
         render_executor: Optional[Callable] = None,
     ) -> str:
         """Renders MP4 with cleanup guarantee if failure happens."""
-        executor = render_executor or render_mp4_hyperframes
-        try:
-            proj_dir = os.path.join(self.storage_base, project_id)
-            return executor(proj_dir, output_path)
-        except Exception as e:
-            if os.path.exists(output_path):
+        proj_dir = os.path.join(self.storage_base, project_id)
+
+        # If custom test executor provided, execute directly
+        if render_executor is not None:
+            try:
+                return render_executor(proj_dir, output_path)
+            except Exception as e:
+                if os.path.exists(output_path):
+                    try: os.remove(output_path)
+                    except Exception: pass
+                raise e
+
+        # If project has a HyperFrames HTML composition, try hyperframes CLI first
+        has_hyperframes_html = os.path.exists(os.path.join(proj_dir, "index.html"))
+        if has_hyperframes_html:
+            try:
+                return render_mp4_hyperframes(proj_dir, output_path)
+            except Exception as e:
                 try:
-                    os.remove(output_path)
+                    return render_mp4_ffmpeg_fallback(scene, output_path)
                 except Exception:
-                    pass
-            raise e
+                    if os.path.exists(output_path):
+                        try: os.remove(output_path)
+                        except Exception: pass
+                    raise e
+
+        # Otherwise render directly with ffmpeg 1080p
+        return render_mp4_ffmpeg_fallback(scene, output_path)
 
     def execute_job_sync(self, job_id: str):
         """Executes the export job synchronously (called in background worker)."""
@@ -561,6 +676,22 @@ class ExportService:
             elif export_type == "mp4":
                 out_path = os.path.join(exports_dir, "lecture_1080p.mp4")
                 rel_url = f"/storage/projects/{project_id}/exports/lecture_1080p.mp4"
+                
+                # Auto compile HyperFrames index.html if missing or to refresh
+                mapper_script = os.path.join(BASE_DIR, "outline_to_hyperframes.js")
+                out_html = os.path.join(self.storage_base, project_id, "index.html")
+                if os.path.exists(mapper_script) and os.path.exists(scene_path):
+                    try:
+                        subprocess.run(
+                            ["node", mapper_script, "--scene-to-html", scene_path, out_html],
+                            cwd=BASE_DIR,
+                            capture_output=True,
+                            text=True,
+                            timeout=12,
+                        )
+                    except Exception as ce:
+                        print(f"[WARN] HyperFrames compilation failed prior to render: {ce}")
+
                 self.render_mp4_with_cleanup(project_id, scene, out_path)
             else:
                 raise ValueError(f"Unsupported export type: {export_type}")

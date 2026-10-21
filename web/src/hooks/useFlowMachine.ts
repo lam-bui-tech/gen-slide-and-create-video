@@ -72,7 +72,7 @@ export function useFlowMachine() {
 
         // Hide progress modal and open clarification
         setUploadProgress({ isOpen: false });
-        openClarificationModal(questions, docContext.title || file.name);
+        openClarificationModal(questions, docContext.title || file.name, projectId);
 
         transition({
           type: 'UPLOAD_SUCCESS',

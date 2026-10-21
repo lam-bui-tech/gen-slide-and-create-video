@@ -120,16 +120,27 @@ export function BuilderCanvas() {
                     ? 'rgba(30, 41, 59, 0.85)'
                     : el.type === 'badge'
                     ? '#0284C7'
+                    : el.type === 'stat'
+                    ? 'linear-gradient(135deg, rgba(120, 53, 15, 0.9), rgba(180, 83, 9, 0.75))'
+                    : el.type === 'callout'
+                    ? 'linear-gradient(135deg, rgba(76, 29, 149, 0.9), rgba(109, 40, 217, 0.75))'
+                    : el.type === 'split'
+                    ? 'linear-gradient(135deg, rgba(6, 78, 59, 0.9), rgba(4, 120, 87, 0.75))'
+                    : el.type === 'steps'
+                    ? 'linear-gradient(135deg, rgba(12, 74, 110, 0.9), rgba(3, 105, 161, 0.75))'
+                    : el.type === 'kinetic'
+                    ? 'linear-gradient(135deg, rgba(131, 24, 67, 0.9), rgba(190, 24, 93, 0.75))'
                     : 'rgba(15, 23, 42, 0.75)',
                 color: 'white',
                 padding: '12px',
-                borderRadius: el.type === 'badge' ? '9999px' : '8px',
+                borderRadius: el.type === 'badge' ? '9999px' : '10px',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: el.type === 'badge' ? 'center' : 'flex-start',
                 cursor: 'move',
                 userSelect: 'none',
                 boxSizing: 'border-box',
+                backdropFilter: 'blur(8px)',
               }}
             >
               {/* Slot / Decor Badge */}
@@ -151,7 +162,22 @@ export function BuilderCanvas() {
               </div>
 
               <div style={{ fontSize: '14px', fontWeight: 600, overflow: 'hidden' }}>
-                {el.content || `Khối ${el.type}`}
+                {el.type === 'stat' ? (
+                  <div>
+                    <span style={{ fontSize: '28px', fontWeight: 900, color: '#FDE68A', display: 'block' }}>
+                      {el.content?.split(' ')?.[0] || '99.5%'}
+                    </span>
+                    <span style={{ fontSize: '13px', color: '#FEF3C7', fontWeight: 600 }}>
+                      {el.content?.split(' ')?.slice(1)?.join(' ') || 'Độ Chính Xác'}
+                    </span>
+                  </div>
+                ) : el.type === 'kinetic' ? (
+                  <div style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#FDF2F8' }}>
+                    {el.content}
+                  </div>
+                ) : (
+                  el.content || `Khối ${el.type}`
+                )}
               </div>
 
               {/* Resize Handle */}

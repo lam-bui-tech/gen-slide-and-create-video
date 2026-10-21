@@ -11,6 +11,7 @@ export function ClarificationModal() {
   const setUploadProgress = useStudioStore((s) => s.setUploadProgress);
   const openOutlineReviewModal = useStudioStore((s) => s.openOutlineReviewModal);
   const scene = useStudioStore((s) => s.scene);
+  const currentUploadProjectId = useStudioStore((s) => s.currentUploadProjectId);
 
   const [audience, setAudience] = useState('Sinh viên đại học năm thứ nhất');
   const [duration, setDuration] = useState('15');
@@ -22,7 +23,7 @@ export function ClarificationModal() {
 
   const handleProceed = async (answers: any) => {
     closeClarificationModal();
-    const projectId = scene?.projectId || 'sample';
+    const projectId = currentUploadProjectId || scene?.projectId || 'sample';
 
     setUploadProgress({
       isOpen: true,

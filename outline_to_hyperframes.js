@@ -259,11 +259,25 @@ export function sceneToHyperFramesHtml(scene, options = {}) {
     // Render semantic section
     slideSections.push(renderSlide({ ...slide, start }, idx, start));
 
-    // Audio element
-    const audioSrc = slide.voice?.audioUrl || `audio/slide${idx + 1}.wav`;
-    audioTags.push(
-      `<audio id="${audioDomId}" data-start="${start}" data-duration="${duration}" src="${audioSrc}" preload="auto"></audio>`
-    );
+    // Audio element normalized relative to project folder
+    let relAudioSrc = null;
+    if (slide.voice?.audioUrl) {
+      const parts = slide.voice.audioUrl.replace(/\\/g, '/').split('/audio/');
+      if (parts.length > 1) {
+        relAudioSrc = `audio/${parts[1]}`;
+      } else {
+        relAudioSrc = slide.voice.audioUrl;
+      }
+    } else {
+      const cleanSlideId = slide.slideId || `slide-${idx + 1}`;
+      relAudioSrc = `audio/${cleanSlideId}.wav`;
+    }
+
+    if (relAudioSrc) {
+      audioTags.push(
+        `<audio id="${audioDomId}" data-start="${start}" data-duration="${duration}" src="${relAudioSrc}" preload="auto"></audio>`
+      );
+    }
 
     currentStart += duration;
   });
@@ -613,4 +627,42 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+import fs from 'fs';
+import path from 'path';
+
+// CLI Execution support
+if (process.argv[2]) {
+  try {
+    const mode = process.argv[2];
+    if (mode === '--scene-to-html') {
+      const scenePath = process.argv[3];
+      const outHtmlPath = process.argv[4];
+      if (!scenePath || !outHtmlPath) {
+        console.error('Usage: node outline_to_hyperframes.js --scene-to-html <scene.json> <out.html>');
+        process.exit(1);
+      }
+      const sceneData = JSON.parse(fs.readFileSync(scenePath, 'utf8'));
+      const html = sceneToHyperFramesHtml(sceneData);
+      fs.mkdirSync(path.dirname(path.resolve(outHtmlPath)), { recursive: true });
+      fs.writeFileSync(outHtmlPath, html, 'utf8');
+      console.log(`[HyperFrames Compiler] Compiled scene to: ${outHtmlPath}`);
+      process.exit(0);
+    } else {
+      // Legacy outline to scene mapping: node outline_to_hyperframes.js <outline_path> <scene_path> [project_id]
+      const outlinePath = process.argv[2];
+      const scenePath = process.argv[3];
+      const projectId = process.argv[4] || 'proj-auto';
+      const outlineData = JSON.parse(fs.readFileSync(outlinePath, 'utf8'));
+      const scene = outlineToScene(outlineData, { projectId });
+      fs.mkdirSync(path.dirname(path.resolve(scenePath)), { recursive: true });
+      fs.writeFileSync(scenePath, JSON.stringify(scene, null, 2), 'utf8');
+      console.log(`[HyperFrames Mapper] Generated scene to: ${scenePath}`);
+      process.exit(0);
+    }
+  } catch (err) {
+    console.error('[HyperFrames CLI Error]', err.message);
+    process.exit(1);
+  }
 }

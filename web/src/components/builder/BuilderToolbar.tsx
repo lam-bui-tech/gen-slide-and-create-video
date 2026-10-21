@@ -20,8 +20,24 @@ export function BuilderToolbar() {
       type,
       x: 100 + (count % 5) * 40,
       y: 100 + (count % 5) * 40,
-      width: type === 'card' ? 560 : type === 'image' ? 480 : type === 'video' ? 520 : 400,
-      height: type === 'card' ? 320 : type === 'image' ? 360 : type === 'video' ? 300 : 80,
+      width:
+        type === 'split' ? 720 :
+        type === 'steps' ? 680 :
+        type === 'card' ? 560 :
+        type === 'kinetic' ? 580 :
+        type === 'callout' ? 540 :
+        type === 'image' ? 480 :
+        type === 'video' ? 520 :
+        type === 'stat' ? 360 : 400,
+      height:
+        type === 'split' ? 260 :
+        type === 'card' ? 320 :
+        type === 'image' ? 360 :
+        type === 'video' ? 300 :
+        type === 'steps' ? 180 :
+        type === 'stat' ? 180 :
+        type === 'callout' ? 160 :
+        type === 'kinetic' ? 120 : 80,
       content:
         type === 'text'
           ? 'Nhập nội dung văn bản mới...'
@@ -31,6 +47,16 @@ export function BuilderToolbar() {
           ? 'https://placehold.co/600x400/e2e8f0/475569?text=Image'
           : type === 'video'
           ? 'storage/projects/sample/video/sample_clip.mp4'
+          : type === 'stat'
+          ? '99.5% Độ Chính Xác Nhận Dạng'
+          : type === 'callout'
+          ? '💡 Trích Dẫn: Khái niệm cốt lõi cần liên hệ thực tiễn sinh viên.'
+          : type === 'split'
+          ? '⚖️ Cột A (Truyền Thống) ⟷ Cột B (Thế Hệ Mới)'
+          : type === 'steps'
+          ? '🚀 Bước 1: Khởi tạo ➔ Bước 2: Huấn luyện ➔ Bước 3: Đánh giá'
+          : type === 'kinetic'
+          ? '✨ TRÍ TUỆ NHÂN TẠO THẾ HỆ MỚI'
           : '',
     };
     const nextDraft = addDraftBlock(draftLayout, newBlock);
@@ -122,6 +148,56 @@ export function BuilderToolbar() {
         style={{ padding: '4px 8px', fontSize: '11px', color: 'white', background: '#1E293B', borderColor: '#475569' }}
       >
         + Video
+      </button>
+
+      <span style={{ width: '1px', height: '18px', background: '#475569', margin: '0 4px' }} />
+      <span style={{ fontWeight: 700, fontSize: '11px', color: '#F59E0B' }}>
+        ⚡ HyperFrames:
+      </span>
+      <button
+        className="btn btn-secondary"
+        id="builder-add-stat"
+        onClick={() => handleAddBlock('stat')}
+        title="Số liệu thống kê tự động đếm số với GSAP counter"
+        style={{ padding: '4px 8px', fontSize: '11px', color: '#FDE68A', background: '#78350F', borderColor: '#B45309' }}
+      >
+        + 📈 Stat
+      </button>
+      <button
+        className="btn btn-secondary"
+        id="builder-add-callout"
+        onClick={() => handleAddBlock('callout')}
+        title="Hộp ghi chú nổi bật viền dạ quang phát sáng"
+        style={{ padding: '4px 8px', fontSize: '11px', color: '#DDD6FE', background: '#4C1D95', borderColor: '#6D28D9' }}
+      >
+        + 💡 Callout
+      </button>
+      <button
+        className="btn btn-secondary"
+        id="builder-add-split"
+        onClick={() => handleAddBlock('split')}
+        title="Thẻ so sánh đối lập 2 cột cân xứng"
+        style={{ padding: '4px 8px', fontSize: '11px', color: '#A7F3D0', background: '#064E3B', borderColor: '#047857' }}
+      >
+        + ⚖️ Split
+      </button>
+      <button
+        className="btn btn-secondary"
+        id="builder-add-steps"
+        onClick={() => handleAddBlock('steps')}
+        title="Tiến trình học tập theo chuỗi bước 1-2-3"
+        style={{ padding: '4px 8px', fontSize: '11px', color: '#BAE6FD', background: '#0C4A6E', borderColor: '#0369A1' }}
+      >
+        + 🚀 Steps
+      </button>
+      <button
+        className="btn btn-secondary"
+        id="builder-add-kinetic"
+        onClick={() => handleAddBlock('kinetic')}
+        title="Tiêu đề động nghệ thuật Kinetic Typography"
+        style={{ padding: '4px 8px', fontSize: '11px', color: '#FBCFE8', background: '#831843', borderColor: '#BE185D' }}
+      >
+        + ✨ Kinetic
       </button>
 
       <div style={{ flex: 1 }} />

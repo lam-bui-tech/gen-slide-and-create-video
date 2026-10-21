@@ -45,6 +45,7 @@ export interface StudioState {
   isClarificationOpen: boolean;
   clarificationQuestions: Array<{ id: string; question: string; suggestedAnswer?: string; options?: string[] }>;
   clarificationDocTitle: string;
+  currentUploadProjectId: string | null;
 
   isOutlineReviewOpen: boolean;
   pendingOutline: LessonOutline | null;
@@ -103,7 +104,8 @@ export interface StudioState {
 
   openClarificationModal: (
     questions: Array<{ id: string; question: string; suggestedAnswer?: string; options?: string[] }>,
-    docTitle?: string
+    docTitle?: string,
+    projectId?: string
   ) => void;
   closeClarificationModal: () => void;
 
@@ -167,6 +169,7 @@ export const useStudioStore = create<StudioState>()(
       isClarificationOpen: false,
       clarificationQuestions: [],
       clarificationDocTitle: '',
+      currentUploadProjectId: null,
 
       isOutlineReviewOpen: false,
       pendingOutline: null,
@@ -361,11 +364,12 @@ export const useStudioStore = create<StudioState>()(
       openHelpModal: () => set({ isHelpModalOpen: true }),
       closeHelpModal: () => set({ isHelpModalOpen: false }),
 
-      openClarificationModal: (questions, docTitle = '') => {
+      openClarificationModal: (questions, docTitle = '', projectId = '') => {
         set({
           isClarificationOpen: true,
           clarificationQuestions: questions,
           clarificationDocTitle: docTitle,
+          currentUploadProjectId: projectId || get().currentUploadProjectId,
         });
       },
       closeClarificationModal: () => set({ isClarificationOpen: false }),
@@ -424,3 +428,7 @@ export const useStudioStore = create<StudioState>()(
     { name: 'StudioStore' }
   )
 );
+
+if (typeof window !== 'undefined') {
+  (window as any).__studio_store = useStudioStore;
+}

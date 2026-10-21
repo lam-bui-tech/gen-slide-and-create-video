@@ -23,9 +23,9 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional
 
 if hasattr(sys.stdout, "reconfigure"):
-    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stdout.reconfigure(encoding="utf-8", line_buffering=True)
 if hasattr(sys.stderr, "reconfigure"):
-    sys.stderr.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8", line_buffering=True)
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ARTIFACTS_DIR = os.path.join(ROOT_DIR, "docs", "qa", "artifacts")
@@ -35,11 +35,12 @@ CONV_ARTIFACTS_DIR = r"C:\Users\OS\.gemini\antigravity-ide\brain\dc7e4106-5412-4
 
 
 class QARunner:
-    def __init__(self, mode: str = "smoke", headless: bool = True, upload_pptx: Optional[str] = None, record_video: bool = True):
+    def __init__(self, mode: str = "smoke", headless: bool = True, upload_pptx: Optional[str] = None, record_video: bool = True, base_url: Optional[str] = None):
         self.mode = mode.lower()
         self.headless = headless
         self.upload_pptx = upload_pptx
         self.record_video = record_video
+        self.base_url = base_url or os.environ.get("STUDIO_URL", "http://localhost:3001/studio")
         self.results: List[Dict[str, Any]] = []
         self.network_errors: List[str] = []
         self.console_errors: List[str] = []
@@ -103,7 +104,7 @@ class QARunner:
             # -------------------------------------------------------------
             t0 = time.time()
             try:
-                page.goto("http://localhost:3000/studio.html", timeout=15000, wait_until="domcontentloaded")
+                page.goto(self.base_url, timeout=15000, wait_until="domcontentloaded")
                 page.wait_for_selector("#live-canvas", timeout=10000)
                 time.sleep(0.8)
                 ss1 = os.path.join(ARTIFACTS_DIR, "step1_home.png")
@@ -507,12 +508,14 @@ if __name__ == "__main__":
     parser.add_argument("--upload-pptx", type=str, default=None, help="Absolute path to PPTX file to upload")
     parser.add_argument("--record-video", action="store_true", default=True, help="Record browser session video")
     parser.add_argument("--headed", action="store_true", help="Run with browser UI visible")
+    parser.add_argument("--url", type=str, default="http://localhost:3001/studio", help="Target Studio URL (default: http://localhost:3001/studio)")
     args = parser.parse_args()
 
     runner = QARunner(
         mode=args.mode,
         headless=not args.headed,
         upload_pptx=args.upload_pptx,
-        record_video=args.record_video
+        record_video=args.record_video,
+        base_url=args.url
     )
     sys.exit(runner.run())

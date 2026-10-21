@@ -51,6 +51,13 @@ export function VoicePanel() {
 
     try {
       setIsAudioJobRunning(true);
+      // Autosave scene so backend has latest narration and slide data
+      try {
+        await api.saveScene(scene.projectId, scene);
+      } catch (saveErr) {
+        console.warn('[VoicePanel] Autosave warning:', saveErr);
+      }
+
       const res = await api.synthesizeAudio(
         scene.projectId,
         slide.slideId,
@@ -75,7 +82,8 @@ export function VoicePanel() {
       setAudioError(false);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      alert(`Lỗi tạo giọng đọc AI: ${msg}`);
+      console.error('[VoicePanel] Lỗi tạo giọng đọc AI:', msg);
+      setAudioError(true);
     } finally {
       setIsAudioJobRunning(false);
     }
