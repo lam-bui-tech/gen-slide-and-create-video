@@ -37,48 +37,33 @@ The domain skills (`/hyperframes-core`, `/hyperframes-animation`, `/hyperframes-
 ## Commands
 
 ```bash
-npm run dev          # human-operated foreground preview (blocks until stopped)
-npx hyperframes preview --background  # agent-safe persistent Studio preview
-npx hyperframes preview --status      # verify the persistent preview is listening
-npx hyperframes preview --stop        # stop it when review is finished
-npm run check        # lint + runtime + layout + motion + contrast (one command)
-npm run render       # render to MP4
-npm run publish      # publish and get a shareable link
-npx hyperframes lint --verbose  # include info-level findings
-npx hyperframes lint --json     # machine-readable output for CI
+# Next.js Frontend (Primary Studio - Port 3001)
+cd web && npm run dev       # Start Next.js 15 dev server on http://localhost:3001
+cd web && npm test          # Run Vitest test suite (76 tests)
+cd web && npx playwright test # Run Playwright E2E parity suite (8 tests)
+cd web && npm run build     # Verify Next.js production build
+
+# Python Engine Tests
+pytest tests/engine/        # Run Python engine tests (61 tests)
+pytest tests/pipeline tests/test_contracts.py # Run pipeline & contract tests (96 tests)
+
+# Legacy Frontend Archive (Port 3000)
+node server.js              # Serves legacy index.html on http://localhost:3000
+
+# HyperFrames CLI Tools
+npm run check               # lint + runtime + layout + motion + contrast
+npm run render              # render to MP4
+npm run publish             # publish and get a shareable link
 npx hyperframes docs <topic> # reference docs in terminal
-```
-
-> **Agents must use `npx hyperframes preview --background` for Studio handoff.** Do not rely
-> on a shell/tool `run_in_background` wrapper around `npm run dev`: that foreground process
-> remains owned by the invoking session and can disappear while the browser stays open,
-> leaving refreshes at `ERR_CONNECTION_TIMED_OUT`. Verify with `preview --status`, keep it
-> alive through review, and stop it explicitly with `preview --stop` afterward.
-
-> **Back from the desktop app.** Once this project was opened in the HyperFrames desktop app, run `npx hyperframes catch-up` before your next change here: it lists what the person asked Framey in the app and which files changed since.
-
-> **Pinned CLI version.** These scripts pin an exact `hyperframes@X.Y.Z` so this project re-renders identically over time. Weeks later that pin lags fixes shipped since. To move up: `npx hyperframes@latest upgrade --project . --check` (shows the delta), then `npx hyperframes@latest upgrade --project .` to rewrite the pins. Always unpinned — the pinned script re-runs the old version against itself.
-
-## Documentation
-
-**For quick reference**, use the local CLI docs command (no network required):
-
-```bash
-npx hyperframes docs <topic>
-```
-
-Topics: `data-attributes`, `gsap`, `compositions`, `rendering`, `examples`, `troubleshooting`
-
-**For full documentation**, discover pages via the machine-readable index — do NOT guess URLs:
-
-```
-https://hyperframes.heygen.com/llms.txt
 ```
 
 ## Project Structure
 
-- `index.html` — main composition (root timeline)
-- `compositions/` — sub-compositions referenced via `data-composition-src`
+- `web/` — Primary Studio frontend (Next.js 15, React 19, TypeScript strict, Zustand) on port 3001
+- `templates/` — Template layouts and pack registry (single source of truth)
+- `studio/` — Core studio engine and pure state machines (single source of truth)
+- `legacy/index.html` — Legacy vanilla JS Studio archive (formerly root `index.html`) on port 3000
+- `server.js` — Legacy static server and API proxy for port 3000
 - `meta.json` — project metadata (id, name)
 - `transcript.json` — whisper word-level transcript (if generated)
 

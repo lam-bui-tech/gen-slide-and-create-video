@@ -1,0 +1,4420 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Lecture Studio — Canvas WYSIWYG Editor</title>
+  <script>
+    if (window.location.pathname && window.location.pathname.startsWith('/studio')) {
+      window.history.replaceState(null, '', '/');
+    }
+  </script>
+  <!-- Google Fonts: Be Vietnam Pro & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <!-- GSAP for animations -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <!-- Design Tokens & Template Styles -->
+  <link rel="stylesheet" href="/templates/tokens.css">
+  <link rel="stylesheet" href="/templates/templates.css">
+  <style>
+    :root {
+      --sidebar-width: 320px;
+      --props-width: 380px;
+      --app-bg: #F8FAFC;
+      --panel-bg: #FFFFFF;
+      --border-color: #E2E8F0;
+      --primary: #0369A1;
+      --primary-hover: #0284C7;
+      --primary-subtle: #E0F2FE;
+      --text-main: #0F172A;
+      --text-sub: #475569;
+      --accent-amber: #D97706;
+      --accent-emerald: #059669;
+      --accent-rose: #E11D48;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+      background: var(--app-bg);
+      color: var(--text-main);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Top Navigation Bar */
+    header.studio-navbar {
+      height: 60px;
+      background: var(--panel-bg);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 50;
+      flex-shrink: 0;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      font-size: 17px;
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .nav-brand-badge {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, var(--hf-primary, #0369A1), #0284C7);
+      color: white;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 2px 4px rgba(3, 105, 161, 0.2);
+    }
+
+    .nav-center {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-project-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 6px;
+      background: #F1F5F9;
+      border: 1px solid transparent;
+      outline: none;
+      min-width: 260px;
+      transition: all 0.2s;
+    }
+
+    .nav-project-title:focus {
+      border-color: var(--primary);
+      background: white;
+      box-shadow: 0 0 0 2px rgba(3, 105, 161, 0.1);
+    }
+
+    .save-indicator {
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .save-indicator.saved { color: #059669; }
+    .save-indicator.saving { color: #D97706; animation: pulse 1s infinite; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .btn-secondary {
+      background: #F1F5F9;
+      color: var(--text-main);
+      border-color: var(--border-color);
+    }
+    .btn-secondary:hover:not(:disabled) {
+      background: #E2E8F0;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      filter: grayscale(0.5);
+    }
+
+    .btn-icon {
+      padding: 7px 10px;
+    }
+
+    /* Main Workspace 3-Pane Layout */
+    .studio-workspace {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 60px);
+      overflow: hidden;
+    }
+
+    /* Left Pane: Slide Navigator */
+    aside.slide-deck-pane, aside.slide-navigator {
+      width: var(--sidebar-width);
+      background: var(--panel-bg);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .deck-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .deck-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .slide-list-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .slide-card-item {
+      background: #FFFFFF;
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .slide-card-item:hover {
+      border-color: #CBD5E1;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    }
+
+    .slide-card-item.active {
+      border-color: var(--primary);
+      background: #F0F9FF;
+      box-shadow: 0 0 0 1px var(--primary);
+    }
+
+    .slide-card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-sub);
+      margin-bottom: 4px;
+    }
+
+    .slide-card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+
+    .slide-card-sub {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: #64748B;
+    }
+
+    .slide-card-actions {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      display: none;
+      gap: 4px;
+      background: rgba(255,255,255,0.9);
+      border-radius: 4px;
+      padding: 2px;
+    }
+
+    .slide-card-item:hover .slide-card-actions {
+      display: flex;
+    }
+
+    .card-action-btn {
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      border: none;
+      background: #F1F5F9;
+      color: #475569;
+      cursor: pointer;
+      font-size: 11px;
+    }
+    .card-action-btn:hover {
+      background: #E2E8F0;
+      color: var(--text-main);
+    }
+    .card-action-btn.delete:hover {
+      background: #FEE2E2;
+      color: var(--accent-rose);
+    }
+
+    /* Center Pane: Canvas Preview & Controls */
+    main.studio-canvas-pane {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #F1F5F9;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .canvas-topbar {
+      height: 48px;
+      background: white;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      flex-shrink: 0;
+    }
+
+    .canvas-viewport {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow: auto;
+      background: radial-gradient(circle, #E2E8F0 10%, transparent 11%);
+      background-size: 20px 20px;
+    }
+
+    /* Scaled 16:9 Canvas Frame (1920x1080 native scale) */
+    .canvas-frame-outer {
+      width: 960px;
+      height: 540px;
+      position: relative;
+      background: #FFFFFF;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08);
+      border-radius: 8px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    #live-canvas {
+      width: 1920px;
+      height: 1080px;
+      transform-origin: top left;
+      transform: scale(0.5); /* 960 / 1920 */
+      background: var(--hf-bg-main, #0F172A);
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: auto;
+    }
+
+    #live-canvas .clip {
+      opacity: 1 !important;
+      pointer-events: auto !important;
+    }
+
+    /* ContentEditable styling inside live canvas */
+    [contenteditable="true"] {
+      outline: 2px dashed transparent;
+      transition: all 0.15s ease;
+      cursor: text;
+    }
+    [contenteditable="true"]:hover {
+      outline: 2px dashed rgba(3, 105, 161, 0.5);
+      border-radius: 4px;
+    }
+    [contenteditable="true"]:focus {
+      outline: 2px solid var(--hf-accent-amber, #D97706);
+      background: rgba(217, 119, 6, 0.08);
+      border-radius: 4px;
+    }
+
+    .editable-image {
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s;
+    }
+    .editable-image:hover {
+      filter: brightness(0.9);
+      outline: 4px solid var(--hf-primary, #0369A1);
+    }
+
+    /* Bottom Timeline & Scrubber Bar */
+    .canvas-timeline-bar {
+      height: 64px;
+      background: white;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+
+    .timeline-playback-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.15s;
+    }
+    .timeline-playback-btn:hover {
+      background: var(--primary-hover);
+      transform: scale(1.05);
+    }
+
+    .timeline-stop-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      background: #F1F5F9;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .timeline-stop-btn:hover {
+      background: #E2E8F0;
+    }
+
+    .timeline-scrubber-track {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .timeline-time-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-sub);
+      font-weight: 600;
+    }
+
+    .timeline-slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      background: #E2E8F0;
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .timeline-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      transition: transform 0.1s;
+    }
+    .timeline-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.25);
+    }
+
+    /* Right Pane: Properties Panel */
+    aside.props-panel {
+      width: var(--props-width);
+      background: var(--panel-bg);
+      border-left: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow-y: auto;
+    }
+
+    .props-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+      background: #FFFFFF;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .prop-section {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .prop-section-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .prop-group {
+      margin-bottom: 14px;
+    }
+    .prop-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .prop-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+
+    .prop-input, .prop-select, .prop-textarea {
+      width: 100%;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      font-family: inherit;
+      font-size: 13px;
+      color: var(--text-main);
+      background: #FFFFFF;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .prop-input:focus, .prop-select:focus, .prop-textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(3, 105, 161, 0.1);
+    }
+
+    .prop-textarea {
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    /* Variant Badges Grid */
+    .variant-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
+
+    .variant-pill {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background: #F8FAFC;
+      font-size: 12px;
+      font-weight: 500;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .variant-pill:hover {
+      background: #F1F5F9;
+      border-color: #CBD5E1;
+    }
+    .variant-pill.active {
+      background: var(--primary-subtle);
+      border-color: var(--primary);
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    /* Animation Row */
+    .anim-row {
+      background: #F8FAFC;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 8px;
+      margin-bottom: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .anim-row-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .anim-controls-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 6px;
+    }
+
+    /* Voice / Audio Info Box */
+    .voice-stat-box {
+      background: #F0F9FF;
+      border: 1px solid #BAE6FD;
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    /* Modal dialog */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal-box {
+      background: white;
+      border-radius: 12px;
+      width: 520px;
+      max-width: 90vw;
+      padding: 24px;
+    }
+
+    /* Presentation Mode Fullscreen */
+    .presentation-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      background: #000000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .presentation-viewport {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .presentation-slide-stage {
+      width: 1920px;
+      height: 1080px;
+      background: #FFFFFF;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 60px rgba(0,0,0,0.9);
+      transform-origin: center center;
+    }
+    .presentation-hud {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 9999px;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      color: white;
+      z-index: 1000000;
+      pointer-events: auto;
+      transition: opacity 0.35s ease, transform 0.35s ease;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    }
+    .presentation-hud.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(-50%) translateY(20px);
+    }
+    .hud-left, .hud-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .hud-center {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+    }
+    .hud-btn {
+      background: rgba(255, 255, 255, 0.12);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .hud-btn:hover {
+      background: rgba(255, 255, 255, 0.28);
+      transform: scale(1.1);
+    }
+    .hud-btn.primary {
+      background: #0284C7;
+      border-color: #38BDF8;
+    }
+    .hud-btn.primary:hover {
+      background: #0369A1;
+    }
+    .hud-btn.danger {
+      background: #E11D48;
+      border-radius: 20px;
+      width: auto;
+      padding: 0 16px;
+      font-weight: 700;
+      font-size: 12px;
+    }
+    .hud-btn.danger:hover {
+      background: #BE123C;
+    }
+    .hud-indicator {
+      font-size: 13px;
+      font-weight: 700;
+      color: #38BDF8;
+      min-width: 90px;
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .hud-slider {
+      width: 240px;
+      accent-color: #38BDF8;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="studio-navbar">
+    <div style="display: flex; align-items: center; gap: 20px;">
+      <a href="#" class="nav-brand">
+        <div class="nav-brand-badge">⚡</div>
+        <span>AI Lecture Studio</span>
+      </a>
+      <input type="text" id="project-title-input" class="nav-project-title" value="Chương 1: Triết Học & Thế Giới Quan" title="Nhấp để đổi tên bài giảng" />
+      <div id="save-status" class="save-indicator saved">
+        <span>●</span> Đã lưu
+      </div>
+    </div>
+
+    <div class="nav-actions">
+      <button class="btn btn-secondary" id="btn-new-project" title="Tạo bài giảng mới sạch hoàn toàn" style="padding: 7px 14px; font-weight: 700; color: #0284C7; background: #F0F9FF; border-color: #BAE6FD;">
+        ✨ Tạo Bài Mới
+      </button>
+
+      <button class="btn btn-secondary" id="btn-select-pack" title="Chọn hoặc thay đổi Bộ Mẫu Giảng Dạy (Template Pack)" style="padding: 7px 14px; font-weight: 600;">
+        🎨 Bộ Mẫu (<span id="current-pack-label">basic</span>)
+      </button>
+
+      <button class="btn btn-primary" id="btn-upload-doc" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: white; padding: 7px 16px; font-weight: 700;">
+        📥 Tải Tài Liệu (PPTX/PDF/DOCX/MD)
+      </button>
+      <input type="file" id="input-doc-file" accept=".pptx,.pdf,.docx,.md" style="display: none;" />
+
+      <button class="btn btn-secondary" id="btn-pedagogy-review" title="Bảng kiểm tra chất lượng sư phạm (mật độ chữ, tốc độ đọc, trợ năng)" style="padding: 7px 12px; font-weight: 600; color: #0284C7; border-color: #BAE6FD; background: #F0F9FF;">
+        🎯 Sư Phạm (<span id="pedagogy-badge">100%</span>)
+      </button>
+
+      <div style="height: 20px; width: 1px; background: var(--border-color); margin: 0 4px;"></div>
+
+      <button class="btn btn-secondary btn-icon" id="btn-undo" title="Hoàn tác (Ctrl+Z)">↶</button>
+      <button class="btn btn-secondary btn-icon" id="btn-redo" title="Làm lại (Ctrl+Y)">↷</button>
+
+      <div style="height: 20px; width: 1px; background: var(--border-color); margin: 0 6px;"></div>
+
+      <button class="btn btn-primary" id="btn-presentation-mode" title="Trình chiếu toàn màn hình toàn bộ bài giảng trước khi xuất MP4" style="background: linear-gradient(135deg, #10B981, #059669); color: white; padding: 7px 16px; font-weight: 700; border: none; box-shadow: 0 2px 4px rgba(16,185,129,0.3);">
+        ▶ Trình Chiếu
+      </button>
+
+      <button class="btn btn-secondary" id="btn-export-pdf" title="Xuất toàn bộ bài giảng sang PDF vector">
+        📄 Xuất PDF
+      </button>
+      <button class="btn btn-secondary" id="btn-export-pptx" title="Xuất bài giảng sang PPTX (Image Pack)">
+        📊 Xuất PPTX
+      </button>
+      <button class="btn btn-primary" id="btn-export-mp4" title="Render video bài giảng 1080p qua HyperFrames CLI">
+        🎬 Xuất MP4 (1080p)
+      </button>
+    </div>
+  </header>
+
+  <!-- 3-Pane Main Studio Workspace -->
+  <div class="studio-workspace">
+
+    <!-- Left Pane: Slide Navigator -->
+    <aside class="slide-navigator">
+      <div class="deck-header">
+        <span class="deck-title" id="deck-count-label">Danh Sách Slide (10)</span>
+        <button class="btn btn-secondary" id="btn-add-slide" style="padding: 4px 10px; font-size: 12px;">+ Thêm</button>
+      </div>
+      <div class="slide-list-container" id="slide-list-container">
+        <!-- Rendered dynamically -->
+      </div>
+    </aside>
+
+    <!-- Center Pane: Live Canvas & Controls -->
+    <main class="studio-canvas-pane">
+      <div class="canvas-topbar">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button class="btn btn-secondary btn-icon" id="btn-prev-slide" title="Slide trước (←)">◀</button>
+          <span id="canvas-slide-indicator" style="font-size: 13px; font-weight: 700; min-width: 100px; text-align: center;">Slide 1 / 10</span>
+          <button class="btn btn-secondary btn-icon" id="btn-next-slide" title="Slide tiếp (→)">▶</button>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--text-sub);">
+          <button class="btn btn-secondary" id="btn-toggle-builder-mode" style="padding: 4px 10px; font-size: 12px; font-weight: 700;">
+            🛠️ Chế Độ Builder
+          </button>
+          <span>Độ phân giải: <strong>1920 × 1080 (16:9)</strong></span>
+          <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #059669;"></span>
+          <span id="canvas-template-badge" style="background: #E0F2FE; color: #0369A1; padding: 2px 8px; border-radius: 4px; font-weight: 600;">title-slide</span>
+        </div>
+      </div>
+
+      <!-- Builder Mode Toolbar (P5.1) -->
+      <div id="builder-toolbar" style="display: none; align-items: center; gap: 8px; padding: 8px 16px; background: #0F172A; color: white; border-bottom: 1px solid #334155; flex-shrink: 0;">
+        <span style="font-weight: 700; font-size: 12px; color: #38BDF8; margin-right: 6px;">🛠️ Thêm Khối:</span>
+        <button class="btn btn-secondary" id="builder-add-text" style="padding: 4px 8px; font-size: 11px; color: white; background: #1E293B; border-color: #475569;">+ Chữ</button>
+        <button class="btn btn-secondary" id="builder-add-card" style="padding: 4px 8px; font-size: 11px; color: white; background: #1E293B; border-color: #475569;">+ Khung Card</button>
+        <button class="btn btn-secondary" id="builder-add-image" style="padding: 4px 8px; font-size: 11px; color: white; background: #1E293B; border-color: #475569;">+ Hình Ảnh</button>
+        <button class="btn btn-secondary" id="builder-add-badge" style="padding: 4px 8px; font-size: 11px; color: white; background: #1E293B; border-color: #475569;">+ Huy Hiệu</button>
+        <button class="btn btn-secondary" id="builder-add-decor" style="padding: 4px 8px; font-size: 11px; color: white; background: #1E293B; border-color: #475569;">+ Trang Trí</button>
+        <button class="btn btn-secondary" id="builder-add-video" style="padding: 4px 8px; font-size: 11px; color: white; background: #1E293B; border-color: #475569;">+ Video</button>
+        <div style="flex: 1;"></div>
+        <button class="btn btn-primary" id="builder-save-layout" style="background: #059669; color: white; padding: 5px 14px; font-size: 12px; font-weight: 700;">💾 Lưu Layout Vào Pack</button>
+        <button class="btn btn-secondary" id="builder-exit-btn" style="padding: 4px 8px; font-size: 11px; color: #CBD5E1; background: #334155;">✕ Thoát Builder</button>
+      </div>
+
+      <!-- Viewport with 1920x1080 Scaled Canvas -->
+      <div class="canvas-viewport">
+        <div class="canvas-frame-outer">
+          <div id="live-canvas">
+            <!-- Dynamic HyperFrames Slide Section will be mounted here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Timeline & Scrubber -->
+      <div class="canvas-timeline-bar">
+        <button class="timeline-playback-btn" id="btn-timeline-play" title="Phát hoạt họa slide này">▶</button>
+        <button class="timeline-stop-btn" id="btn-timeline-stop" title="Dừng và về 0s">⏹</button>
+
+        <div class="timeline-scrubber-track">
+          <div class="timeline-time-info">
+            <span id="time-current">00:00.0</span>
+            <span id="time-total">00:16.0</span>
+          </div>
+          <input type="range" class="timeline-slider" id="timeline-slider" min="0" max="16.0" step="0.05" value="0" />
+        </div>
+      </div>
+    </main>
+
+    <!-- Right Pane: Properties & Voice Inspector -->
+    <aside class="props-panel">
+      <!-- Builder Inspector (P5.2) -->
+      <div id="builder-inspector-panel" style="display: none; flex-direction: column;">
+        <div class="props-header" style="color: #0369A1; background: #E0F2FE;">🛠️ Builder: Thuộc Tính Khối</div>
+        <div class="prop-section">
+          <div class="prop-section-title">Định Danh & Kích Thước</div>
+          <div class="prop-group">
+            <label class="prop-label">Mã khối (ID)</label>
+            <input type="text" id="builder-el-id" class="prop-input" readonly style="background: #F1F5F9;" />
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <div>
+              <label class="prop-label">X (px)</label>
+              <input type="number" id="builder-el-x" class="prop-input" step="8" />
+            </div>
+            <div>
+              <label class="prop-label">Y (px)</label>
+              <input type="number" id="builder-el-y" class="prop-input" step="8" />
+            </div>
+            <div>
+              <label class="prop-label">Rộng (px)</label>
+              <input type="number" id="builder-el-w" class="prop-input" step="8" />
+            </div>
+            <div>
+              <label class="prop-label">Cao (px)</label>
+              <input type="number" id="builder-el-h" class="prop-input" step="8" />
+            </div>
+          </div>
+        </div>
+
+        <div class="prop-section">
+          <div class="prop-section-title">Vai Trò Dữ Liệu (Slot vs Decor)</div>
+          <div class="prop-group">
+            <label class="prop-label">Loại vai trò</label>
+            <select id="builder-slot-role-type" class="prop-select">
+              <option value="slot">Slot Động (Nhận nội dung sinh từ AI)</option>
+              <option value="decor">Decor Tĩnh (Không nhận dữ liệu AI)</option>
+            </select>
+          </div>
+          <div class="prop-group" id="builder-slot-name-group">
+            <label class="prop-label">Tên Slot (Slot Role)</label>
+            <select id="builder-slot-name-select" class="prop-select">
+              <option value="title">title (Tiêu đề chính)</option>
+              <option value="body">body (Đoạn giải thích/nội dung)</option>
+              <option value="card">card (Khối nội dung)</option>
+              <option value="media">media (Ảnh / Sơ đồ)</option>
+              <option value="badge">badge (Huy hiệu)</option>
+              <option value="author">author (Tác giả/giảng viên)</option>
+              <option value="sideText">sideText (Chú thích bên lề)</option>
+              <option value="formula">formula (Công thức/Định lý)</option>
+            </select>
+          </div>
+          <div class="prop-group" id="builder-constraints-group">
+            <label class="prop-label">Giới hạn ký tự tối đa (maxLength)</label>
+            <input type="number" id="builder-constraint-max-len" class="prop-input" value="300" step="50" />
+            <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; margin-top: 6px; cursor: pointer;">
+              <input type="checkbox" id="builder-constraint-required" checked /> Bắt buộc có nội dung (required)
+            </label>
+          </div>
+        </div>
+
+        <div class="prop-section">
+          <div class="prop-section-title">Hiệu Ứng Hoạt Họa GSAP</div>
+          <div class="prop-group">
+            <label class="prop-label">Preset Hoạt Họa</label>
+            <select id="builder-anim-preset" class="prop-select">
+              <option value="fade-in">Fade In (Hiện dần)</option>
+              <option value="slide-in">Slide In (Trượt vào)</option>
+              <option value="zoom-in">Zoom In (Phóng to nhẹ)</option>
+              <option value="typewriter">Typewriter (Đánh máy)</option>
+              <option value="step-by-step">Step-by-Step (Từng bước)</option>
+            </select>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <div>
+              <label class="prop-label">Độ trễ (s)</label>
+              <input type="number" id="builder-anim-delay" class="prop-input" value="0.5" step="0.1" />
+            </div>
+            <div>
+              <label class="prop-label">Thời lượng (s)</label>
+              <input type="number" id="builder-anim-dur" class="prop-input" value="1.0" step="0.1" />
+            </div>
+          </div>
+        </div>
+
+        <div class="prop-section">
+          <button class="btn btn-secondary" id="btn-builder-delete-element" style="color: #E11D48; width: 100%; border-color: #FECDD3; background: #FFF1F2; font-weight: 600;">
+            ✕ Xóa Khối Này Khỏi Layout
+          </button>
+        </div>
+      </div>
+
+      <!-- Slide Normal Properties Panel -->
+      <div id="slide-normal-props-panel" style="display: flex; flex-direction: column;">
+      <div class="props-header">Thuộc Tính & Giọng Đọc</div>
+
+      <!-- 1. Template & Layout Variant -->
+      <div class="prop-section">
+        <div class="prop-section-title">Mẫu & Bố Cục</div>
+        <div class="prop-group">
+          <label class="prop-label">Mẫu Thiết Kế (Template)</label>
+          <select id="prop-template-select" class="prop-select">
+            <option value="title-slide">1. Slide Tiêu Đề (title-slide)</option>
+            <option value="learning-objectives">2. Mục Tiêu Bài Học (learning-objectives)</option>
+            <option value="concept-explain">3. Giải Thích Khái Niệm (concept-explain)</option>
+            <option value="bullet-breakdown">4. Phân Tích Luận Điểm (bullet-breakdown)</option>
+            <option value="image-explain">5. Sơ Đồ Trực Quan (image-explain)</option>
+            <option value="comparison">6. So Sánh Đối Chiếu (comparison)</option>
+            <option value="timeline">7. Trục Tiến Trình (timeline)</option>
+            <option value="formula-explain">8. Công Thức & Định Lý (formula-explain)</option>
+            <option value="quiz">9. Câu Hỏi Tương Tác (quiz)</option>
+            <option value="summary">10. Tổng Kết Bài Học (summary)</option>
+          </select>
+        </div>
+
+        <div class="prop-group">
+          <label class="prop-label">Biến Thể Bố Cục (Layout Variant)</label>
+          <select id="prop-variant-select" class="prop-select" style="margin-bottom: 8px;">
+            <option value="default">Mặc định</option>
+            <option value="text-left-image-right">Chữ Trái - Ảnh Phải</option>
+            <option value="text-right-image-left">Ảnh Trái - Chữ Phải</option>
+            <option value="stacked-top">Banner Trên</option>
+            <option value="fullscreen">Tràn Viền</option>
+            <option value="no-image">Không Có Ảnh</option>
+          </select>
+          <div class="variant-grid" id="variant-pills-container">
+            <div class="variant-pill active" data-variant="default">Mặc định</div>
+            <div class="variant-pill" data-variant="text-left-image-right">Chữ Trái - Ảnh Phải</div>
+            <div class="variant-pill" data-variant="text-right-image-left">Ảnh Trái - Chữ Phải</div>
+            <div class="variant-pill" data-variant="stacked-top">Banner Trên</div>
+            <div class="variant-pill" data-variant="fullscreen">Tràn Viền</div>
+            <div class="variant-pill" data-variant="no-image">Không Có Ảnh</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1b. Media Strip UI (P4.3) -->
+      <div class="prop-section" id="media-strip-section">
+        <div class="prop-section-title">
+          <span>Khối Hình Ảnh / Media Strip</span>
+          <span id="media-visual-need-badge" style="font-size: 10px; background: #E0F2FE; color: #0369A1; padding: 2px 6px; border-radius: 4px; font-weight: 700;">diagram</span>
+        </div>
+
+        <div style="display: flex; gap: 6px; margin-bottom: 10px;">
+          <button class="btn btn-secondary" id="btn-media-strip-upload" style="flex: 1; padding: 6px 8px; font-size: 12px; font-weight: 600;">📁 Tải Ảnh Lên</button>
+          <button class="btn btn-secondary" id="btn-media-strip-video" style="flex: 1; padding: 6px 8px; font-size: 12px; font-weight: 600; color: #0284C7; border-color: #BAE6FD;">🎬 Chèn Video</button>
+          <button class="btn btn-secondary" id="btn-media-strip-remove" style="color: #E11D48; padding: 6px 10px; font-size: 12px; font-weight: 600;" title="Xóa ảnh và chuyển sang bố cục no-image">✕ Xóa</button>
+        </div>
+        <input type="file" id="media-strip-file-input" accept="image/*" style="display: none;" />
+
+        <div style="margin-bottom: 8px;">
+          <span style="font-size: 11px; font-weight: 600; color: var(--text-sub);">Gợi ý ứng viên (1-chạm để áp dụng):</span>
+        </div>
+
+        <div id="media-recommendations-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+          <!-- 3-4 Candidates rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- 1c. Video Component UI (P6.3) -->
+      <div class="prop-section" id="video-component-section" style="display: none;">
+        <div class="prop-section-title">
+          <span>🎬 Khối Video Canvas (P6.3)</span>
+          <span style="font-size: 10px; background: #FEF3C7; color: #D97706; padding: 2px 6px; border-radius: 4px; font-weight: 700;">MP4 / WebM</span>
+        </div>
+
+        <div class="prop-group">
+          <label class="prop-label">Nguồn Video (URL / Tệp)</label>
+          <div style="display: flex; gap: 6px;">
+            <input type="text" id="video-src-input" class="prop-input" placeholder="storage/projects/.../clip.mp4" style="flex: 1;" />
+            <button class="btn btn-secondary" id="btn-video-upload" style="padding: 6px 10px; font-size: 11px;">📁 Tải lên</button>
+          </div>
+          <input type="file" id="video-file-input" accept="video/mp4,video/webm" style="display: none;" />
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+          <div>
+            <label class="prop-label">Cắt đầu (Trim Start - s)</label>
+            <input type="number" id="video-trim-start" class="prop-input" min="0" step="0.1" value="0.0" />
+          </div>
+          <div>
+            <label class="prop-label">Cắt đuôi (Trim End - s)</label>
+            <input type="number" id="video-trim-end" class="prop-input" min="0.1" step="0.1" value="10.0" />
+          </div>
+        </div>
+
+        <div class="prop-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label class="prop-label" style="margin-bottom: 0;">Âm lượng Video</label>
+            <span id="video-volume-val" style="font-size: 11px; font-weight: 700; color: var(--primary);">100%</span>
+          </div>
+          <input type="range" id="video-volume-slider" min="0" max="1" step="0.05" value="1.0" style="width: 100%; accent-color: var(--primary);" />
+        </div>
+
+        <div class="prop-group" style="background: #F8FAFC; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px;">
+          <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 12px; cursor: pointer;">
+            <input type="checkbox" id="video-ducking-checkbox" checked style="margin-top: 2px;" />
+            <span>
+              <strong>Ducking âm lượng</strong>: Tự động hạ âm lượng video xuống 0.2 khi có giọng thuyết minh của giáo viên.
+            </span>
+          </label>
+        </div>
+
+        <div style="display: flex; gap: 6px; margin-top: 8px;">
+          <button class="btn btn-secondary" id="btn-video-remove" style="color: #E11D48; width: 100%; font-size: 12px; font-weight: 600; border-color: #FECDD3; background: #FFF1F2;">
+            ✕ Gỡ Khối Video Khỏi Slide
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. Voice-Over & Audio-First Sync (Phase 4.1 UI) -->
+      <div class="prop-section">
+        <div class="prop-section-title">
+          <span>Giọng Đọc & Lời Thoại</span>
+          <span style="font-size: 11px; color: var(--primary);">VieNeu v3</span>
+        </div>
+
+        <div class="voice-stat-box">
+          <div>
+            <div style="font-weight: 700; color: #0369A1;" id="voice-duration-label">🎙️ Audio: 15.0s</div>
+            <div style="font-size: 11px; color: #64748B;" id="slide-duration-label">⏱️ Slide: 16.0s (Audio + 1.0s)</div>
+          </div>
+          <button class="btn btn-primary" id="btn-regen-voice" style="padding: 6px 12px; font-size: 12px;">
+            ↻ Tạo Lại
+          </button>
+        </div>
+
+        <div class="prop-group">
+          <label class="prop-label">Kịch Bản Thuyết Minh (Vietnamese Narration)</label>
+          <textarea id="prop-narration-input" class="prop-textarea" rows="4" placeholder="Nhập lời giảng chi tiết bằng tiếng Việt..."></textarea>
+          <div style="display: flex; justify-content: space-between; font-size: 11px; color: #64748B; margin-top: 4px;">
+            <span id="narration-char-count">0 từ · 0 ký tự</span>
+            <span id="narration-est-time">Ước tính: ~0s</span>
+          </div>
+        </div>
+
+        <div class="prop-group">
+          <label class="prop-label">Giọng Đọc AI (TTS Speaker)</label>
+          <select id="prop-voice-select" class="prop-select">
+            <option value="BanMai">VieNeu — Ban Mai (Nữ Miền Bắc)</option>
+            <option value="MyDuyen">VieNeu — Mỹ Duyên (Nữ Miền Nam)</option>
+            <option value="MinhQuang">VieNeu — Minh Quang (Nam Miền Bắc)</option>
+            <option value="LeMinh">VieNeu — Lê Minh (Nam Miền Nam)</option>
+            <option value="viettel-ai">Viettel AI — Giọng Chuẩn</option>
+          </select>
+        </div>
+
+        <div class="prop-group">
+          <label class="prop-label">Nghe Thử Âm Thanh Đã Tạo</label>
+          <audio id="slide-audio-player" controls style="width: 100%; height: 36px; border-radius: 6px;"></audio>
+        </div>
+      </div>
+
+      <!-- 3. Animation Presets & Cues (Vietnamese User-Friendly UI) -->
+      <div class="prop-section">
+        <div class="prop-section-title">
+          <span>✨ Hoạt Họa & Chuyển Động</span>
+          <button class="btn btn-secondary" id="btn-add-anim" style="padding: 2px 8px; font-size: 11px;">+ Tùy biến</button>
+        </div>
+
+        <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 8px;">
+          Bộ hiệu ứng 1-chạm (nhấn để áp dụng ngay vào slide):
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 12px;">
+          <button class="btn btn-secondary btn-quick-anim" data-preset="fade-in" style="padding: 6px 8px; font-size: 11px; justify-content: flex-start;">
+            🌟 Hiện Mượt (Fade In)
+          </button>
+          <button class="btn btn-secondary btn-quick-anim" data-preset="slide-in" style="padding: 6px 8px; font-size: 11px; justify-content: flex-start;">
+            🚀 Trượt Vào (Slide Up)
+          </button>
+          <button class="btn btn-secondary btn-quick-anim" data-preset="zoom-in" style="padding: 6px 8px; font-size: 11px; justify-content: flex-start;">
+            🎯 Phóng To (Zoom/Pop)
+          </button>
+          <button class="btn btn-secondary btn-quick-anim" data-preset="typewriter" style="padding: 6px 8px; font-size: 11px; justify-content: flex-start;">
+            ⌨️ Đánh Máy (Typewriter)
+          </button>
+        </div>
+
+        <div style="font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 6px; display: flex; justify-content: space-between;">
+          <span>Hiệu Ứng Trên Slide Hiện Tại:</span>
+          <span style="font-size: 10px; font-weight: 400; color: #64748B;">Bấm ▶ để xem thử</span>
+        </div>
+
+        <div id="anim-list-container">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- 4. Speaker Notes -->
+      <div class="prop-section">
+        <div class="prop-section-title">Ghi Chú Giảng Viên</div>
+        <div class="prop-group">
+          <textarea id="prop-notes-input" class="prop-textarea" rows="3" placeholder="Ghi chú thêm cho người thuyết trình..."></textarea>
+        </div>
+      </div>
+
+      <!-- 5. Per-Slide AI Copilot Chat (P7.3) -->
+      <div class="prop-section" id="slide-ai-chat-section" style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px;">
+        <div class="prop-section-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="font-weight: 700; color: #4F46E5; display: flex; align-items: center; gap: 6px;">
+            <span>✨</span> AI Copilot Sửa Slide (P7.3)
+          </span>
+          <span style="font-size: 10px; background: #EEF2FF; color: #4F46E5; padding: 2px 6px; border-radius: 4px; font-weight: 700;">slotValues</span>
+        </div>
+
+        <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 8px;">
+          Nhập yêu cầu bằng tiếng Việt (ví dụ: <em>"Rút gọn tiêu đề dưới 8 từ"</em>, <em>"Viết lại giải thích ngắn gọn hơn"</em>):
+        </div>
+
+        <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+          <input type="text" id="slide-chat-input" class="prop-input" placeholder="Yêu cầu sửa slide này..." style="flex: 1;" />
+          <button class="btn btn-primary" id="btn-slide-chat-send" style="padding: 6px 12px; font-size: 12px; font-weight: 600; background: #4F46E5; border-color: #4F46E5;">
+            Gửi ➜
+          </button>
+        </div>
+
+        <div id="slide-chat-loading" style="display: none; font-size: 11px; color: #4F46E5; margin-bottom: 8px;">
+          ⏳ AI đang phân tích và chuẩn bị bản vá slotValues...
+        </div>
+
+        <!-- Diff Preview (Before / After) -->
+        <div id="slide-chat-diff-box" style="display: none; background: white; border: 1px solid #CBD5E1; border-radius: 6px; padding: 10px; margin-top: 8px;">
+          <div style="font-size: 11px; font-weight: 700; color: #1E293B; margin-bottom: 6px; display: flex; justify-content: space-between;">
+            <span>🔍 So Sánh Thay Đổi (Diff)</span>
+            <span id="slide-chat-explanation" style="font-weight: 400; color: #64748B; font-size: 10px;"></span>
+          </div>
+
+          <div id="slide-chat-diff-content" style="font-size: 11px; max-height: 140px; overflow-y: auto; margin-bottom: 10px;">
+            <!-- Render Before / After dynamically -->
+          </div>
+
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-primary" id="btn-slide-chat-apply" style="flex: 1; padding: 6px 8px; font-size: 12px; background: #16A34A; border-color: #16A34A; font-weight: 700;">
+              ✓ Áp Dụng (Apply)
+            </button>
+            <button class="btn btn-secondary" id="btn-slide-chat-discard" style="flex: 1; padding: 6px 8px; font-size: 12px; color: #64748B;">
+              ✕ Hủy Bỏ (Discard)
+            </button>
+          </div>
+        </div>
+      </div>
+      </div> <!-- Close #slide-normal-props-panel -->
+    </aside>
+
+  </div>
+
+  <!-- Image Selector Modal -->
+  <div class="modal-overlay" id="image-modal">
+    <div class="modal-box">
+      <h3 style="font-size: 17px; font-weight: 800; color: var(--hf-primary, #0369A1); margin-bottom: 12px;">
+        Thay Ảnh Minh Họa Slide
+      </h3>
+      <div class="prop-group">
+        <label class="prop-label">Đường Dẫn Ảnh (URL hoặc local storage):</label>
+        <input type="text" id="modal-img-url" class="prop-input" placeholder="https://..." />
+      </div>
+
+      <div class="prop-group">
+        <label class="prop-label">Hoặc tải file ảnh lên từ máy tính:</label>
+        <input type="file" id="modal-img-file" accept="image/*" class="prop-input" style="padding: 6px;" />
+      </div>
+
+      <div class="prop-group">
+        <label class="prop-label">Kho ảnh mẫu học thuật gợi ý:</label>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+          <img class="img-preview-opt" src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400&q=80" style="width: 100%; height: 75px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 2px solid transparent;" />
+          <img class="img-preview-opt" src="https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=400&q=80" style="width: 100%; height: 75px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 2px solid transparent;" />
+          <img class="img-preview-opt" src="https://images.unsplash.com/photo-1507842229451-7f01be7fe7ab?w=400&q=80" style="width: 100%; height: 75px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 2px solid transparent;" />
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+        <button class="btn btn-secondary" id="btn-close-modal">Hủy</button>
+        <button class="btn btn-primary" id="btn-apply-img">Áp Dụng Ảnh</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Template Pack Gallery Step 1 Modal (P2.3) -->
+  <div class="modal-overlay" id="gallery-step-modal">
+    <div class="modal-box" style="width: 880px; max-width: 95vw; max-height: 90vh; display: flex; flex-direction: column; padding: 24px; border-radius: 14px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; margin-bottom: 16px;">
+        <div>
+          <h2 style="font-size: 20px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+            <span>🎨</span> Kho Bộ Mẫu Giảng Dạy (Template Gallery)
+          </h2>
+          <p style="font-size: 13px; color: var(--text-sub); margin-top: 4px;">
+            Bước 1: Chọn bộ mẫu thiết kế chuẩn sư phạm trước khi nạp tài liệu hoặc đổi bộ mẫu cho bài giảng hiện tại.
+          </p>
+        </div>
+        <button id="btn-close-gallery-modal" class="btn btn-secondary btn-icon" style="font-size: 16px;">✕</button>
+      </div>
+
+      <!-- Quick filters -->
+      <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+        <input type="text" id="gallery-search-input" placeholder="🔍 Tìm kiếm bộ mẫu..." class="prop-input" style="flex: 1; min-width: 220px;" />
+        <select id="gallery-filter-subject" class="prop-select" style="width: 160px;">
+          <option value="">Tất cả môn học</option>
+          <option value="toan-tin">Toán - Tin</option>
+          <option value="khoa-hoc-tu-nhien">Khoa học tự nhiên</option>
+          <option value="xa-hoi-nhan-van">Khoa học Xã hội</option>
+          <option value="kinh-te-quan-tri">Kinh tế - Quản trị</option>
+          <option value="tong-hop">Tổng hợp</option>
+        </select>
+        <select id="gallery-filter-style" class="prop-select" style="width: 170px;">
+          <option value="">Tất cả phong cách</option>
+          <option value="hoc-thuat-nghiem-tuc">Học thuật nghiêm túc</option>
+          <option value="hien-dai-toi-gian">Hiện đại tối giản</option>
+          <option value="sinh-dong-tre-trung">Sinh động trẻ trung</option>
+        </select>
+      </div>
+
+      <!-- Pack Grid Container -->
+      <div id="gallery-pack-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; overflow-y: auto; padding: 4px; max-height: 50vh;">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <!-- Footer CTA -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 16px;">
+        <span style="font-size: 12px; color: var(--text-sub);" id="gallery-status-hint">Đang chọn: <strong>basic</strong></span>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-secondary" id="btn-gallery-cancel">Đóng</button>
+          <button class="btn btn-primary" id="btn-gallery-confirm" style="font-weight: 700;">
+            Tiếp Tục Với Bộ Mẫu Đã Chọn ➜
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pedagogical Quality Review Modal (P7.4) -->
+  <div class="modal-overlay" id="pedagogy-modal">
+    <div class="modal-box" style="width: 760px; max-width: 95vw; max-height: 85vh; display: flex; flex-direction: column; padding: 22px; border-radius: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 14px;">
+        <div>
+          <h3 style="font-size: 18px; font-weight: 800; color: #0369A1; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <span>🎯</span> Bảng Kiểm Tra Chất Lượng Sư Phạm (P7.4)
+          </h3>
+          <p style="font-size: 12px; color: var(--text-sub); margin: 4px 0 0 0;">
+            Đánh giá tự động theo các tiêu chuẩn: mật độ chữ, tốc độ đọc narration, thời lượng slide và khả năng tiếp thu.
+          </p>
+        </div>
+        <button class="btn btn-secondary btn-icon" id="btn-close-pedagogy-modal">✕</button>
+      </div>
+
+      <!-- Score & Summary Bar -->
+      <div style="display: grid; grid-template-columns: 140px 1fr; gap: 16px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px; margin-bottom: 14px;">
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 1px solid #E2E8F0; padding-right: 12px;">
+          <div style="font-size: 11px; font-weight: 700; color: #64748B;">ĐIỂM SƯ PHẠM</div>
+          <div id="pedagogy-score-val" style="font-size: 32px; font-weight: 900; color: #16A34A; line-height: 1.1;">100</div>
+          <div id="pedagogy-rating-label" style="font-size: 11px; font-weight: 700; color: #16A34A;">Rất Tốt</div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; align-items: center;">
+          <div style="background: white; border: 1px solid #FECDD3; border-radius: 6px; padding: 8px; text-align: center;">
+            <div style="font-size: 18px; font-weight: 800; color: #E11D48;" id="pedagogy-error-count">0</div>
+            <div style="font-size: 11px; color: #64748B;">Lỗi cần sửa</div>
+          </div>
+          <div style="background: white; border: 1px solid #FED7AA; border-radius: 6px; padding: 8px; text-align: center;">
+            <div style="font-size: 18px; font-weight: 800; color: #D97706;" id="pedagogy-warning-count">0</div>
+            <div style="font-size: 11px; color: #64748B;">Cảnh báo</div>
+          </div>
+          <div style="background: white; border: 1px solid #BBF7D0; border-radius: 6px; padding: 8px; text-align: center;">
+            <div style="font-size: 18px; font-weight: 800; color: #16A34A;" id="pedagogy-passed-count">0</div>
+            <div style="font-size: 11px; color: #64748B;">Slide chuẩn</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Issues List Table -->
+      <div style="flex: 1; overflow-y: auto; max-height: 45vh; border: 1px solid #E2E8F0; border-radius: 6px;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+          <thead style="background: #F1F5F9; position: sticky; top: 0; z-index: 10;">
+            <tr style="text-align: left; color: #475569; border-bottom: 1px solid #CBD5E1;">
+              <th style="padding: 8px 10px; width: 75px;">Slide</th>
+              <th style="padding: 8px 10px; width: 140px;">Quy chuẩn</th>
+              <th style="padding: 8px 10px;">Chi tiết phát hiện & Khuyến nghị</th>
+              <th style="padding: 8px 10px; width: 95px; text-align: right;">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="pedagogy-issues-tbody">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Footer CTA -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 14px;">
+        <span style="font-size: 11px; color: var(--text-sub);">
+          💡 Nhấn "Đến Slide" để chuyển ngay đến slide và sử dụng AI Copilot hoặc chỉnh sửa thủ công.
+        </span>
+        <button class="btn btn-secondary" id="btn-pedagogy-close">Đóng Bảng Đánh Giá</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Presentation Mode Fullscreen Modal (P8 Preview) -->
+  <div class="presentation-modal" id="presentation-modal" style="display: none;">
+    <div class="presentation-viewport" id="presentation-viewport">
+      <div class="presentation-slide-stage" id="presentation-slide-stage">
+        <!-- Rendered live slide in 1920x1080 stage -->
+      </div>
+    </div>
+
+    <!-- Floating HUD Controller -->
+    <div class="presentation-hud" id="presentation-hud">
+      <div class="hud-left">
+        <button class="hud-btn" id="pres-btn-prev" title="Slide trước (← / PageUp)">◀</button>
+        <button class="hud-btn primary" id="pres-btn-play" title="Phát / Tạm dừng (Space)">▶</button>
+        <button class="hud-btn" id="pres-btn-next" title="Slide tiếp theo (→ / PageDown)">▶</button>
+      </div>
+
+      <div class="hud-center">
+        <span id="pres-slide-indicator" style="font-weight: 700; color: #38BDF8;">Slide 1 / 10</span>
+        <span style="color: #64748B;">|</span>
+        <span id="pres-timer-current" style="color: #F8FAFC;">00:00.0</span>
+        <span style="color: #64748B;">/</span>
+        <span id="pres-timer-total" style="color: #94A3B8;">00:16.0</span>
+      </div>
+
+      <div class="hud-right">
+        <button class="hud-btn" id="pres-btn-fullscreen" title="Toàn màn hình (F)">⛶</button>
+        <button class="hud-btn danger" id="pres-btn-close" title="Thoát trình chiếu (Esc)">✕ Thoát</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { sceneReducer, validateSlide, computeSlideDuration, recomputeTotalDuration, ALLOWED_PRESETS, ALLOWED_VARIANTS } from '/studio/reducer.js';
+    import { TEMPLATES, renderSlide, buildGsapTimelineForSlide } from '/templates/index.js';
+    import { migrateOnRead } from '/templates/migration.js';
+    import { TemplateRegistry } from '/templates/registry.js';
+    import { createFlowMachine } from '/studio/flow.js';
+    import { updateOutlineSlide, addOutlineSlide, removeOutlineSlide, reorderOutlineSlides, approveOutline } from '/studio/outline_editor.js';
+    import { createDraftLayout, addDraftBlock, updateDraftBlock, removeDraftBlock, setElementSlotRole, assignElementAnimation, validateDraftLayout, exportLayoutForSave, snapToGrid } from '/studio/builder.js';
+    import { auditDeckQuality, DEFAULT_THRESHOLDS } from '/studio/quality.js';
+
+    const API_BASE = window.API_BASE || 'http://localhost:8000';
+
+    class StudioApp {
+      constructor() {
+        this.currentSlideIndex = 0;
+        this.history = [];
+        this.historyIndex = -1;
+        this.saveTimeout = null;
+        this.activeImageTargetId = null;
+        this.isAudioJobRunning = false;
+
+        this.scene = null;
+        this.currentTimeline = null;
+        this.isPlaying = false;
+
+        this.flowMachine = createFlowMachine({ current: 'studio', selectedPackId: 'basic' });
+        this.selectedGalleryPackId = 'basic';
+        this.galleryIntent = 'upload';
+        this.availablePacks = [];
+
+        this.mode = 'slide'; // 'slide' | 'builder'
+        this.draftLayout = null;
+        this.activeBuilderElementId = null;
+        this.pendingChatPatch = null;
+
+        this.isPresentationActive = false;
+        this.presentationIndex = 0;
+        this.presentationTimeline = null;
+        this.presentationAudio = null;
+        this.presentationIsPlaying = false;
+        this.hudHideTimeout = null;
+      }
+
+      async loadAvailablePacks() {
+        try {
+          const apiBase = window.API_BASE || (window.location.port === '8000' ? '' : 'http://localhost:8000');
+          const res = await fetch(`${apiBase}/packs`);
+          if (res.ok) {
+            this.availablePacks = await res.json();
+          } else {
+            this.availablePacks = TemplateRegistry.list();
+          }
+        } catch (e) {
+          this.availablePacks = TemplateRegistry.list();
+        }
+        if (!this.availablePacks || this.availablePacks.length === 0) {
+          this.availablePacks = TemplateRegistry.list();
+        }
+      }
+
+      async openGalleryModal(intent = 'upload') {
+        this.galleryIntent = intent;
+        await this.loadAvailablePacks();
+        const modal = document.getElementById('gallery-step-modal');
+        const hintEl = document.getElementById('gallery-status-hint');
+        const confirmBtn = document.getElementById('btn-gallery-confirm');
+
+        this.selectedGalleryPackId = this.scene?.templatePackId || 'basic';
+        if (hintEl) hintEl.innerHTML = `Đang chọn: <strong>${this.selectedGalleryPackId}</strong>`;
+        if (confirmBtn) {
+          confirmBtn.innerText = intent === 'upload' 
+            ? 'Tiếp Tục Chọn Tệp Tải Lên ➜' 
+            : 'Áp Dụng Bộ Mẫu Này ➜';
+        }
+        this.renderGalleryGrid(this.availablePacks);
+        if (modal) modal.classList.add('open');
+      }
+
+      closeGalleryModal() {
+        const modal = document.getElementById('gallery-step-modal');
+        if (modal) modal.classList.remove('open');
+      }
+
+      renderGalleryGrid(packs) {
+        const grid = document.getElementById('gallery-pack-grid');
+        if (!grid) return;
+        grid.innerHTML = '';
+
+        for (const pack of packs) {
+          const isSelected = pack.id === this.selectedGalleryPackId;
+          const card = document.createElement('div');
+          card.style.cssText = `
+            border: 2px solid ${isSelected ? 'var(--primary)' : 'var(--border-color)'};
+            border-radius: 10px;
+            padding: 14px;
+            background: ${isSelected ? 'var(--primary-subtle)' : '#FFFFFF'};
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+          `;
+          card.onclick = () => {
+            this.selectedGalleryPackId = pack.id;
+            const hintEl = document.getElementById('gallery-status-hint');
+            if (hintEl) hintEl.innerHTML = `Đang chọn: <strong>${pack.name || pack.id}</strong>`;
+            this.renderGalleryGrid(this.availablePacks);
+          };
+
+          const tokens = pack.tokens || {};
+          const primaryColor = tokens['--hf-primary'] || '#0369A1';
+          const secondaryColor = tokens['--hf-secondary'] || '#0284C7';
+          const accentColor = tokens['--hf-accent'] || '#D97706';
+
+          card.innerHTML = `
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                <h4 style="font-size: 15px; font-weight: 700; color: var(--text-main);">${pack.name || pack.id}</h4>
+                <span style="font-size: 11px; font-weight: 700; background: ${primaryColor}; color: white; padding: 2px 6px; border-radius: 4px;">
+                  ${pack.layouts?.length || 10} layouts
+                </span>
+              </div>
+              <p style="font-size: 12px; color: var(--text-sub); line-height: 1.4; margin-bottom: 12px;">
+                ${pack.description || 'Bộ mẫu thiết kế chuẩn sư phạm.'}
+              </p>
+              <div style="display: flex; gap: 6px; margin-bottom: 12px;">
+                <div style="width: 18px; height: 18px; border-radius: 50%; background: ${primaryColor}; border: 1px solid rgba(0,0,0,0.1);" title="Primary"></div>
+                <div style="width: 18px; height: 18px; border-radius: 50%; background: ${secondaryColor}; border: 1px solid rgba(0,0,0,0.1);" title="Secondary"></div>
+                <div style="width: 18px; height: 18px; border-radius: 50%; background: ${accentColor}; border: 1px solid rgba(0,0,0,0.1);" title="Accent"></div>
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px;">
+                ${(pack.tags?.subject || []).map(t => `<span style="font-size: 10px; background: #E2E8F0; padding: 2px 6px; border-radius: 9999px;">${t}</span>`).join('')}
+                ${(pack.tags?.style || []).map(t => `<span style="font-size: 10px; background: #FEF3C7; color: #92400E; padding: 2px 6px; border-radius: 9999px;">${t}</span>`).join('')}
+              </div>
+            </div>
+            <button class="btn ${isSelected ? 'btn-primary' : 'btn-secondary'}" style="width: 100%; margin-top: 8px; font-size: 12px; padding: 6px;">
+              ${isSelected ? '✓ Đang chọn bộ mẫu này' : 'Chọn bộ mẫu này'}
+            </button>
+          `;
+          grid.appendChild(card);
+        }
+      }
+
+      filterGalleryPacks() {
+        const query = (document.getElementById('gallery-search-input')?.value || '').toLowerCase().trim();
+        const subject = document.getElementById('gallery-filter-subject')?.value || '';
+        const style = document.getElementById('gallery-filter-style')?.value || '';
+
+        const filtered = this.availablePacks.filter(p => {
+          if (query && !p.id.toLowerCase().includes(query) && !p.name?.toLowerCase().includes(query) && !p.description?.toLowerCase().includes(query)) {
+            return false;
+          }
+          if (subject && (!p.tags?.subject || !p.tags.subject.includes(subject))) {
+            return false;
+          }
+          if (style && (!p.tags?.style || !p.tags.style.includes(style))) {
+            return false;
+          }
+          return true;
+        });
+        this.renderGalleryGrid(filtered);
+      }
+
+      async reviewOutlineModal(rawOutline) {
+        let currentOutline = JSON.parse(JSON.stringify(rawOutline));
+        const modal = document.getElementById('outline-review-modal');
+        const container = document.getElementById('outline-slides-container');
+        const countHint = document.getElementById('outline-slide-count-hint');
+        const addBtn = document.getElementById('btn-outline-add-slide');
+        const approveBtn = document.getElementById('btn-outline-approve');
+        const quickApproveBtn = document.getElementById('btn-outline-quick-approve');
+
+        const activePack = TemplateRegistry.get(this.flowMachine?.getState()?.selectedPackId || 'basic') || TemplateRegistry.get('basic');
+        const availableLayouts = activePack?.layouts || [
+          { id: 'title-slide', name: '1. Tiêu Đề' },
+          { id: 'learning-objectives', name: '2. Mục Tiêu' },
+          { id: 'concept-explain', name: '3. Khái Niệm' },
+          { id: 'bullet-breakdown', name: '4. Phân Tích' },
+          { id: 'image-explain', name: '5. Sơ Đồ Trực Quan' },
+          { id: 'comparison', name: '6. So Sánh' },
+          { id: 'timeline', name: '7. Tiến Trình' },
+          { id: 'formula-explain', name: '8. Công Thức' },
+          { id: 'quiz', name: '9. Trắc Nghiệm' },
+          { id: 'summary', name: '10. Tổng Kết' }
+        ];
+
+        const renderList = () => {
+          if (!container) return;
+          container.innerHTML = '';
+          if (countHint) countHint.innerText = `Tổng số: ${currentOutline.slides.length} slides`;
+
+          currentOutline.slides.forEach((slide, idx) => {
+            const card = document.createElement('div');
+            card.style.cssText = `
+              background: #F8FAFC;
+              border: 1px solid var(--border-color);
+              border-radius: 8px;
+              padding: 12px 14px;
+              display: flex;
+              align-items: center;
+              gap: 12px;
+            `;
+
+            const layoutOpts = availableLayouts.map(l => `
+              <option value="${l.id}" ${l.id === slide.layoutId ? 'selected' : ''}>${l.name || l.id}</option>
+            `).join('');
+
+            card.innerHTML = `
+              <div style="font-weight: 800; font-size: 13px; color: var(--primary); min-width: 26px;">
+                #${idx + 1}
+              </div>
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 6px;">
+                <input type="text" class="prop-input outline-slide-title" value="${slide.title || ''}" placeholder="Tiêu đề slide..." style="font-weight: 600;" />
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-size: 11px; font-weight: 600; color: var(--text-sub);">Bố cục (Layout):</span>
+                  <select class="prop-select outline-slide-layout" style="padding: 4px 8px; font-size: 12px; width: 220px;">
+                    ${layoutOpts}
+                  </select>
+                  <span style="font-size: 11px; background: #E0F2FE; color: #0369A1; padding: 2px 6px; border-radius: 4px; font-weight: 600;">
+                    ${slide.visualNeed || 'none'}
+                  </span>
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 4px;">
+                <button class="btn btn-secondary btn-icon btn-move-up" style="padding: 2px 6px; font-size: 11px;" ${idx === 0 ? 'disabled' : ''} title="Di chuyển lên">▲</button>
+                <button class="btn btn-secondary btn-icon btn-move-down" style="padding: 2px 6px; font-size: 11px;" ${idx === currentOutline.slides.length - 1 ? 'disabled' : ''} title="Di chuyển xuống">▼</button>
+              </div>
+              <button class="btn btn-secondary btn-icon btn-delete-slide" style="color: #E11D48; padding: 6px;" title="Xóa slide">✕</button>
+            `;
+
+            // Event bindings
+            const titleInput = card.querySelector('.outline-slide-title');
+            titleInput.oninput = (e) => {
+              currentOutline = updateOutlineSlide(currentOutline, idx, { title: e.target.value });
+            };
+
+            const layoutSelect = card.querySelector('.outline-slide-layout');
+            layoutSelect.onchange = (e) => {
+              currentOutline = updateOutlineSlide(currentOutline, idx, { layoutId: e.target.value });
+            };
+
+            const upBtn = card.querySelector('.btn-move-up');
+            if (upBtn) upBtn.onclick = () => {
+              currentOutline = reorderOutlineSlides(currentOutline, idx, idx - 1);
+              renderList();
+            };
+
+            const downBtn = card.querySelector('.btn-move-down');
+            if (downBtn) downBtn.onclick = () => {
+              currentOutline = reorderOutlineSlides(currentOutline, idx, idx + 1);
+              renderList();
+            };
+
+            const delBtn = card.querySelector('.btn-delete-slide');
+            if (delBtn) delBtn.onclick = () => {
+              if (currentOutline.slides.length <= 1) {
+                alert('Dàn bài phải có ít nhất 1 slide.');
+                return;
+              }
+              currentOutline = removeOutlineSlide(currentOutline, idx);
+              renderList();
+            };
+
+            container.appendChild(card);
+          });
+        };
+
+        if (addBtn) {
+          addBtn.onclick = () => {
+            currentOutline = addOutlineSlide(currentOutline, {
+              title: `Slide Mới ${currentOutline.slides.length + 1}`,
+              layoutId: 'concept-explain',
+              visualNeed: 'diagram'
+            });
+            renderList();
+          };
+        }
+
+        renderList();
+        if (modal) modal.classList.add('open');
+
+        return new Promise((resolve) => {
+          const onApprove = () => {
+            cleanup();
+            resolve(approveOutline(currentOutline));
+          };
+          const onQuickApprove = () => {
+            cleanup();
+            resolve(approveOutline(currentOutline));
+          };
+          const cleanup = () => {
+            if (modal) modal.classList.remove('open');
+            if (approveBtn) approveBtn.removeEventListener('click', onApprove);
+            if (quickApproveBtn) quickApproveBtn.removeEventListener('click', onQuickApprove);
+          };
+          if (approveBtn) approveBtn.addEventListener('click', onApprove);
+          if (quickApproveBtn) quickApproveBtn.addEventListener('click', onQuickApprove);
+        });
+      }
+
+      // ==========================================
+      // TEMPLATE BUILDER MODE (P5.1, P5.2)
+      // ==========================================
+      toggleBuilderMode(enable = null) {
+        const shouldEnable = enable !== null ? enable : (this.mode !== 'builder');
+        this.mode = shouldEnable ? 'builder' : 'slide';
+
+        const toggleBtn = document.getElementById('btn-toggle-builder-mode');
+        const toolbar = document.getElementById('builder-toolbar');
+        const normalProps = document.getElementById('slide-normal-props-panel');
+        const inspectorPanel = document.getElementById('builder-inspector-panel');
+        const timelineBar = document.querySelector('.canvas-timeline-bar');
+
+        if (this.mode === 'builder') {
+          if (toggleBtn) {
+            toggleBtn.innerText = '🖥️ Chế Độ Slide';
+            toggleBtn.classList.add('btn-primary');
+            toggleBtn.classList.remove('btn-secondary');
+          }
+          if (toolbar) toolbar.style.display = 'flex';
+          if (normalProps) normalProps.style.display = 'none';
+          if (inspectorPanel) inspectorPanel.style.display = 'flex';
+          if (timelineBar) timelineBar.style.display = 'none';
+
+          if (!this.draftLayout) {
+            this.draftLayout = createDraftLayout(`custom-${Date.now().toString().slice(-4)}`, 'Bố Cục Tùy Biến');
+            this.draftLayout = addDraftBlock(this.draftLayout, {
+              id: 'title-heading',
+              type: 'text',
+              x: 120,
+              y: 80,
+              width: 900,
+              height: 120,
+              content: 'Tiêu Đề Bài Giảng Mới'
+            });
+            this.draftLayout = setElementSlotRole(this.draftLayout, 'title-heading', {
+              slotName: 'title',
+              role: 'slot',
+              constraints: { maxLength: 100, required: true }
+            });
+          }
+          this.activeBuilderElementId = this.draftLayout.elements[0]?.id || null;
+          this.renderBuilderCanvas();
+          this.renderBuilderInspector();
+        } else {
+          if (toggleBtn) {
+            toggleBtn.innerText = '🛠️ Chế Độ Builder';
+            toggleBtn.classList.remove('btn-primary');
+            toggleBtn.classList.add('btn-secondary');
+          }
+          if (toolbar) toolbar.style.display = 'none';
+          if (normalProps) normalProps.style.display = 'flex';
+          if (inspectorPanel) inspectorPanel.style.display = 'none';
+          if (timelineBar) timelineBar.style.display = 'flex';
+
+          this.renderAll();
+        }
+      }
+
+      addBuilderBlock(type) {
+        if (!this.draftLayout) return;
+        const count = (this.draftLayout.elements?.length || 0) + 1;
+        const newId = `${type}-${count}-${Date.now().toString().slice(-3)}`;
+        let defaultContent = '';
+        let w = 400, h = 160;
+
+        if (type === 'text') {
+          defaultContent = 'Đoạn văn bản mới...';
+          w = 600; h = 100;
+        } else if (type === 'card') {
+          defaultContent = 'Nội dung thẻ giải thích...';
+          w = 500; h = 240;
+        } else if (type === 'image') {
+          defaultContent = 'https://images.unsplash.com/photo-1507842229451-7f01be7fe7ab?w=800&q=80';
+          w = 560; h = 380;
+        } else if (type === 'badge') {
+          defaultContent = 'CHUYÊN ĐỀ SƯ PHẠM';
+          w = 220; h = 48;
+        } else if (type === 'decor') {
+          defaultContent = 'decorative-shape';
+          w = 300; h = 300;
+        } else if (type === 'video') {
+          defaultContent = 'video-clip';
+          w = 640; h = 360;
+        }
+
+        this.draftLayout = addDraftBlock(this.draftLayout, {
+          id: newId,
+          type,
+          x: 160 + (count % 5) * 40,
+          y: 160 + (count % 5) * 40,
+          width: w,
+          height: h,
+          content: defaultContent
+        });
+
+        if (type !== 'decor') {
+          this.draftLayout = setElementSlotRole(this.draftLayout, newId, {
+            slotName: type === 'image' || type === 'video' ? 'media' : (type === 'badge' ? 'badge' : 'body'),
+            role: 'slot'
+          });
+        }
+
+        this.activeBuilderElementId = newId;
+        this.renderBuilderCanvas();
+        this.renderBuilderInspector();
+      }
+
+      renderBuilderCanvas() {
+        const canvas = document.getElementById('live-canvas');
+        if (!canvas || !this.draftLayout) return;
+
+        canvas.innerHTML = '';
+        canvas.style.position = 'relative';
+        canvas.style.width = '1920px';
+        canvas.style.height = '1080px';
+        canvas.style.background = 'radial-gradient(#CBD5E1 1.5px, #F8FAFC 1.5px)';
+        canvas.style.backgroundSize = '16px 16px';
+
+        this.draftLayout.elements.forEach(el => {
+          const isSelected = el.id === this.activeBuilderElementId;
+          const box = document.createElement('div');
+          box.id = `builder-box-${el.id}`;
+          box.style.cssText = `
+            position: absolute;
+            left: ${el.x}px;
+            top: ${el.y}px;
+            width: ${el.width}px;
+            height: ${el.height}px;
+            border: 2px ${isSelected ? 'solid #0284C7' : 'dashed #94A3B8'};
+            background: ${isSelected ? 'rgba(224, 242, 254, 0.4)' : 'rgba(255, 255, 255, 0.85)'};
+            border-radius: 8px;
+            box-shadow: ${isSelected ? '0 8px 20px rgba(2, 132, 199, 0.25)' : '0 2px 6px rgba(0,0,0,0.06)'};
+            cursor: move;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            user-select: none;
+            transition: border-color 0.1s;
+          `;
+
+          const slot = this.draftLayout.slots?.find(s => s.targetElementId === el.id);
+          const roleLabel = slot ? `[Slot: ${slot.name}]` : '[Decor]';
+
+          box.innerHTML = `
+            <div style="background: ${isSelected ? '#0284C7' : '#475569'}; color: white; padding: 4px 8px; font-size: 11px; font-weight: 700; display: flex; justify-content: space-between; align-items: center;">
+              <span>${el.id} · ${roleLabel}</span>
+              <span style="font-size: 10px; opacity: 0.8;">${el.type}</span>
+            </div>
+            <div style="flex: 1; padding: 8px; font-size: 13px; color: #1E293B; overflow: hidden; display: flex; align-items: center; justify-content: center; text-align: center;">
+              ${el.type === 'image' 
+                ? `<img src="${el.content}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://placehold.co/400x300/e2e8f0/475569?text=Image';" />`
+                : (el.type === 'video' 
+                    ? `<div style="background: #0F172A; color: white; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 24px;">🎬 Video Block</div>`
+                    : `<div>${el.content || 'Khối nội dung trống'}</div>`)}
+            </div>
+          `;
+
+          box.onclick = (e) => {
+            e.stopPropagation();
+            this.activeBuilderElementId = el.id;
+            this.renderBuilderCanvas();
+            this.renderBuilderInspector();
+          };
+
+          let startX, startY, origX, origY;
+          box.onmousedown = (e) => {
+            if (e.button !== 0) return;
+            e.stopPropagation();
+            this.activeBuilderElementId = el.id;
+            this.renderBuilderInspector();
+
+            startX = e.clientX;
+            startY = e.clientY;
+            origX = el.x;
+            origY = el.y;
+
+            const onMouseMove = (moveEvent) => {
+              const dx = moveEvent.clientX - startX;
+              const dy = moveEvent.clientY - startY;
+              const scale = 0.5;
+              const newX = snapToGrid(origX + dx / scale, 8);
+              const newY = snapToGrid(origY + dy / scale, 8);
+              this.draftLayout = updateDraftBlock(this.draftLayout, el.id, { x: newX, y: newY });
+              box.style.left = `${newX}px`;
+              box.style.top = `${newY}px`;
+              this.updateInspectorCoords(newX, newY, el.width, el.height);
+            };
+
+            const onMouseUp = () => {
+              window.removeEventListener('mousemove', onMouseMove);
+              window.removeEventListener('mouseup', onMouseUp);
+              this.renderBuilderCanvas();
+            };
+
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('mouseup', onMouseUp);
+          };
+
+          canvas.appendChild(box);
+        });
+      }
+
+      updateInspectorCoords(x, y, w, h) {
+        const xIn = document.getElementById('builder-el-x');
+        const yIn = document.getElementById('builder-el-y');
+        const wIn = document.getElementById('builder-el-w');
+        const hIn = document.getElementById('builder-el-h');
+        if (xIn) xIn.value = x;
+        if (yIn) yIn.value = y;
+        if (wIn) wIn.value = w;
+        if (hIn) hIn.value = h;
+      }
+
+      renderBuilderInspector() {
+        const idIn = document.getElementById('builder-el-id');
+        const roleType = document.getElementById('builder-slot-role-type');
+        const slotNameSelect = document.getElementById('builder-slot-name-select');
+        const maxLenIn = document.getElementById('builder-constraint-max-len');
+        const reqCheck = document.getElementById('builder-constraint-required');
+        const animPreset = document.getElementById('builder-anim-preset');
+        const animDelay = document.getElementById('builder-anim-delay');
+        const animDur = document.getElementById('builder-anim-dur');
+
+        const el = this.draftLayout?.elements?.find(e => e.id === this.activeBuilderElementId);
+        if (!el) {
+          if (idIn) idIn.value = '(Chưa chọn khối nào)';
+          return;
+        }
+
+        if (idIn) idIn.value = el.id;
+        this.updateInspectorCoords(el.x, el.y, el.width, el.height);
+
+        const slot = this.draftLayout.slots?.find(s => s.targetElementId === el.id);
+        if (roleType) roleType.value = slot ? 'slot' : 'decor';
+        if (slotNameSelect && slot) slotNameSelect.value = slot.name || 'body';
+        if (maxLenIn && slot) maxLenIn.value = slot.constraints?.maxLength || 300;
+        if (reqCheck && slot) reqCheck.checked = slot.constraints?.required ?? true;
+
+        const anim = this.draftLayout.defaultAnimations?.find(a => a.target === `#${el.id}`);
+        if (animPreset && anim) animPreset.value = anim.preset || 'fade-in';
+        if (animDelay && anim) animDelay.value = anim.delay || 0.5;
+        if (animDur && anim) animDur.value = anim.duration || 1.0;
+      }
+
+      async saveDraftLayoutToPack() {
+        if (!this.draftLayout) return;
+        const validation = validateDraftLayout(this.draftLayout);
+        if (!validation.valid) {
+          alert('Không thể lưu layout:\n' + validation.errors.join('\n'));
+          return;
+        }
+
+        const packId = prompt('Nhập mã Template Pack muốn lưu vào (ví dụ: test-pack hoặc pack tùy biến):', 'custom-pack');
+        if (!packId) return;
+
+        if (packId === 'basic') {
+          alert('Bộ mẫu "basic" là read-only mặc định. Vui lòng lưu vào pack tùy biến (ví dụ: custom-pack).');
+          return;
+        }
+
+        const layoutPayload = exportLayoutForSave(this.draftLayout);
+        try {
+          const apiBase = window.API_BASE || (window.location.port === '8000' ? '' : 'http://localhost:8000');
+          const res = await fetch(`${apiBase}/packs/${packId}/layouts`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(layoutPayload)
+          });
+
+          if (!res.ok) {
+            const errTxt = await res.text();
+            throw new Error(`(${res.status}): ${errTxt}`);
+          }
+
+          const updatedPack = await res.json();
+          alert(`✅ Đã lưu layout "${layoutPayload.name}" thành công vào pack "${packId}"!`);
+          TemplateRegistry.register(updatedPack);
+          this.toggleBuilderMode(false);
+        } catch (err) {
+          alert('Lỗi lưu layout vào pack: ' + err.message);
+        }
+      }
+
+      createNewEmptyProject(force = false) {
+        if (!force && !confirm('Bạn có chắc muốn tạo bài giảng mới? Trạng thái hiện tại sẽ được làm sạch.')) return;
+        localStorage.removeItem('lecture_scene_state');
+        const projectId = 'proj-' + Math.random().toString(16).substring(2, 10);
+        this.scene = {
+          projectId: projectId,
+          title: 'Welcome !',
+          slides: [
+            {
+              slideId: 'slide-01',
+              templateId: 'title-slide',
+              layoutVariant: 'default',
+              title: 'Welcome !',
+              elements: [
+                {
+                  id: 'welcome-sub',
+                  type: 'text',
+                  role: 'body',
+                  content: 'Chào mừng bạn đến với AI Lecture Studio! Hãy bấm nút "Tải Tài Liệu (PPTX/PDF)" hoặc chọn "Bộ Mẫu" để bắt đầu soạn bài giảng chuyên nghiệp.'
+                },
+                {
+                  id: 'welcome-img',
+                  type: 'image',
+                  role: 'media',
+                  content: 'storage/projects/proj-1281288d/images/intro_cover.jpg'
+                }
+              ],
+              animations: [
+                { target: '.title-hero-heading', preset: 'zoom-in', delay: 0.2, duration: 1.0 },
+                { target: '.title-hero-content', preset: 'fade-in', delay: 0.5, duration: 1.0 }
+              ],
+              voice: {
+                narration: 'Chào mừng bạn đến với công cụ soạn bài giảng AI Lecture Studio! Hãy bắt đầu bằng cách tải tài liệu hoặc thêm slide mới.',
+                provider: 'vieneu',
+                durationSeconds: 5.0
+              },
+              durationSeconds: 6.0
+            }
+          ]
+        };
+        this.currentSlideIndex = 0;
+        this.history = [JSON.parse(JSON.stringify(this.scene))];
+        this.historyIndex = 0;
+        this.triggerAutosave();
+        this.renderAll();
+      }
+
+      async init() {
+        this.bindEvents();
+        this.initPresentationMode();
+
+        // Try local storage
+        const saved = localStorage.getItem('lecture_scene_state');
+        if (saved) {
+          try {
+            this.scene = JSON.parse(saved);
+          } catch(e) { this.scene = null; }
+        }
+
+        if (!this.scene) {
+          // Clean default state: Welcome !
+          this.createNewEmptyProject(true);
+        } else {
+          this.scene = migrateOnRead(this.scene);
+          this.history = [JSON.parse(JSON.stringify(this.scene))];
+          this.historyIndex = 0;
+          this.renderAll();
+        }
+      }
+
+      dispatch(action, actionName = 'Thay đổi dữ liệu') {
+        try {
+          const nextScene = sceneReducer(this.scene, action);
+          this.scene = nextScene;
+
+          // Push history for undo/redo
+          if (this.historyIndex < this.history.length - 1) {
+            this.history = this.history.slice(0, this.historyIndex + 1);
+          }
+          this.history.push(JSON.parse(JSON.stringify(this.scene)));
+          this.historyIndex = this.history.length - 1;
+
+          this.triggerAutosave();
+          this.renderAll();
+        } catch (err) {
+          console.error(`Dispatch failed [${action.type}]:`, err);
+          alert(`Lỗi thay đổi trạng thái: ${err.message}`);
+        }
+      }
+
+      undo() {
+        if (this.historyIndex > 0) {
+          this.historyIndex--;
+          this.scene = JSON.parse(JSON.stringify(this.history[this.historyIndex]));
+          this.triggerAutosave();
+          this.renderAll();
+        }
+      }
+
+      redo() {
+        if (this.historyIndex < this.history.length - 1) {
+          this.historyIndex++;
+          this.scene = JSON.parse(JSON.stringify(this.history[this.historyIndex]));
+          this.triggerAutosave();
+          this.renderAll();
+        }
+      }
+
+      triggerAutosave() {
+        const statusEl = document.getElementById('save-status');
+        if (statusEl) {
+          statusEl.innerText = '● Đang lưu...';
+          statusEl.className = 'save-indicator saving';
+        }
+
+        clearTimeout(this.saveTimeout);
+        this.saveTimeout = setTimeout(async () => {
+          localStorage.setItem('lecture_scene_state', JSON.stringify(this.scene));
+          try {
+            await fetch(`${API_BASE}/projects/${this.scene.projectId || 'sample'}/scene`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(this.scene)
+            });
+          } catch (e) {
+            // Local fallback graceful pass
+          }
+          if (statusEl) {
+            statusEl.innerText = '● Đã lưu';
+            statusEl.className = 'save-indicator saved';
+          }
+        }, 500);
+      }
+
+      getCurrentSlide() {
+        if (!this.scene || !this.scene.slides) return null;
+        return this.scene.slides[this.currentSlideIndex];
+      }
+
+      setSlideIndex(idx) {
+        if (this.scene && idx >= 0 && idx < this.scene.slides.length) {
+          this.currentSlideIndex = idx;
+          this.stopSlideTimeline();
+          this.renderAll();
+        }
+      }
+
+      renderAll() {
+        this.renderNavbar();
+        this.renderSlideList();
+        this.renderCanvas();
+        this.renderProperties();
+        this.setupSlideTimeline();
+        this.updatePedagogyReview();
+      }
+
+      renderNavbar() {
+        const titleInput = document.getElementById('project-title-input');
+        if (titleInput && this.scene.title) {
+          titleInput.value = this.scene.title;
+        }
+
+        const btnUndo = document.getElementById('btn-undo');
+        const btnRedo = document.getElementById('btn-redo');
+        if (btnUndo) btnUndo.disabled = this.historyIndex <= 0;
+        if (btnRedo) btnRedo.disabled = this.historyIndex >= this.history.length - 1;
+
+        // Export button lock when audio job runs
+        ['btn-export-pdf', 'btn-export-pptx', 'btn-export-mp4'].forEach(id => {
+          const btn = document.getElementById(id);
+          if (btn) btn.disabled = this.isAudioJobRunning;
+        });
+      }
+
+      renderSlideList() {
+        const container = document.getElementById('slide-list-container');
+        if (!container || !this.scene) return;
+        container.innerHTML = '';
+
+        const totalSecs = Math.round((this.scene.totalDurationSeconds || recomputeTotalDuration(this.scene.slides)) * 10) / 10;
+        const countLabel = document.getElementById('deck-count-label');
+        if (countLabel) {
+          const mins = Math.floor(totalSecs / 60);
+          const secs = Math.floor(totalSecs % 60);
+          countLabel.innerText = `Slide (${this.scene.slides.length}) · ⏱️ ${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+        }
+
+        this.scene.slides.forEach((s, idx) => {
+          const item = document.createElement('div');
+          item.className = `slide-card-item ${idx === this.currentSlideIndex ? 'active' : ''}`;
+          item.innerHTML = `
+            <div class="slide-card-actions">
+              ${idx > 0 ? `<button class="card-action-btn btn-move-up" title="Lên trên">▲</button>` : ''}
+              ${idx < this.scene.slides.length - 1 ? `<button class="card-action-btn btn-move-down" title="Xuống dưới">▼</button>` : ''}
+              <button class="card-action-btn btn-dup-slide" title="Nhân bản">⎘</button>
+              ${this.scene.slides.length > 1 ? `<button class="card-action-btn delete btn-del-slide" title="Xóa slide">✕</button>` : ''}
+            </div>
+            <div class="slide-card-meta">
+              <span>#${String(idx + 1).padStart(2, '0')} · ${s.templateId}</span>
+              <span>${s.durationSeconds || 16}s</span>
+            </div>
+            <div class="slide-card-title">${s.title || s.slotValues?.title || s.slotValues?.heading || `Slide ${idx + 1}`}</div>
+            <div class="slide-card-sub">
+              <span>🎙️ ${s.voice?.durationSeconds || 0}s</span>
+              <span>✦ ${s.layoutVariant || 'default'}</span>
+            </div>
+          `;
+
+          // Card selection
+          item.onclick = (e) => {
+            if (e.target.closest('.card-action-btn')) return;
+            this.setSlideIndex(idx);
+          };
+
+          // Move Up
+          const upBtn = item.querySelector('.btn-move-up');
+          if (upBtn) {
+            upBtn.onclick = (e) => {
+              e.stopPropagation();
+              this.dispatch({ type: 'REORDER_SLIDES', payload: { fromIndex: idx, toIndex: idx - 1 } }, 'Di chuyển slide lên');
+              this.setSlideIndex(idx - 1);
+            };
+          }
+
+          // Move Down
+          const downBtn = item.querySelector('.btn-move-down');
+          if (downBtn) {
+            downBtn.onclick = (e) => {
+              e.stopPropagation();
+              this.dispatch({ type: 'REORDER_SLIDES', payload: { fromIndex: idx, toIndex: idx + 1 } }, 'Di chuyển slide xuống');
+              this.setSlideIndex(idx + 1);
+            };
+          }
+
+          // Duplicate
+          const dupBtn = item.querySelector('.btn-dup-slide');
+          if (dupBtn) {
+            dupBtn.onclick = (e) => {
+              e.stopPropagation();
+              const clone = JSON.parse(JSON.stringify(s));
+              clone.slideId = `slide-${Date.now().toString().slice(-4)}`;
+              clone.title += ' (Bản sao)';
+              this.dispatch({ type: 'ADD_SLIDE', payload: { index: idx + 1, slide: clone } }, 'Nhân bản slide');
+              this.setSlideIndex(idx + 1);
+            };
+          }
+
+          // Delete
+          const delBtn = item.querySelector('.btn-del-slide');
+          if (delBtn) {
+            delBtn.onclick = (e) => {
+              e.stopPropagation();
+              if (confirm(`Bạn có chắc muốn xóa slide #${idx + 1}?`)) {
+                this.dispatch({ type: 'DELETE_SLIDE', payload: { slideIndex: idx } }, 'Xóa slide');
+                if (this.currentSlideIndex >= this.scene.slides.length) {
+                  this.currentSlideIndex = Math.max(0, this.scene.slides.length - 1);
+                }
+                this.renderAll();
+              }
+            };
+          }
+
+          container.appendChild(item);
+        });
+
+        const indicator = document.getElementById('canvas-slide-indicator');
+        if (indicator) {
+          indicator.innerText = `Slide ${this.currentSlideIndex + 1} / ${this.scene.slides.length}`;
+        }
+      }
+
+      renderCanvas() {
+        const canvas = document.getElementById('live-canvas');
+        if (!canvas) return;
+        const slide = this.getCurrentSlide();
+        if (!slide) return;
+
+        canvas.innerHTML = renderSlide(slide, 0, 0);
+
+        const badge = document.getElementById('canvas-template-badge');
+        if (badge) badge.innerText = `${slide.templateId} (${slide.layoutVariant || 'default'})`;
+
+        // Direct Text Editing on Canvas
+        const textElements = canvas.querySelectorAll(`
+          .slide-title, .title-hero-sub, .concept-quote,
+          .breakdown-title, .breakdown-body, .timeline-event-title,
+          .timeline-event-desc, .formula-display-box, .formula-note-text,
+          .question-txt, .quiz-opt-text, .objective-text, .summary-bullet-text
+        `);
+
+        textElements.forEach(el => {
+          el.setAttribute('contenteditable', 'true');
+          el.setAttribute('spellcheck', 'false');
+
+          el.onblur = (e) => {
+            const newText = e.target.innerText.trim();
+            if (el.classList.contains('slide-title')) {
+              if (slide.title !== newText) {
+                this.dispatch({
+                  type: 'UPDATE_SLIDE',
+                  payload: { slideIndex: this.currentSlideIndex, changes: { title: newText } }
+                }, 'Sửa tiêu đề slide');
+              }
+            } else if (el.classList.contains('title-hero-sub')) {
+              if (slide.subtitle !== newText) {
+                this.dispatch({
+                  type: 'UPDATE_SLIDE',
+                  payload: { slideIndex: this.currentSlideIndex, changes: { subtitle: newText } }
+                }, 'Sửa phụ đề slide');
+              }
+            } else if (el.classList.contains('concept-quote')) {
+              const def = slide.elements.find(x => x.type === 'card' || x.type === 'text');
+              if (def) {
+                this.dispatch({
+                  type: 'UPDATE_ELEMENT',
+                  payload: { slideIndex: this.currentSlideIndex, elementId: def.id, changes: { content: newText.replace(/^[“”"]|[“”"]$/g, '') } }
+                }, 'Sửa định nghĩa');
+              }
+            }
+          };
+        });
+
+        // Clickable Images
+        const images = canvas.querySelectorAll('img');
+        images.forEach(img => {
+          img.classList.add('editable-image');
+          img.title = 'Click để thay đổi ảnh minh họa';
+          img.onclick = () => {
+            this.activeImageTargetId = img.id;
+            this.openImageModal(img.src);
+          };
+        });
+
+        // Setup GSAP animation timeline for this slide
+        this.setupSlideTimeline();
+      }
+
+      renderProperties() {
+        const slide = this.getCurrentSlide();
+        if (!slide) return;
+
+        // Template Selector
+        const templateSelect = document.getElementById('prop-template-select');
+        if (templateSelect) templateSelect.value = slide.templateId || 'concept-explain';
+
+        // Layout Variants
+        const pills = document.querySelectorAll('#variant-pills-container .variant-pill');
+        const currentVariant = slide.layoutVariant || 'default';
+        pills.forEach(pill => {
+          if (pill.dataset.variant === currentVariant) pill.classList.add('active');
+          else pill.classList.remove('active');
+        });
+
+        // Narration & Counts
+        const narrationInput = document.getElementById('prop-narration-input');
+        if (narrationInput) {
+          narrationInput.value = slide.voice?.narration || '';
+          this.updateNarrationStats(narrationInput.value);
+        }
+
+        // Voice Select
+        const voiceSelect = document.getElementById('prop-voice-select');
+        if (voiceSelect && slide.voice?.voiceId) {
+          voiceSelect.value = slide.voice.voiceId;
+        }
+
+        // Audio Duration labels
+        const voiceDur = slide.voice?.durationSeconds || 0;
+        const slideDur = slide.durationSeconds || 16.0;
+        const voiceDurLabel = document.getElementById('voice-duration-label');
+        const slideDurLabel = document.getElementById('slide-duration-label');
+        if (voiceDurLabel) voiceDurLabel.innerText = `🎙️ Audio: ${voiceDur}s`;
+        if (slideDurLabel) slideDurLabel.innerText = `⏱️ Slide: ${slideDur}s (Audio + 1.0s)`;
+
+        // Audio Player
+        const audioEl = document.getElementById('slide-audio-player');
+        if (audioEl) {
+          if (slide.voice?.audioUrl) {
+            audioEl.src = slide.voice.audioUrl;
+            audioEl.style.display = 'block';
+            audioEl.onerror = () => {
+              audioEl.style.display = 'none';
+            };
+          } else {
+            audioEl.removeAttribute('src');
+            audioEl.style.display = 'none';
+          }
+        }
+
+        // Notes
+        const notesInput = document.getElementById('prop-notes-input');
+        if (notesInput) notesInput.value = slide.notes || '';
+
+        // Media Strip (P4.3)
+        this.renderMediaStrip(slide);
+
+        // Video Component Inspector (P6.3)
+        this.renderVideoInspector(slide);
+
+        // Animations list
+        this.renderAnimationsList(slide);
+      }
+
+      renderVideoInspector(slide) {
+        const vidSection = document.getElementById('video-component-section');
+        if (!vidSection) return;
+
+        const vidEl = slide.elements?.find(e => e.type === 'video');
+        if (!vidEl) {
+          vidSection.style.display = 'none';
+          return;
+        }
+
+        vidSection.style.display = 'block';
+        const srcInput = document.getElementById('video-src-input');
+        const trimStartInput = document.getElementById('video-trim-start');
+        const trimEndInput = document.getElementById('video-trim-end');
+        const volSlider = document.getElementById('video-volume-slider');
+        const volVal = document.getElementById('video-volume-val');
+        const duckingCheck = document.getElementById('video-ducking-checkbox');
+
+        if (srcInput) srcInput.value = vidEl.content || '';
+        if (trimStartInput) trimStartInput.value = vidEl.trimStart ?? 0.0;
+        if (trimEndInput) trimEndInput.value = vidEl.trimEnd ?? (slide.durationSeconds || 16.0);
+        const curVol = vidEl.volume ?? 1.0;
+        if (volSlider) volSlider.value = curVol;
+        if (volVal) volVal.innerText = `${Math.round(curVol * 100)}%`;
+        if (duckingCheck) duckingCheck.checked = vidEl.ducking !== false;
+      }
+
+      syncVideoTime(time) {
+        const vid = document.querySelector('#live-canvas video');
+        if (!vid) return;
+        const trimStart = parseFloat(vid.getAttribute('data-media-start') || '0');
+        const trimEnd = parseFloat(vid.getAttribute('data-media-end') || String(vid.duration || 9999));
+        const targetTime = trimStart + time;
+        if (targetTime <= trimEnd) {
+          vid.currentTime = targetTime;
+        }
+      }
+
+      async renderMediaStrip(slide) {
+        const badge = document.getElementById('media-visual-need-badge');
+        const grid = document.getElementById('media-recommendations-grid');
+        if (badge) badge.innerText = slide.visualNeed || 'auto';
+        if (!grid) return;
+
+        grid.innerHTML = '<div style="font-size: 11px; color: var(--text-sub); grid-column: span 2;">Đang nạp gợi ý...</div>';
+
+        let candidates = [];
+        try {
+          const apiBase = window.API_BASE || (window.location.port === '8000' ? '' : 'http://localhost:8000');
+          const res = await fetch(`${apiBase}/projects/${this.scene.projectId || 'demo'}/media-recommendations/${slide.slideId}`);
+          if (res.ok) {
+            candidates = await res.json();
+          }
+        } catch (e) {
+          // Fallback to rich default candidates
+        }
+
+        if (!Array.isArray(candidates) || candidates.length === 0) {
+          candidates = [
+            {
+              url: 'storage/projects/proj-1281288d/images/rect_geometry.jpg',
+              type: 'document',
+              label: '📐 Hình Chữ Nhật'
+            },
+            {
+              url: 'storage/projects/proj-1281288d/images/grid_area.jpg',
+              type: 'diagram',
+              label: '📊 Lưới Diện Tích (Grid)'
+            },
+            {
+              url: 'storage/projects/proj-1281288d/images/area_vs_perimeter.svg',
+              type: 'vector',
+              label: '⚡ Sơ Đồ Vector SVG'
+            },
+            {
+              url: 'storage/projects/proj-1281288d/images/intro_cover.jpg',
+              type: 'stock',
+              label: '🎨 Minh Họa Nghệ Thuật'
+            }
+          ];
+        }
+
+        grid.innerHTML = '';
+        candidates.slice(0, 4).forEach(c => {
+          const card = document.createElement('div');
+          card.style.cssText = `
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            overflow: hidden;
+            cursor: pointer;
+            background: white;
+            transition: all 0.15s;
+            position: relative;
+          `;
+          card.innerHTML = `
+            <img src="${c.url}" style="width: 100%; height: 60px; object-fit: cover; display: block;" onerror="this.src='https://placehold.co/400x300/e2e8f0/475569?text=Image';" />
+            <div style="padding: 4px; font-size: 10px; font-weight: 600; text-align: center; background: #F8FAFC; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              ${c.label || c.type || 'Ứng viên'}
+            </div>
+          `;
+          card.onmouseenter = () => { card.style.borderColor = 'var(--primary)'; card.style.transform = 'scale(1.02)'; };
+          card.onmouseleave = () => { card.style.borderColor = 'var(--border-color)'; card.style.transform = 'scale(1)'; };
+          card.onclick = () => {
+            this.dispatch({
+              type: 'SET_MEDIA_SLOT',
+              payload: {
+                slideIndex: this.currentSlideIndex,
+                mediaUrl: c.url,
+                variant: slide.layoutVariant === 'no-image' ? 'default' : slide.layoutVariant
+              }
+            }, 'Áp dụng ảnh gợi ý 1-chạm');
+          };
+          grid.appendChild(card);
+        });
+      }
+
+      updateNarrationStats(text) {
+        const words = text ? text.trim().split(/\s+/).filter(Boolean).length : 0;
+        const chars = text ? text.length : 0;
+        const estSecs = Math.max(1, Math.round(words / 3.2)); // ~3.2 Vietnamese words/second
+
+        const charEl = document.getElementById('narration-char-count');
+        const estEl = document.getElementById('narration-est-time');
+        if (charEl) charEl.innerText = `${words} từ · ${chars} ký tự`;
+        if (estEl) estEl.innerText = `Ước tính: ~${estSecs}s`;
+      }
+
+      renderAnimationsList(slide) {
+        const container = document.getElementById('anim-list-container');
+        if (!container) return;
+        container.innerHTML = '';
+
+        // Bind quick animation buttons
+        document.querySelectorAll('.btn-quick-anim').forEach(btn => {
+          btn.onclick = () => {
+            const preset = btn.getAttribute('data-preset');
+            let target = '.slide-title';
+            if (slide.templateId === 'title-slide') target = '.title-hero-heading';
+            else if (slide.templateId === 'concept-explain') target = '.concept-card';
+            else if (slide.templateId === 'image-explain') target = '.explain-image-wrap';
+            else if (slide.templateId === 'bullet-breakdown') target = '.breakdown-card';
+
+            this.dispatch({
+              type: 'ADD_ANIMATION',
+              payload: {
+                slideIndex: this.currentSlideIndex,
+                animation: {
+                  target: target,
+                  preset: preset,
+                  delay: 0.3,
+                  duration: 1.0,
+                  easing: 'power2.out'
+                }
+              }
+            }, `Thêm hiệu ứng ${preset}`);
+            setTimeout(() => this.playSlideTimeline(), 200);
+          };
+        });
+
+        const getTargetLabel = (target) => {
+          if (!target) return 'Toàn bộ slide';
+          if (target.includes('title') || target.includes('heading')) return '📌 Tiêu đề chính';
+          if (target.includes('sub')) return '📝 Phụ đề / Tóm tắt';
+          if (target.includes('image') || target.includes('media')) return '🖼️ Khung hình ảnh';
+          if (target.includes('concept') || target.includes('card') || target.includes('explain')) return '📑 Khung nội dung';
+          if (target.includes('breakdown')) return '📊 Thẻ luận điểm';
+          if (target.includes('bullet') || target.includes('summary')) return '⭐ Mục tổng kết';
+          return target;
+        };
+
+        const PRESET_LABELS = {
+          'fade-in': '🌟 Hiện Mượt (Fade In)',
+          'slide-in': '🚀 Trượt Vào (Slide In)',
+          'zoom-in': '🎯 Phóng To (Zoom In)',
+          'typewriter': '⌨️ Đánh Máy (Typewriter)',
+          'step-by-step': '⏱️ Từng Bước (Step)'
+        };
+
+        if (!slide.animations || slide.animations.length === 0) {
+          container.innerHTML = `<div style="font-size: 12px; color: #94A3B8; font-style: italic;">Chưa có hiệu ứng riêng. Bấm các nút hiệu ứng 1-chạm ở trên để thêm.</div>`;
+          return;
+        }
+
+        slide.animations.forEach((anim, aIdx) => {
+          const row = document.createElement('div');
+          row.className = 'anim-row';
+          row.innerHTML = `
+            <div class="anim-row-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <span style="color: var(--primary); font-weight: 700; font-size: 12px;">${getTargetLabel(anim.target)}</span>
+              <button class="card-action-btn delete btn-del-anim" style="width: 18px; height: 18px;" title="Xóa hiệu ứng này">✕</button>
+            </div>
+            <div class="anim-controls-grid">
+              <select class="prop-select anim-preset-select" style="padding: 4px 6px; font-size: 11px;">
+                ${ALLOWED_PRESETS.map(p => `<option value="${p}" ${p === anim.preset ? 'selected' : ''}>${PRESET_LABELS[p] || p}</option>`).join('')}
+              </select>
+              <input type="number" step="0.1" min="0" class="prop-input anim-delay-input" value="${anim.delay || 0}" title="Trễ (giây)" placeholder="Trễ (s)" style="padding: 4px 6px; font-size: 11px;" />
+              <input type="number" step="0.1" min="0.1" class="prop-input anim-duration-input" value="${anim.duration || 1.0}" title="Thời lượng (giây)" placeholder="Thời lượng (s)" style="padding: 4px 6px; font-size: 11px;" />
+            </div>
+          `;
+
+          row.querySelector('.btn-del-anim').onclick = () => {
+            this.dispatch({
+              type: 'REMOVE_ANIMATION',
+              payload: { slideIndex: this.currentSlideIndex, animIndex: aIdx }
+            }, 'Xóa hiệu ứng');
+          };
+
+          row.querySelector('.anim-preset-select').onchange = (e) => {
+            this.dispatch({
+              type: 'SET_ANIMATION',
+              payload: { slideIndex: this.currentSlideIndex, animIndex: aIdx, animation: { preset: e.target.value } }
+            }, 'Đổi preset hiệu ứng');
+          };
+
+          row.querySelector('.anim-delay-input').onchange = (e) => {
+            this.dispatch({
+              type: 'SET_ANIMATION',
+              payload: { slideIndex: this.currentSlideIndex, animIndex: aIdx, animation: { delay: parseFloat(e.target.value) || 0 } }
+            }, 'Đổi delay hiệu ứng');
+          };
+
+          row.querySelector('.anim-duration-input').onchange = (e) => {
+            this.dispatch({
+              type: 'SET_ANIMATION',
+              payload: { slideIndex: this.currentSlideIndex, animIndex: aIdx, animation: { duration: parseFloat(e.target.value) || 1.0 } }
+            }, 'Đổi thời lượng hiệu ứng');
+          };
+
+          container.appendChild(row);
+        });
+      }
+
+      setupSlideTimeline() {
+        const slide = this.getCurrentSlide();
+        if (!slide) return;
+
+        const canvas = document.getElementById('live-canvas');
+        this.currentTimeline = buildGsapTimelineForSlide(slide, canvas);
+
+        // Chế độ Studio WYSIWYG: hiển thị slide ở trạng thái hoàn thiện để giảng viên biên tập trực quan
+        if (this.currentTimeline) {
+          this.currentTimeline.progress(1);
+        }
+
+        const slider = document.getElementById('timeline-slider');
+        const maxDur = slide.durationSeconds || 16.0;
+        if (slider) {
+          slider.max = maxDur;
+          slider.value = 0;
+        }
+
+        const totalTimeEl = document.getElementById('time-total');
+        const curTimeEl = document.getElementById('time-current');
+        if (totalTimeEl) totalTimeEl.innerText = this.formatSeconds(maxDur);
+        if (curTimeEl) curTimeEl.innerText = '00:00.0';
+
+        if (this.currentTimeline) {
+          this.currentTimeline.eventCallback('onUpdate', () => {
+            if (slider && this.currentTimeline) {
+              const time = this.currentTimeline.time();
+              slider.value = time;
+              if (curTimeEl) curTimeEl.innerText = this.formatSeconds(time);
+              this.syncVideoTime(time);
+            }
+          });
+          this.currentTimeline.eventCallback('onComplete', () => {
+            this.isPlaying = false;
+            const playBtn = document.getElementById('btn-timeline-play');
+            if (playBtn) playBtn.innerText = '▶';
+            const vid = document.querySelector('#live-canvas video');
+            if (vid) vid.pause();
+          });
+        }
+      }
+
+      playSlideTimeline() {
+        if (!this.currentTimeline) return;
+        this.isPlaying = true;
+        // Nếu đang ở cuối timeline hoặc vừa vào slide thì phát lại từ đầu
+        if (this.currentTimeline.progress() >= 1 || this.currentTimeline.time() === 0) {
+          this.currentTimeline.restart();
+        } else {
+          this.currentTimeline.play();
+        }
+        const playBtn = document.getElementById('btn-timeline-play');
+        if (playBtn) playBtn.innerText = '⏸';
+
+        const vid = document.querySelector('#live-canvas video');
+        if (vid) vid.play().catch(() => {});
+      }
+
+      pauseSlideTimeline() {
+        if (!this.currentTimeline) return;
+        this.isPlaying = false;
+        this.currentTimeline.pause();
+        const playBtn = document.getElementById('btn-timeline-play');
+        if (playBtn) playBtn.innerText = '▶';
+
+        const vid = document.querySelector('#live-canvas video');
+        if (vid) vid.pause();
+      }
+
+      stopSlideTimeline() {
+        if (!this.currentTimeline) return;
+        this.isPlaying = false;
+        // Trả về trạng thái hiển thị đầy đủ để giảng viên chỉnh sửa
+        this.currentTimeline.progress(1);
+        const playBtn = document.getElementById('btn-timeline-play');
+        const slider = document.getElementById('timeline-slider');
+        const curTimeEl = document.getElementById('time-current');
+        if (playBtn) playBtn.innerText = '▶';
+        if (slider) slider.value = 0;
+        if (curTimeEl) curTimeEl.innerText = '00:00.0';
+
+        const vid = document.querySelector('#live-canvas video');
+        if (vid) {
+          vid.pause();
+          const trimStart = parseFloat(vid.getAttribute('data-media-start') || '0');
+          vid.currentTime = trimStart;
+        }
+      }
+
+      formatSeconds(s) {
+        const mins = Math.floor(s / 60);
+        const secs = (s % 60).toFixed(1);
+        return `${String(mins).padStart(2, '0')}:${secs.padStart(4, '0')}`;
+      }
+
+      openImageModal(currentSrc) {
+        const modal = document.getElementById('image-modal');
+        const input = document.getElementById('modal-img-url');
+        if (input) input.value = currentSrc || '';
+        if (modal) modal.classList.add('open');
+      }
+
+      closeImageModal() {
+        const modal = document.getElementById('image-modal');
+        if (modal) modal.classList.remove('open');
+      }
+
+      async sendSlideChatInstruction() {
+        const input = document.getElementById('slide-chat-input');
+        const loading = document.getElementById('slide-chat-loading');
+        const diffBox = document.getElementById('slide-chat-diff-box');
+        const diffContent = document.getElementById('slide-chat-diff-content');
+        const expLabel = document.getElementById('slide-chat-explanation');
+
+        if (!input) return;
+        const instruction = input.value.trim();
+        if (!instruction) return;
+
+        const slide = this.getCurrentSlide();
+        if (!slide) return;
+
+        if (loading) loading.style.display = 'block';
+        if (diffBox) diffBox.style.display = 'none';
+
+        const apiBase = window.API_BASE || (window.location.port === '8000' ? '' : 'http://localhost:8000');
+        let result = null;
+
+        try {
+          const res = await fetch(`${apiBase}/projects/${this.scene.projectId || 'demo'}/slides/${slide.slideId}/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ instruction })
+          });
+          if (res.ok) {
+            result = await res.json();
+          }
+        } catch (e) {
+          // Network error or offline
+        }
+
+        // Mock fallback if API not reachable
+        if (!result || !result.patch) {
+          const currentTitle = slide.slotValues?.title || slide.title || 'Tiêu đề';
+          const newTitle = instruction.toLowerCase().includes('rút gọn')
+            ? currentTitle.split(' ').slice(0, 5).join(' ')
+            : `${currentTitle} (AI cập nhật)`;
+
+          result = {
+            slideId: slide.slideId,
+            patch: {
+              slotValues: {
+                title: newTitle
+              }
+            },
+            diff: {
+              title: {
+                from: currentTitle,
+                to: newTitle
+              }
+            },
+            explanation: `Đã cập nhật theo yêu cầu: "${instruction}"`,
+            regenerateVoice: false
+          };
+        }
+
+        if (loading) loading.style.display = 'none';
+        this.pendingChatPatch = result;
+
+        if (expLabel) expLabel.innerText = result.explanation || '';
+        if (diffContent) {
+          diffContent.innerHTML = '';
+          const diffEntries = Object.entries(result.diff || {});
+          if (diffEntries.length === 0) {
+            diffContent.innerHTML = '<div style="color: #64748B;">Không có trường nào thay đổi.</div>';
+          } else {
+            diffEntries.forEach(([field, delta]) => {
+              const item = document.createElement('div');
+              item.style.cssText = 'margin-bottom: 6px; padding: 4px; background: #F8FAFC; border-radius: 4px; border: 1px solid #E2E8F0;';
+              item.innerHTML = `
+                <div style="font-weight: 700; color: #334155; margin-bottom: 2px;">Slot: <code>${field}</code></div>
+                <div style="color: #DC2626; text-decoration: line-through; font-size: 10px; background: #FEF2F2; padding: 2px 4px; border-radius: 3px; margin-bottom: 2px;">
+                  - ${delta.from || '(trống)'}
+                </div>
+                <div style="color: #16A34A; font-weight: 600; font-size: 10px; background: #F0FDF4; padding: 2px 4px; border-radius: 3px;">
+                  + ${delta.to || '(trống)'}
+                </div>
+              `;
+              diffContent.appendChild(item);
+            });
+          }
+        }
+        if (diffBox) diffBox.style.display = 'block';
+      }
+
+      applySlideChatPatch() {
+        if (!this.pendingChatPatch || !this.pendingChatPatch.patch) return;
+        this.dispatch({
+          type: 'APPLY_SLIDE_CHAT_PATCH',
+          payload: {
+            slideIndex: this.currentSlideIndex,
+            patch: this.pendingChatPatch.patch
+          }
+        }, 'Áp dụng sửa đổi AI Copilot');
+
+        this.discardSlideChatPatch();
+      }
+
+      discardSlideChatPatch() {
+        this.pendingChatPatch = null;
+        const diffBox = document.getElementById('slide-chat-diff-box');
+        const input = document.getElementById('slide-chat-input');
+        if (diffBox) diffBox.style.display = 'none';
+        if (input) input.value = '';
+      }
+
+      openPedagogyModal() {
+        this.updatePedagogyReview();
+        const modal = document.getElementById('pedagogy-modal');
+        if (modal) modal.classList.add('open');
+      }
+
+      closePedagogyModal() {
+        const modal = document.getElementById('pedagogy-modal');
+        if (modal) modal.classList.remove('open');
+      }
+
+      updatePedagogyReview() {
+        if (!this.scene) return;
+        const report = auditDeckQuality(this.scene);
+
+        // Update topbar badge
+        const badge = document.getElementById('pedagogy-badge');
+        if (badge) {
+          badge.innerText = `${report.score}%`;
+          if (report.score >= 85) {
+            badge.style.background = '#16A34A';
+          } else if (report.score >= 60) {
+            badge.style.background = '#D97706';
+          } else {
+            badge.style.background = '#E11D48';
+          }
+        }
+
+        // Update modal summary
+        const scoreVal = document.getElementById('pedagogy-score-val');
+        const ratingLabel = document.getElementById('pedagogy-rating-label');
+        const errorCount = document.getElementById('pedagogy-error-count');
+        const warnCount = document.getElementById('pedagogy-warning-count');
+        const passCount = document.getElementById('pedagogy-passed-count');
+
+        if (scoreVal) scoreVal.innerText = report.score;
+        if (ratingLabel) {
+          if (report.score >= 90) {
+            ratingLabel.innerText = 'Xuất Sắc';
+            ratingLabel.style.color = '#16A34A';
+          } else if (report.score >= 75) {
+            ratingLabel.innerText = 'Tốt';
+            ratingLabel.style.color = '#0284C7';
+          } else if (report.score >= 50) {
+            ratingLabel.innerText = 'Cần Cải Thiện';
+            ratingLabel.style.color = '#D97706';
+          } else {
+            ratingLabel.innerText = 'Chưa Đạt';
+            ratingLabel.style.color = '#E11D48';
+          }
+        }
+
+        if (errorCount) errorCount.innerText = report.summary.errors;
+        if (warnCount) warnCount.innerText = report.summary.warnings;
+        if (passCount) passCount.innerText = report.summary.passedSlides;
+
+        // Render table rows
+        const tbody = document.getElementById('pedagogy-issues-tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        if (report.issues.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="4" style="text-align: center; padding: 24px; color: #16A34A; font-weight: 600;">
+                🎉 Tuyệt vời! Toàn bộ slide đều đạt chuẩn chất lượng sư phạm cao.
+              </td>
+            </tr>`;
+          return;
+        }
+
+        const ruleLabels = {
+          TEXT_DENSITY_HIGH: '📄 Mật độ chữ cao',
+          READING_SPEED_FAST: '⚡ Tốc độ đọc nhanh',
+          READING_SPEED_SLOW: '🐢 Tốc độ đọc chậm',
+          SLIDE_TOO_SHORT: '⏱️ Slide quá ngắn',
+          SLIDE_TOO_LONG: '⏳ Slide quá dài',
+          MISSING_ALT_TEXT: '♿ Thiếu Alt Text',
+          SLIDE_EMPTY: '⚠️ Slide rỗng'
+        };
+
+        report.issues.forEach(issue => {
+          const tr = document.createElement('tr');
+          tr.style.cssText = 'border-bottom: 1px solid #E2E8F0;';
+
+          const levelColor = issue.level === 'error' ? '#E11D48' : (issue.level === 'warning' ? '#D97706' : '#0284C7');
+          const levelBg = issue.level === 'error' ? '#FFF1F2' : (issue.level === 'warning' ? '#FFFBEB' : '#F0F9FF');
+
+          tr.innerHTML = `
+            <td style="padding: 8px 10px; font-weight: 700; color: #334155;">Slide ${issue.slideIndex + 1}</td>
+            <td style="padding: 8px 10px;">
+              <span style="display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; background: ${levelBg}; color: ${levelColor};">
+                ${ruleLabels[issue.rule] || issue.rule}
+              </span>
+            </td>
+            <td style="padding: 8px 10px; color: #475569; line-height: 1.4;">${issue.message}</td>
+            <td style="padding: 8px 10px; text-align: right;">
+              <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px; font-weight: 600;">
+                Đến Slide ➜
+              </button>
+            </td>
+          `;
+
+          const jumpBtn = tr.querySelector('button');
+          if (jumpBtn) {
+            jumpBtn.onclick = () => {
+              this.closePedagogyModal();
+              this.setSlideIndex(issue.slideIndex);
+            };
+          }
+
+          tbody.appendChild(tr);
+        });
+      }
+
+      bindEvents() {
+        // Project title edit
+        const titleInput = document.getElementById('project-title-input');
+        if (titleInput) {
+          titleInput.onblur = (e) => {
+            this.scene.title = e.target.value.trim();
+            this.triggerAutosave();
+          };
+        }
+
+        // Undo / Redo
+        document.getElementById('btn-undo').onclick = () => this.undo();
+        document.getElementById('btn-redo').onclick = () => this.redo();
+
+        // Prev / Next slide
+        document.getElementById('btn-prev-slide').onclick = () => this.setSlideIndex(this.currentSlideIndex - 1);
+        document.getElementById('btn-next-slide').onclick = () => this.setSlideIndex(this.currentSlideIndex + 1);
+
+        // Add Slide
+        document.getElementById('btn-add-slide').onclick = () => {
+          const newSlide = {
+            slideId: `slide-${Date.now().toString().slice(-4)}`,
+            templateId: 'concept-explain',
+            layoutVariant: 'default',
+            title: 'Khái Niệm Mới',
+            elements: [
+              { id: 'card-new', type: 'card', content: 'Nội dung giải thích chi tiết cho khái niệm này.' }
+            ],
+            animations: [
+              { target: '.slide-title', preset: 'fade-in', delay: 0.2, duration: 0.8 }
+            ],
+            voice: {
+              narration: 'Nội dung thuyết minh cho slide mới.',
+              provider: 'vieneu',
+              voiceId: 'BanMai',
+              durationSeconds: 4.0
+            },
+            durationSeconds: 5.0
+          };
+          this.dispatch({
+            type: 'ADD_SLIDE',
+            payload: { index: this.currentSlideIndex + 1, slide: newSlide }
+          }, 'Thêm slide mới');
+          this.setSlideIndex(this.currentSlideIndex + 1);
+        };
+
+        // Template Selector
+        document.getElementById('prop-template-select').onchange = (e) => {
+          this.dispatch({
+            type: 'UPDATE_SLIDE',
+            payload: { slideIndex: this.currentSlideIndex, changes: { templateId: e.target.value } }
+          }, 'Đổi template');
+        };
+
+        // Variant Pills & Dropdown
+        document.querySelectorAll('#variant-pills-container .variant-pill').forEach(pill => {
+          pill.onclick = () => {
+            const v = pill.dataset.variant;
+            this.dispatch({
+              type: 'UPDATE_SLIDE',
+              payload: { slideIndex: this.currentSlideIndex, changes: { layoutVariant: v, variantId: v } }
+            }, 'Đổi layout variant');
+          };
+        });
+
+        const variantSelect = document.getElementById('prop-variant-select');
+        if (variantSelect) {
+          variantSelect.onchange = (e) => {
+            const v = e.target.value;
+            this.dispatch({
+              type: 'UPDATE_SLIDE',
+              payload: { slideIndex: this.currentSlideIndex, changes: { layoutVariant: v, variantId: v } }
+            }, 'Đổi layout variant');
+          };
+        }
+
+        // Narration text blur
+        const narrationInput = document.getElementById('prop-narration-input');
+        if (narrationInput) {
+          narrationInput.oninput = (e) => this.updateNarrationStats(e.target.value);
+          narrationInput.onblur = (e) => {
+            const currentNarration = this.getCurrentSlide()?.voice?.narration;
+            if (currentNarration !== e.target.value) {
+              this.dispatch({
+                type: 'UPDATE_VOICE',
+                payload: { slideIndex: this.currentSlideIndex, changes: { narration: e.target.value } }
+              }, 'Sửa kịch bản thuyết minh');
+            }
+          };
+        }
+
+        // Voice speaker select
+        document.getElementById('prop-voice-select').onchange = (e) => {
+          this.dispatch({
+            type: 'UPDATE_VOICE',
+            payload: { slideIndex: this.currentSlideIndex, changes: { voiceId: e.target.value } }
+          }, 'Chọn giọng đọc');
+        };
+
+        // Notes blur
+        const notesInput = document.getElementById('prop-notes-input');
+        if (notesInput) {
+          notesInput.onblur = (e) => {
+            if (this.getCurrentSlide()?.notes !== e.target.value) {
+              this.dispatch({
+                type: 'UPDATE_SLIDE',
+                payload: { slideIndex: this.currentSlideIndex, changes: { notes: e.target.value } }
+              }, 'Sửa ghi chú');
+            }
+          };
+        }
+
+        // "Tạo Lại Giọng Đọc" Button (B5 Voice UI)
+        document.getElementById('btn-regen-voice').onclick = async () => {
+          const slide = this.getCurrentSlide();
+          if (!slide) return;
+
+          const regenBtn = document.getElementById('btn-regen-voice');
+          regenBtn.disabled = true;
+          regenBtn.innerText = '⏳ Đang tạo...';
+          this.isAudioJobRunning = true;
+          this.renderNavbar();
+
+          try {
+            // Attempt to hit Person A's API: POST /projects/{id}/slides/{sid}/audio
+            const res = await fetch(`${API_BASE}/projects/${this.scene.projectId || 'sample'}/slides/${slide.slideId}/audio`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                narration: slide.voice?.narration || '',
+                voiceId: slide.voice?.voiceId || 'BanMai',
+                provider: 'vieneu'
+              })
+            });
+
+            if (res.ok) {
+              const data = await res.json();
+              this.dispatch({
+                type: 'UPDATE_VOICE',
+                payload: {
+                  slideIndex: this.currentSlideIndex,
+                  changes: {
+                    audioUrl: data.audioUrl,
+                    durationSeconds: data.durationSeconds
+                  },
+                  autoSync: true
+                }
+              }, 'Cập nhật âm thanh TTS');
+            } else {
+              // Simulated Mock Response when server is not running
+              await new Promise(r => setTimeout(r, 800));
+              const words = (slide.voice?.narration || '').trim().split(/\s+/).filter(Boolean).length;
+              const simDuration = Math.round(Math.max(3.5, words / 3.0) * 10) / 10;
+              this.dispatch({
+                type: 'UPDATE_VOICE',
+                payload: {
+                  slideIndex: this.currentSlideIndex,
+                  changes: {
+                    durationSeconds: simDuration,
+                    audioUrl: 'https://actions.google.com/sounds/v1/speech/greeting.ogg'
+                  },
+                  autoSync: true
+                }
+              }, 'Tạo lại giọng đọc (Mô phỏng)');
+            }
+          } catch (err) {
+            // Simulated fallback
+            const words = (slide.voice?.narration || '').trim().split(/\s+/).filter(Boolean).length;
+            const simDuration = Math.round(Math.max(3.5, words / 3.0) * 10) / 10;
+            this.dispatch({
+              type: 'UPDATE_VOICE',
+              payload: {
+                slideIndex: this.currentSlideIndex,
+                changes: {
+                  durationSeconds: simDuration
+                },
+                autoSync: true
+              }
+            }, 'Tạo lại giọng đọc');
+          } finally {
+            regenBtn.disabled = false;
+            regenBtn.innerText = '↻ Tạo Lại';
+            this.isAudioJobRunning = false;
+            this.renderNavbar();
+          }
+        };
+
+        // Add Animation button
+        document.getElementById('btn-add-anim').onclick = () => {
+          this.dispatch({
+            type: 'SET_ANIMATION',
+            payload: {
+              slideIndex: this.currentSlideIndex,
+              animIndex: (this.getCurrentSlide()?.animations?.length || 0),
+              animation: {
+                target: '.slide-title',
+                preset: 'fade-in',
+                delay: 0.5,
+                duration: 1.0,
+                easing: 'power2.out'
+              }
+            }
+          }, 'Thêm hiệu ứng hoạt họa');
+        };
+
+        // Timeline playback controls
+        const playBtn = document.getElementById('btn-timeline-play');
+        if (playBtn) {
+          playBtn.onclick = () => {
+            if (this.isPlaying) this.pauseSlideTimeline();
+            else this.playSlideTimeline();
+          };
+        }
+
+        const stopBtn = document.getElementById('btn-timeline-stop');
+        if (stopBtn) {
+          stopBtn.onclick = () => this.stopSlideTimeline();
+        }
+
+        const slider = document.getElementById('timeline-slider');
+        if (slider) {
+          const onScrub = (e) => {
+            const time = parseFloat(e.target.value);
+            if (this.currentTimeline) {
+              this.currentTimeline.pause(time);
+              this.isPlaying = false;
+              if (playBtn) playBtn.innerText = '▶';
+            }
+            const curTimeEl = document.getElementById('time-current');
+            if (curTimeEl) curTimeEl.innerText = this.formatSeconds(time);
+            this.syncVideoTime(time);
+          };
+          slider.oninput = onScrub;
+          slider.onchange = onScrub;
+        }
+
+        // Image Modal
+        document.getElementById('btn-close-modal').onclick = () => this.closeImageModal();
+        document.querySelectorAll('.img-preview-opt').forEach(opt => {
+          opt.onclick = () => {
+            document.getElementById('modal-img-url').value = opt.src;
+          };
+        });
+
+        // File upload reader for images
+        const fileInput = document.getElementById('modal-img-file');
+        if (fileInput) {
+          fileInput.onchange = (e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = (re) => {
+                document.getElementById('modal-img-url').value = re.target.result;
+              };
+              reader.readAsDataURL(file);
+            }
+          };
+        }
+
+        document.getElementById('btn-apply-img').onclick = () => {
+          const newUrl = document.getElementById('modal-img-url').value.trim();
+          if (newUrl) {
+            const slide = this.getCurrentSlide();
+            const imgEl = slide.elements?.find(e => e.type === 'image' || e.id === this.activeImageTargetId);
+            if (imgEl) {
+              this.dispatch({
+                type: 'UPDATE_ELEMENT',
+                payload: { slideIndex: this.currentSlideIndex, elementId: imgEl.id, changes: { content: newUrl } }
+              }, 'Đổi ảnh minh họa');
+            }
+          }
+          this.closeImageModal();
+        };
+
+        // Media Strip Actions (P4.3)
+        const btnMediaRemove = document.getElementById('btn-media-strip-remove');
+        if (btnMediaRemove) {
+          btnMediaRemove.onclick = () => {
+            this.dispatch({
+              type: 'REMOVE_MEDIA_SLOT',
+              payload: { slideIndex: this.currentSlideIndex }
+            }, 'Xóa ảnh & chuyển sang layout no-image');
+          };
+        }
+
+        const btnMediaVideo = document.getElementById('btn-media-strip-video');
+        if (btnMediaVideo) {
+          btnMediaVideo.onclick = () => {
+            const slide = this.getCurrentSlide();
+            const existingVid = slide?.elements?.find(e => e.type === 'video');
+            if (existingVid) return;
+            const newVid = {
+              id: 'vid-' + Date.now().toString(36),
+              type: 'video',
+              content: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+              trimStart: 0.0,
+              trimEnd: Math.min(10.0, slide.durationSeconds || 16.0),
+              volume: 1.0,
+              ducking: true
+            };
+            const updatedElements = (slide.elements || []).filter(e => e.type !== 'image');
+            updatedElements.push(newVid);
+            this.dispatch({
+              type: 'UPDATE_SLIDE',
+              payload: {
+                slideIndex: this.currentSlideIndex,
+                changes: {
+                  elements: updatedElements,
+                  layoutVariant: slide.layoutVariant === 'no-image' ? 'default' : slide.layoutVariant
+                }
+              }
+            }, 'Chèn khối video minh họa vào slide');
+          };
+        }
+
+        const btnMediaUpload = document.getElementById('btn-media-strip-upload');
+        const mediaFileInput = document.getElementById('media-strip-file-input');
+        if (btnMediaUpload && mediaFileInput) {
+          btnMediaUpload.onclick = () => mediaFileInput.click();
+          mediaFileInput.onchange = (e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = (re) => {
+                this.dispatch({
+                  type: 'SET_MEDIA_SLOT',
+                  payload: {
+                    slideIndex: this.currentSlideIndex,
+                    mediaUrl: re.target.result
+                  }
+                }, 'Tải ảnh minh họa lên slide');
+              };
+              reader.readAsDataURL(file);
+            }
+          };
+        }
+
+        // ==========================================
+        // Video Component Event Handlers (P6.3)
+        // ==========================================
+        const videoSrcInput = document.getElementById('video-src-input');
+        if (videoSrcInput) {
+          videoSrcInput.onchange = (e) => {
+            const slide = this.getCurrentSlide();
+            const vidEl = slide?.elements?.find(el => el.type === 'video');
+            if (vidEl) {
+              this.dispatch({
+                type: 'UPDATE_VIDEO_COMPONENT',
+                payload: {
+                  slideIndex: this.currentSlideIndex,
+                  elementId: vidEl.id,
+                  changes: { content: e.target.value.trim() }
+                }
+              }, 'Đổi nguồn video');
+            }
+          };
+        }
+
+        const videoTrimStart = document.getElementById('video-trim-start');
+        if (videoTrimStart) {
+          videoTrimStart.onchange = (e) => {
+            const slide = this.getCurrentSlide();
+            const vidEl = slide?.elements?.find(el => el.type === 'video');
+            if (vidEl) {
+              const val = Math.max(0, parseFloat(e.target.value) || 0);
+              this.dispatch({
+                type: 'UPDATE_VIDEO_COMPONENT',
+                payload: {
+                  slideIndex: this.currentSlideIndex,
+                  elementId: vidEl.id,
+                  changes: { trimStart: val }
+                }
+              }, 'Cập nhật trim start video');
+            }
+          };
+        }
+
+        const videoTrimEnd = document.getElementById('video-trim-end');
+        if (videoTrimEnd) {
+          videoTrimEnd.onchange = (e) => {
+            const slide = this.getCurrentSlide();
+            const vidEl = slide?.elements?.find(el => el.type === 'video');
+            if (vidEl) {
+              const val = Math.max(0.1, parseFloat(e.target.value) || 10.0);
+              this.dispatch({
+                type: 'UPDATE_VIDEO_COMPONENT',
+                payload: {
+                  slideIndex: this.currentSlideIndex,
+                  elementId: vidEl.id,
+                  changes: { trimEnd: val }
+                }
+              }, 'Cập nhật trim end video');
+            }
+          };
+        }
+
+        const videoVolumeSlider = document.getElementById('video-volume-slider');
+        const videoVolumeVal = document.getElementById('video-volume-val');
+        if (videoVolumeSlider) {
+          videoVolumeSlider.oninput = (e) => {
+            const vol = parseFloat(e.target.value);
+            if (videoVolumeVal) videoVolumeVal.innerText = `${Math.round(vol * 100)}%`;
+          };
+          videoVolumeSlider.onchange = (e) => {
+            const slide = this.getCurrentSlide();
+            const vidEl = slide?.elements?.find(el => el.type === 'video');
+            if (vidEl) {
+              const vol = parseFloat(e.target.value);
+              this.dispatch({
+                type: 'UPDATE_VIDEO_COMPONENT',
+                payload: {
+                  slideIndex: this.currentSlideIndex,
+                  elementId: vidEl.id,
+                  changes: { volume: vol }
+                }
+              }, 'Điều chỉnh âm lượng video');
+            }
+          };
+        }
+
+        const videoDuckingCheckbox = document.getElementById('video-ducking-checkbox');
+        if (videoDuckingCheckbox) {
+          videoDuckingCheckbox.onchange = (e) => {
+            const slide = this.getCurrentSlide();
+            const vidEl = slide?.elements?.find(el => el.type === 'video');
+            if (vidEl) {
+              this.dispatch({
+                type: 'UPDATE_VIDEO_COMPONENT',
+                payload: {
+                  slideIndex: this.currentSlideIndex,
+                  elementId: vidEl.id,
+                  changes: { ducking: e.target.checked }
+                }
+              }, 'Bật/tắt ducking âm lượng');
+            }
+          };
+        }
+
+        const btnVideoUpload = document.getElementById('btn-video-upload');
+        const videoFileInput = document.getElementById('video-file-input');
+        if (btnVideoUpload && videoFileInput) {
+          btnVideoUpload.onclick = () => videoFileInput.click();
+          videoFileInput.onchange = (e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = (re) => {
+                const slide = this.getCurrentSlide();
+                const vidEl = slide?.elements?.find(el => el.type === 'video');
+                if (vidEl) {
+                  this.dispatch({
+                    type: 'UPDATE_VIDEO_COMPONENT',
+                    payload: {
+                      slideIndex: this.currentSlideIndex,
+                      elementId: vidEl.id,
+                      changes: { content: re.target.result }
+                    }
+                  }, 'Tải video lên slide');
+                }
+              };
+              reader.readAsDataURL(file);
+            }
+          };
+        }
+
+        const btnVideoRemove = document.getElementById('btn-video-remove');
+        if (btnVideoRemove) {
+          btnVideoRemove.onclick = () => {
+            const slide = this.getCurrentSlide();
+            const filteredElements = (slide?.elements || []).filter(e => e.type !== 'video');
+            this.dispatch({
+              type: 'UPDATE_SLIDE',
+              payload: {
+                slideIndex: this.currentSlideIndex,
+                changes: {
+                  elements: filteredElements,
+                  layoutVariant: 'no-image'
+                }
+              }
+            }, 'Gỡ bỏ video khỏi slide');
+          };
+        }
+
+        // ==========================================
+        // Per-Slide AI Chat Copilot Event Handlers (P7.3)
+        // ==========================================
+        const btnSlideChatSend = document.getElementById('btn-slide-chat-send');
+        const slideChatInput = document.getElementById('slide-chat-input');
+        if (btnSlideChatSend) {
+          btnSlideChatSend.onclick = () => this.sendSlideChatInstruction();
+        }
+        if (slideChatInput) {
+          slideChatInput.onkeydown = (e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              this.sendSlideChatInstruction();
+            }
+          };
+        }
+
+        const btnSlideChatApply = document.getElementById('btn-slide-chat-apply');
+        if (btnSlideChatApply) {
+          btnSlideChatApply.onclick = () => this.applySlideChatPatch();
+        }
+
+        const btnSlideChatDiscard = document.getElementById('btn-slide-chat-discard');
+        if (btnSlideChatDiscard) {
+          btnSlideChatDiscard.onclick = () => this.discardSlideChatPatch();
+        }
+
+        // ==========================================
+        // Pedagogical Quality Review Event Handlers (P7.4)
+        // ==========================================
+        const btnPedagogyReview = document.getElementById('btn-pedagogy-review');
+        if (btnPedagogyReview) {
+          btnPedagogyReview.onclick = () => this.openPedagogyModal();
+        }
+
+        const btnClosePedagogyModal = document.getElementById('btn-close-pedagogy-modal');
+        if (btnClosePedagogyModal) {
+          btnClosePedagogyModal.onclick = () => this.closePedagogyModal();
+        }
+
+        const btnPedagogyClose = document.getElementById('btn-pedagogy-close');
+        if (btnPedagogyClose) {
+          btnPedagogyClose.onclick = () => this.closePedagogyModal();
+        }
+
+        // ==========================================
+        // Template Builder Event Handlers (P5.1, P5.2)
+        // ==========================================
+        const btnToggleBuilder = document.getElementById('btn-toggle-builder-mode');
+        if (btnToggleBuilder) {
+          btnToggleBuilder.onclick = () => this.toggleBuilderMode();
+        }
+
+        const btnExitBuilder = document.getElementById('builder-exit-btn');
+        if (btnExitBuilder) {
+          btnExitBuilder.onclick = () => this.toggleBuilderMode(false);
+        }
+
+        // Add blocks
+        const addMap = [
+          ['builder-add-text', 'text'],
+          ['builder-add-card', 'card'],
+          ['builder-add-image', 'image'],
+          ['builder-add-badge', 'badge'],
+          ['builder-add-decor', 'decor'],
+          ['builder-add-video', 'video']
+        ];
+        addMap.forEach(([btnId, type]) => {
+          const btn = document.getElementById(btnId);
+          if (btn) btn.onclick = () => this.addBuilderBlock(type);
+        });
+
+        // Save layout
+        const btnSaveLayout = document.getElementById('builder-save-layout');
+        if (btnSaveLayout) {
+          btnSaveLayout.onclick = () => this.saveDraftLayoutToPack();
+        }
+
+        // Delete active element
+        const btnDelEl = document.getElementById('btn-builder-delete-element');
+        if (btnDelEl) {
+          btnDelEl.onclick = () => {
+            if (!this.activeBuilderElementId) return;
+            this.draftLayout = removeDraftBlock(this.draftLayout, this.activeBuilderElementId);
+            this.activeBuilderElementId = this.draftLayout.elements[0]?.id || null;
+            this.renderBuilderCanvas();
+            this.renderBuilderInspector();
+          };
+        }
+
+        // Inspector inputs change listeners
+        const bindInspectorChange = () => {
+          const xIn = document.getElementById('builder-el-x');
+          const yIn = document.getElementById('builder-el-y');
+          const wIn = document.getElementById('builder-el-w');
+          const hIn = document.getElementById('builder-el-h');
+          const roleType = document.getElementById('builder-slot-role-type');
+          const slotNameSelect = document.getElementById('builder-slot-name-select');
+          const maxLenIn = document.getElementById('builder-constraint-max-len');
+          const reqCheck = document.getElementById('builder-constraint-required');
+          const animPreset = document.getElementById('builder-anim-preset');
+          const animDelay = document.getElementById('builder-anim-delay');
+          const animDur = document.getElementById('builder-anim-dur');
+
+          const updateCoords = () => {
+            if (!this.activeBuilderElementId) return;
+            const x = parseInt(xIn.value, 10) || 0;
+            const y = parseInt(yIn.value, 10) || 0;
+            const w = parseInt(wIn.value, 10) || 100;
+            const h = parseInt(hIn.value, 10) || 40;
+            this.draftLayout = updateDraftBlock(this.draftLayout, this.activeBuilderElementId, { x, y, width: w, height: h });
+            this.renderBuilderCanvas();
+          };
+          [xIn, yIn, wIn, hIn].forEach(input => {
+            if (input) input.onchange = updateCoords;
+          });
+
+          const updateSlotRole = () => {
+            if (!this.activeBuilderElementId) return;
+            const role = roleType?.value || 'slot';
+            const slotName = slotNameSelect?.value || 'body';
+            const maxLength = parseInt(maxLenIn?.value, 10) || 300;
+            const required = reqCheck?.checked ?? true;
+            this.draftLayout = setElementSlotRole(this.draftLayout, this.activeBuilderElementId, {
+              role,
+              slotName,
+              constraints: { maxLength, required }
+            });
+            this.renderBuilderCanvas();
+          };
+          if (roleType) roleType.onchange = updateSlotRole;
+          if (slotNameSelect) slotNameSelect.onchange = updateSlotRole;
+          if (maxLenIn) maxLenIn.onchange = updateSlotRole;
+          if (reqCheck) reqCheck.onchange = updateSlotRole;
+
+          const updateAnim = () => {
+            if (!this.activeBuilderElementId) return;
+            this.draftLayout = assignElementAnimation(this.draftLayout, this.activeBuilderElementId, {
+              preset: animPreset?.value || 'fade-in',
+              delay: parseFloat(animDelay?.value) || 0.5,
+              duration: parseFloat(animDur?.value) || 1.0
+            });
+          };
+          if (animPreset) animPreset.onchange = updateAnim;
+          if (animDelay) animDelay.onchange = updateAnim;
+          if (animDur) animDur.onchange = updateAnim;
+        };
+        bindInspectorChange();
+
+        // Keyboard Shortcuts
+        window.addEventListener('keydown', (e) => {
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+            e.preventDefault();
+            if (e.shiftKey) this.redo();
+            else this.undo();
+          } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+            e.preventDefault();
+            this.redo();
+          } else if (e.key === 'ArrowLeft' && e.altKey) {
+            this.setSlideIndex(this.currentSlideIndex - 1);
+          } else if (e.key === 'ArrowRight' && e.altKey) {
+            this.setSlideIndex(this.currentSlideIndex + 1);
+          } else if (e.key === ' ' && e.ctrlKey) {
+            e.preventDefault();
+            if (this.isPlaying) this.pauseSlideTimeline();
+            else this.playSlideTimeline();
+          }
+        });
+
+        // Template Gallery Step 1 & Pack Switcher (P2.3)
+        const btnSelectPack = document.getElementById('btn-select-pack');
+        if (btnSelectPack) {
+          btnSelectPack.onclick = () => this.openGalleryModal('switch-pack');
+        }
+
+        const btnCloseGallery = document.getElementById('btn-close-gallery-modal');
+        const btnCancelGallery = document.getElementById('btn-gallery-cancel');
+        if (btnCloseGallery) btnCloseGallery.onclick = () => this.closeGalleryModal();
+        if (btnCancelGallery) btnCancelGallery.onclick = () => this.closeGalleryModal();
+
+        const searchInput = document.getElementById('gallery-search-input');
+        const subjSelect = document.getElementById('gallery-filter-subject');
+        const styleSelect = document.getElementById('gallery-filter-style');
+        if (searchInput) searchInput.oninput = () => this.filterGalleryPacks();
+        if (subjSelect) subjSelect.onchange = () => this.filterGalleryPacks();
+        if (styleSelect) styleSelect.onchange = () => this.filterGalleryPacks();
+
+        const btnConfirmGallery = document.getElementById('btn-gallery-confirm');
+        const inputDocFile = document.getElementById('input-doc-file');
+        if (btnConfirmGallery) {
+          btnConfirmGallery.onclick = () => {
+            this.closeGalleryModal();
+            if (this.galleryIntent === 'upload') {
+              this.flowMachine.transition({ type: 'SELECT_PACK', packId: this.selectedGalleryPackId });
+              if (inputDocFile) inputDocFile.click();
+            } else {
+              this.dispatch({
+                type: 'SWITCH_TEMPLATE_PACK',
+                payload: { packId: this.selectedGalleryPackId }
+              }, `Đổi Template Pack sang ${this.selectedGalleryPackId}`);
+              const packLabel = document.getElementById('current-pack-label');
+              if (packLabel) packLabel.innerText = this.selectedGalleryPackId;
+            }
+          };
+        }
+
+        // Document Upload Handlers (Step 1 -> Gallery, Step 2 -> File upload)
+        const btnUploadDoc = document.getElementById('btn-upload-doc');
+        if (btnUploadDoc && inputDocFile) {
+          btnUploadDoc.onclick = () => this.openGalleryModal('upload');
+          inputDocFile.onchange = async (e) => {
+            const file = e.target.files?.[0];
+            if (file) await this.handleDocumentUpload(file);
+          };
+        }
+
+        // New Empty Project Button
+        const btnNewProj = document.getElementById('btn-new-project');
+        if (btnNewProj) {
+          btnNewProj.onclick = () => this.createNewEmptyProject();
+        }
+
+        // Export Buttons Handler (Triggers Person A's real /export pipeline with auto-sync)
+        document.getElementById('btn-export-mp4').onclick = async () => {
+          if (!confirm('Khởi chạy kết xuất video bài giảng MP4 (1080p 30fps)?')) return;
+          try {
+            const apiBase = window.API_BASE || (window.location.port === '8000' ? '' : 'http://localhost:8000');
+            // Sync current edits to backend storage before export
+            await fetch(`${apiBase}/projects/${this.scene.projectId || 'demo'}/scene`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(this.scene)
+            }).catch(() => {});
+
+            const res = await fetch(`${apiBase}/projects/${this.scene.projectId || 'demo'}/export`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ type: 'mp4' })
+            });
+            const data = await res.json();
+            alert(`🎬 Đã khởi tạo tiến trình kết xuất MP4 (Job ID: ${data.exportId})!\nHệ thống đang chạy ngầm bằng HyperFrames CLI 1080p.`);
+          } catch (err) {
+            alert('Lỗi khởi tạo kết xuất MP4: ' + err.message);
+          }
+        };
+
+        document.getElementById('btn-export-pdf').onclick = async () => {
+          try {
+            const apiBase = window.API_BASE || (window.location.port === '8000' ? '' : 'http://localhost:8000');
+            // Sync current edits to backend storage before export
+            await fetch(`${apiBase}/projects/${this.scene.projectId || 'demo'}/scene`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(this.scene)
+            }).catch(() => {});
+
+            const res = await fetch(`${apiBase}/projects/${this.scene.projectId || 'demo'}/export`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ type: 'pdf' })
+            });
+            const data = await res.json();
+            this.pollExportDownload(data.exportId, 'PDF');
+          } catch (err) {
+            alert('Lỗi xuất PDF: ' + err.message);
+          }
+        };
+
+        document.getElementById('btn-export-pptx').onclick = async () => {
+          try {
+            const apiBase = window.API_BASE || (window.location.port === '8000' ? '' : 'http://localhost:8000');
+            // Sync current edits to backend storage before export
+            await fetch(`${apiBase}/projects/${this.scene.projectId || 'demo'}/scene`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(this.scene)
+            }).catch(() => {});
+
+            const res = await fetch(`${apiBase}/projects/${this.scene.projectId || 'demo'}/export`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ type: 'pptx' })
+            });
+            const data = await res.json();
+            this.pollExportDownload(data.exportId, 'PPTX');
+          } catch (err) {
+            alert('Lỗi xuất PPTX: ' + err.message);
+          }
+        };
+      }
+
+      async pollExportDownload(exportId, formatName) {
+        const apiBase = window.API_BASE || (window.location.port === '8000' ? '' : 'http://localhost:8000');
+        const modal = document.getElementById('upload-progress-modal');
+        const titleEl = document.getElementById('upload-step-title');
+        const descEl = document.getElementById('upload-step-desc');
+        const iconEl = document.getElementById('upload-step-icon');
+        const barEl = document.getElementById('upload-progress-bar');
+
+        if (modal) {
+          modal.classList.add('open');
+          iconEl.innerText = '⚙️';
+          titleEl.innerText = `Đang kết xuất ${formatName}...`;
+          descEl.innerText = 'Vui lòng chờ trong giây lát...';
+          barEl.style.width = '30%';
+        }
+
+        const maxWait = 40;
+        let waited = 0;
+        const interval = setInterval(async () => {
+          waited += 1;
+          try {
+            const res = await fetch(`${apiBase}/exports/${exportId}`);
+            if (res.ok) {
+              const job = await res.json();
+              if (job.status === 'completed' && job.downloadUrl) {
+                clearInterval(interval);
+                if (barEl) barEl.style.width = '100%';
+                if (titleEl) titleEl.innerText = `✅ Hoàn tất kết xuất ${formatName}!`;
+                const fullUrl = job.downloadUrl.startsWith('http') ? job.downloadUrl : `${apiBase}${job.downloadUrl}`;
+                if (descEl) {
+                  descEl.innerHTML = `
+                    <div style="margin-top: 14px;">
+                      <a href="${fullUrl}" target="_blank" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; font-weight: 700; text-decoration: none; font-size: 14px; background: #0284c7; border-radius: 8px;">
+                        <span>📥</span> Mở / Tải Về Tệp ${formatName}
+                      </a>
+                      <div style="margin-top: 12px;">
+                        <button class="btn btn-secondary" id="btn-close-export-done" style="padding: 5px 16px; font-size: 12px;">Đóng Hộp Thoại</button>
+                      </div>
+                    </div>
+                  `;
+                  const closeDoneBtn = document.getElementById('btn-close-export-done');
+                  if (closeDoneBtn) closeDoneBtn.onclick = () => modal.classList.remove('open');
+                }
+                try {
+                  window.open(fullUrl, '_blank');
+                } catch (oe) {}
+                return;
+              } else if (job.status === 'failed') {
+                clearInterval(interval);
+                if (modal) modal.classList.remove('open');
+                alert(`Lỗi kết xuất ${formatName}: ` + (job.error || 'Thất bại'));
+                return;
+              }
+            }
+          } catch (e) {
+            console.error('Polling error:', e);
+          }
+          if (waited >= maxWait) {
+            clearInterval(interval);
+            if (modal) modal.classList.remove('open');
+            alert(`Quá thời gian chờ kết xuất ${formatName}. Vui lòng thử lại.`);
+          }
+        }, 1000);
+      }
+
+      async handleDocumentUpload(file) {
+        const modal = document.getElementById('upload-progress-modal');
+        const titleEl = document.getElementById('upload-step-title');
+        const descEl = document.getElementById('upload-step-desc');
+        const iconEl = document.getElementById('upload-step-icon');
+        const barEl = document.getElementById('upload-progress-bar');
+        const apiBase = window.API_BASE || (window.location.port === '8000' ? '' : 'http://localhost:8000');
+
+        modal.classList.add('open');
+
+        try {
+          const selectedPack = this.flowMachine.getState().selectedPackId || this.scene?.templatePackId || 'basic';
+          this.flowMachine.transition({ type: 'START_UPLOAD' });
+
+          // Bước 1: Tạo project mới với Template Pack đã chọn
+          iconEl.innerText = '📁';
+          titleEl.innerText = 'Đang khởi tạo bài giảng...';
+          descEl.innerText = `Tạo không gian làm việc với bộ mẫu [${selectedPack}] cho: ` + file.name;
+          barEl.style.width = '15%';
+
+          const projRes = await fetch(`${API_BASE}/projects`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              title: file.name.replace(/\.[^/.]+$/, ''),
+              packId: selectedPack
+            })
+          });
+          if (!projRes.ok) {
+            const errTxt = await projRes.text();
+            throw new Error(`Khởi tạo project thất bại (${projRes.status}): ${errTxt}`);
+          }
+          const projData = await projRes.json();
+          const projectId = projData.projectId;
+
+          // Bước 2: Tải lên tài liệu
+          iconEl.innerText = '📤';
+          titleEl.innerText = 'Đang bóc tách nội dung...';
+          descEl.innerText = 'Trích xuất văn bản, cấu trúc luận điểm từ ' + file.name;
+          barEl.style.width = '40%';
+
+          const formData = new FormData();
+          formData.append('file', file);
+          const docRes = await fetch(`${API_BASE}/projects/${projectId}/documents`, {
+            method: 'POST',
+            body: formData
+          });
+          if (!docRes.ok) {
+            const errTxt = await docRes.text();
+            throw new Error(`Bóc tách tài liệu thất bại (${docRes.status}): ${errTxt}`);
+          }
+          const docContext = await docRes.json();
+
+          // Tạm ẩn modal tiến trình để mở Pop-up Phỏng vấn Sư phạm
+          modal.classList.remove('open');
+
+          const clarifyModal = document.getElementById('clarification-modal');
+          const clarifyDocTitle = document.getElementById('clarification-doc-title');
+          if (clarifyDocTitle) clarifyDocTitle.innerText = 'Tài liệu: ' + (docContext.title || file.name);
+
+          // Lấy gợi ý câu trả lời từ backend
+          try {
+            const qRes = await fetch(`${API_BASE}/projects/${projectId}/clarification`);
+            if (qRes.ok) {
+              const qData = await qRes.json();
+              const questions = qData.questions || [];
+              const audQ = questions.find(q => q.id === 'targetAudience');
+              if (audQ && audQ.suggestedAnswer) {
+                const audSelect = document.getElementById('clarify-audience');
+                if (audSelect) audSelect.value = audQ.suggestedAnswer;
+              }
+              const durQ = questions.find(q => q.id === 'durationMinutes');
+              if (durQ && durQ.suggestedAnswer) {
+                const durSelect = document.getElementById('clarify-duration');
+                if (durSelect) durSelect.value = String(durQ.suggestedAnswer);
+              }
+              const slideQ = questions.find(q => q.id === 'slideCount');
+              if (slideQ && slideQ.suggestedAnswer) {
+                const slideSelect = document.getElementById('clarify-slides');
+                if (slideSelect) slideSelect.value = String(slideQ.suggestedAnswer);
+              }
+            }
+          } catch (e) {
+            console.log('Using default suggested answers');
+          }
+
+          clarifyModal.classList.add('open');
+
+          // Đợi người dùng phản hồi qua modal
+          const userAnswers = await new Promise((resolve) => {
+            const onSubmit = () => {
+              cleanup();
+              resolve({
+                targetAudience: document.getElementById('clarify-audience').value,
+                durationMinutes: parseInt(document.getElementById('clarify-duration').value, 10) || 15,
+                slideCount: parseInt(document.getElementById('clarify-slides').value, 10) || 10,
+                includeQuiz: document.getElementById('clarify-quiz').value === 'true',
+                voiceOver: document.getElementById('clarify-voice').value,
+                style: 'academic-ocean'
+              });
+            };
+            const onSkip = () => {
+              cleanup();
+              resolve({
+                targetAudience: 'Sinh viên đại học năm thứ nhất',
+                durationMinutes: 15,
+                slideCount: 10,
+                includeQuiz: true,
+                voiceOver: 'MyDuyen',
+                style: 'academic-ocean'
+              });
+            };
+            const cleanup = () => {
+              clarifyModal.classList.remove('open');
+              document.getElementById('btn-clarify-submit').removeEventListener('click', onSubmit);
+              document.getElementById('btn-clarify-skip').removeEventListener('click', onSkip);
+            };
+            document.getElementById('btn-clarify-submit').addEventListener('click', onSubmit);
+            document.getElementById('btn-clarify-skip').addEventListener('click', onSkip);
+          });
+
+          // Gửi câu trả lời làm rõ đến backend
+          await fetch(`${API_BASE}/projects/${projectId}/clarification`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ answers: userAnswers })
+          });
+
+          // Mở lại modal tiến trình để sinh dàn bài
+          modal.classList.add('open');
+
+          // Bước 3: Sinh dàn bài sư phạm
+          iconEl.innerText = '🧠';
+          titleEl.innerText = 'Đang sinh dàn bài sư phạm...';
+          descEl.innerText = `Gemini AI phân bổ ${userAnswers.slideCount} slides (${userAnswers.durationMinutes} phút) cho: ` + (docContext.title || file.name);
+          barEl.style.width = '70%';
+
+          const outlineRes = await fetch(`${API_BASE}/projects/${projectId}/outline`, {
+            method: 'POST'
+          });
+          if (!outlineRes.ok) {
+            const errTxt = await outlineRes.text();
+            throw new Error(`Sinh dàn bài thất bại (${outlineRes.status}): ${errTxt}`);
+          }
+          const outline = await outlineRes.json();
+
+          // Tạm ẩn modal tiến trình để giảng viên duyệt dàn bài (P3.3)
+          modal.classList.remove('open');
+          const approvedOutline = await this.reviewOutlineModal(outline);
+
+          // Mở lại modal tiến trình để lưu dàn bài và sinh scene
+          modal.classList.add('open');
+          iconEl.innerText = '💾';
+          titleEl.innerText = 'Đang lưu dàn bài đã duyệt...';
+          descEl.innerText = 'Chuẩn bị dữ liệu để nạp nội dung theo slot chuẩn...';
+          barEl.style.width = '85%';
+
+          const appRes = await fetch(`${API_BASE}/projects/${projectId}/outline`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(approvedOutline)
+          });
+          if (!appRes.ok) {
+            const errTxt = await appRes.text();
+            throw new Error(`Duyệt dàn bài thất bại (${appRes.status}): ${errTxt}`);
+          }
+
+          // Bước 4: Sinh slide HyperFrames Scene
+          iconEl.innerText = '🎨';
+          titleEl.innerText = 'Đang tạo slide tương tác...';
+          descEl.innerText = 'Khởi tạo bố cục và hiệu ứng hoạt họa...';
+          barEl.style.width = '95%';
+
+          const sceneRes = await fetch(`${API_BASE}/projects/${projectId}/scene`, {
+            method: 'POST'
+          });
+          if (!sceneRes.ok) {
+            const errTxt = await sceneRes.text();
+            throw new Error(`Tạo slide scene thất bại (${sceneRes.status}): ${errTxt}`);
+          }
+          const newScene = await sceneRes.json();
+
+          barEl.style.width = '100%';
+          titleEl.innerText = '✅ Hoàn tất bóc tách!';
+          descEl.innerText = 'Đang nạp slide vào phòng biên tập Studio...';
+
+          await new Promise(r => setTimeout(r, 600));
+
+          // Nạp bài giảng mới vào Canvas
+          this.scene = newScene;
+          this.flowMachine.transition({ type: 'CLARIFY_SUBMIT', scene: newScene });
+          const packLabel = document.getElementById('current-pack-label');
+          if (packLabel) packLabel.innerText = this.scene.templatePackId || selectedPack;
+
+          this.currentSlideIndex = 0;
+          this.history = [JSON.parse(JSON.stringify(this.scene))];
+          this.historyIndex = 0;
+          localStorage.setItem('lecture_scene_state', JSON.stringify(this.scene));
+          this.renderAll();
+        } catch (err) {
+          alert('Lỗi xử lý tài liệu: ' + err.message);
+        } finally {
+          modal.classList.remove('open');
+          document.getElementById('input-doc-file').value = '';
+        }
+      }
+
+      // ==========================================
+      // Presentation Mode Fullscreen Preview (P8)
+      // ==========================================
+      initPresentationMode() {
+        const btnOpen = document.getElementById('btn-presentation-mode');
+        if (btnOpen) btnOpen.onclick = () => this.openPresentationMode();
+
+        const btnClose = document.getElementById('pres-btn-close');
+        if (btnClose) btnClose.onclick = () => this.closePresentationMode();
+
+        const btnPrev = document.getElementById('pres-btn-prev');
+        if (btnPrev) btnPrev.onclick = () => this.prevPresentationSlide();
+
+        const btnNext = document.getElementById('pres-btn-next');
+        if (btnNext) btnNext.onclick = () => this.nextPresentationSlide();
+
+        const btnPlay = document.getElementById('pres-btn-play');
+        if (btnPlay) btnPlay.onclick = () => this.togglePresentationPlayPause();
+
+        const btnFullscreen = document.getElementById('pres-btn-fullscreen');
+        if (btnFullscreen) btnFullscreen.onclick = () => this.togglePresentationFullscreen();
+
+        window.addEventListener('resize', () => {
+          if (this.isPresentationActive) this.fitPresentationStage();
+        });
+
+        const modal = document.getElementById('presentation-modal');
+        if (modal) {
+          modal.addEventListener('mousemove', () => this.resetHudTimer());
+        }
+
+        window.addEventListener('keydown', (e) => {
+          if (!this.isPresentationActive) return;
+          if (e.key === 'Escape') {
+            e.preventDefault();
+            this.closePresentationMode();
+          } else if (e.key === ' ' || e.code === 'Space') {
+            e.preventDefault();
+            this.togglePresentationPlayPause();
+          } else if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === 'Enter') {
+            e.preventDefault();
+            this.nextPresentationSlide();
+          } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+            e.preventDefault();
+            this.prevPresentationSlide();
+          } else if (e.key.toLowerCase() === 'f') {
+            e.preventDefault();
+            this.togglePresentationFullscreen();
+          }
+        });
+      }
+
+      openPresentationMode() {
+        if (!this.scene || !this.scene.slides || this.scene.slides.length === 0) {
+          alert('Chưa có slide nào trong bài giảng để trình chiếu.');
+          return;
+        }
+        // Dừng timeline hiện tại ở studio editor
+        this.stopSlideTimeline();
+
+        this.isPresentationActive = true;
+        this.presentationIndex = this.currentSlideIndex;
+        const modal = document.getElementById('presentation-modal');
+        if (modal) {
+          modal.style.display = 'flex';
+        }
+        this.fitPresentationStage();
+        this.resetHudTimer();
+        this.playPresentationSlide(this.presentationIndex, true);
+      }
+
+      closePresentationMode() {
+        this.isPresentationActive = false;
+        if (this.presentationTimeline) {
+          this.presentationTimeline.kill();
+          this.presentationTimeline = null;
+        }
+        if (this.presentationAudio) {
+          this.presentationAudio.pause();
+          this.presentationAudio = null;
+        }
+        if (document.fullscreenElement) {
+          document.exitFullscreen().catch(() => {});
+        }
+        const modal = document.getElementById('presentation-modal');
+        if (modal) modal.style.display = 'none';
+
+        // Trả lại slide hiện tại trong Studio Editor
+        this.setSlideIndex(this.presentationIndex);
+      }
+
+      fitPresentationStage() {
+        const stage = document.getElementById('presentation-slide-stage');
+        if (!stage) return;
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const scale = Math.min(vw / 1920, vh / 1080) * 0.96;
+        stage.style.transform = `scale(${scale})`;
+      }
+
+      resetHudTimer() {
+        const hud = document.getElementById('presentation-hud');
+        if (!hud) return;
+        hud.classList.remove('hidden');
+        if (this.hudHideTimeout) clearTimeout(this.hudHideTimeout);
+        this.hudHideTimeout = setTimeout(() => {
+          if (this.isPresentationActive && this.presentationIsPlaying) {
+            hud.classList.add('hidden');
+          }
+        }, 2500);
+      }
+
+      playPresentationSlide(idx, autoPlay = true) {
+        if (!this.scene?.slides || idx < 0 || idx >= this.scene.slides.length) return;
+        this.presentationIndex = idx;
+
+        // Dừng timeline và audio trước đó
+        if (this.presentationTimeline) {
+          this.presentationTimeline.kill();
+          this.presentationTimeline = null;
+        }
+        if (this.presentationAudio) {
+          this.presentationAudio.pause();
+          this.presentationAudio = null;
+        }
+
+        const slide = this.scene.slides[idx];
+        const stage = document.getElementById('presentation-slide-stage');
+        if (!stage) return;
+
+        // Render slide markup
+        stage.innerHTML = renderSlide(slide, 0, 0);
+
+        // Update HUD indicator
+        const ind = document.getElementById('pres-slide-indicator');
+        const tot = document.getElementById('pres-timer-total');
+        const cur = document.getElementById('pres-timer-current');
+        const playBtn = document.getElementById('pres-btn-play');
+        const slideDur = slide.durationSeconds || 16.0;
+
+        if (ind) ind.innerText = `Slide ${idx + 1} / ${this.scene.slides.length}`;
+        if (tot) tot.innerText = this.formatSeconds(slideDur);
+        if (cur) cur.innerText = '00:00.0';
+
+        // Build GSAP animation timeline
+        this.presentationTimeline = buildGsapTimelineForSlide(slide, stage);
+        
+        // Voice Audio Handling
+        if (slide.voice?.audioUrl) {
+          const audio = new Audio(slide.voice.audioUrl);
+          this.presentationAudio = audio;
+          audio.currentTime = 0;
+        }
+
+        // Embedded video handling
+        const embeddedVid = stage.querySelector('video');
+        if (embeddedVid) {
+          const trimStart = parseFloat(embeddedVid.getAttribute('data-media-start') || '0');
+          embeddedVid.currentTime = trimStart;
+          embeddedVid.pause();
+        }
+
+        // Timeline updates
+        if (this.presentationTimeline) {
+          this.presentationTimeline.eventCallback('onUpdate', () => {
+            if (this.presentationTimeline) {
+              const time = this.presentationTimeline.time();
+              if (cur) cur.innerText = this.formatSeconds(time);
+              if (embeddedVid) {
+                const trimStart = parseFloat(embeddedVid.getAttribute('data-media-start') || '0');
+                const trimEnd = parseFloat(embeddedVid.getAttribute('data-media-end') || '9999');
+                if (trimStart + time <= trimEnd) {
+                  if (Math.abs(embeddedVid.currentTime - (trimStart + time)) > 0.3) {
+                    embeddedVid.currentTime = trimStart + time;
+                  }
+                }
+              }
+            }
+          });
+
+          this.presentationTimeline.eventCallback('onComplete', () => {
+            this.presentationIsPlaying = false;
+            if (playBtn) playBtn.innerText = '▶';
+            if (embeddedVid) embeddedVid.pause();
+            if (this.presentationAudio) this.presentationAudio.pause();
+
+            // Tự động chuyển slide kế tiếp sau 0.8s
+            if (this.presentationIndex < this.scene.slides.length - 1) {
+              setTimeout(() => {
+                if (this.isPresentationActive) {
+                  this.nextPresentationSlide();
+                }
+              }, 800);
+            }
+          });
+        }
+
+        if (autoPlay) {
+          this.presentationIsPlaying = true;
+          if (playBtn) playBtn.innerText = '⏸';
+          if (this.presentationTimeline) this.presentationTimeline.restart();
+          if (this.presentationAudio) {
+            this.presentationAudio.play().catch(() => {});
+          }
+          if (embeddedVid) {
+            embeddedVid.play().catch(() => {});
+          }
+        } else {
+          this.presentationIsPlaying = false;
+          if (playBtn) playBtn.innerText = '▶';
+          if (this.presentationTimeline) this.presentationTimeline.progress(1);
+        }
+      }
+
+      togglePresentationPlayPause() {
+        const playBtn = document.getElementById('pres-btn-play');
+        const stage = document.getElementById('presentation-slide-stage');
+        const embeddedVid = stage ? stage.querySelector('video') : null;
+
+        if (this.presentationIsPlaying) {
+          this.presentationIsPlaying = false;
+          if (playBtn) playBtn.innerText = '▶';
+          if (this.presentationTimeline) this.presentationTimeline.pause();
+          if (this.presentationAudio) this.presentationAudio.pause();
+          if (embeddedVid) embeddedVid.pause();
+        } else {
+          this.presentationIsPlaying = true;
+          if (playBtn) playBtn.innerText = '⏸';
+          if (this.presentationTimeline) {
+            if (this.presentationTimeline.progress() >= 1) {
+              this.presentationTimeline.restart();
+            } else {
+              this.presentationTimeline.play();
+            }
+          }
+          if (this.presentationAudio) this.presentationAudio.play().catch(() => {});
+          if (embeddedVid) embeddedVid.play().catch(() => {});
+          this.resetHudTimer();
+        }
+      }
+
+      nextPresentationSlide() {
+        if (!this.scene?.slides) return;
+        if (this.presentationIndex < this.scene.slides.length - 1) {
+          this.playPresentationSlide(this.presentationIndex + 1, true);
+        } else {
+          alert('🏁 Đã kết thúc bài giảng! Bạn có thể nhấn Esc để quay lại Studio.');
+        }
+      }
+
+      prevPresentationSlide() {
+        if (!this.scene?.slides) return;
+        if (this.presentationIndex > 0) {
+          this.playPresentationSlide(this.presentationIndex - 1, true);
+        }
+      }
+
+      togglePresentationFullscreen() {
+        const modal = document.getElementById('presentation-modal');
+        if (!document.fullscreenElement) {
+          if (modal.requestFullscreen) modal.requestFullscreen();
+          else if (modal.webkitRequestFullscreen) modal.webkitRequestFullscreen();
+        } else {
+          if (document.exitFullscreen) document.exitFullscreen();
+        }
+      }
+    }
+
+    const app = new StudioApp();
+    window.studioApp = app;
+    window.addEventListener('DOMContentLoaded', () => app.init());
+  </script>
+
+  <!-- Upload Progress Modal -->
+  <div id="upload-progress-modal" class="modal-overlay">
+    <div class="modal-box" style="text-align: center; max-width: 440px;">
+      <div style="font-size: 42px; margin-bottom: 12px;" id="upload-step-icon">📤</div>
+      <h3 style="font-size: 18px; font-weight: 700; color: var(--text-main); margin-bottom: 8px;" id="upload-step-title">Đang xử lý tài liệu</h3>
+      <p style="font-size: 13px; color: var(--text-sub); margin-bottom: 20px;" id="upload-step-desc">Vui lòng chờ trong giây lát...</p>
+      <div style="width: 100%; height: 8px; background: #E2E8F0; border-radius: 9999px; overflow: hidden;">
+        <div id="upload-progress-bar" style="width: 20%; height: 100%; background: linear-gradient(90deg, #0284c7, #38bdf8); transition: width 0.3s ease;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clarification Questions Modal -->
+  <div id="clarification-modal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 560px; text-align: left; padding: 24px; border-radius: 14px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);">
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+        <div style="font-size: 30px;">🎯</div>
+        <div>
+          <h3 style="font-size: 18px; font-weight: 700; color: var(--text-main); margin: 0;">Thiết lập Sư phạm cho Bài giảng</h3>
+          <p id="clarification-doc-title" style="font-size: 13px; color: var(--primary); font-weight: 500; margin: 4px 0 0 0;">Tài liệu...</p>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 22px;">
+        <!-- Câu 1: Đối tượng người học -->
+        <div>
+          <label style="font-size: 12px; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">
+            1. Đối tượng người học trọng tâm là ai?
+          </label>
+          <select id="clarify-audience" class="prop-select" style="width: 100%; padding: 8px 12px; font-size: 13px;">
+            <option value="Sinh viên đại học năm thứ nhất" selected>Sinh viên đại học năm thứ nhất (Nhập môn, dễ hiểu)</option>
+            <option value="Sinh viên chuyên ngành nâng cao">Sinh viên chuyên ngành nâng cao (Hàn lâm, chuyên sâu)</option>
+            <option value="Học sinh THPT">Học sinh THPT (Trực quan, sinh động)</option>
+            <option value="Người đi làm / Chuyên gia">Người đi làm / Chuyên gia (Ứng dụng thực tiễn)</option>
+          </select>
+        </div>
+
+        <!-- Câu 2: Thời lượng & Số lượng slide -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div>
+            <label style="font-size: 12px; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">
+              2. Thời lượng bài giảng
+            </label>
+            <select id="clarify-duration" class="prop-select" style="width: 100%; padding: 8px 12px; font-size: 13px;">
+              <option value="5">5 phút (Ngắn gọn / Tóm tắt)</option>
+              <option value="10">10 phút (Chuẩn)</option>
+              <option value="15" selected>15 phút (Đầy đủ chi tiết)</option>
+              <option value="20">20 phút (Chuyên đề sâu)</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size: 12px; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">
+              3. Số lượng slide
+            </label>
+            <select id="clarify-slides" class="prop-select" style="width: 100%; padding: 8px 12px; font-size: 13px;">
+              <option value="6">6 slides</option>
+              <option value="8">8 slides</option>
+              <option value="10" selected>10 slides (Khuyến nghị)</option>
+              <option value="12">12 slides</option>
+              <option value="15">15 slides</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Câu 3: Trắc nghiệm & Giọng đọc -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div>
+            <label style="font-size: 12px; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">
+              4. Câu hỏi trắc nghiệm
+            </label>
+            <select id="clarify-quiz" class="prop-select" style="width: 100%; padding: 8px 12px; font-size: 13px;">
+              <option value="true" selected>Có kèm Quiz kiểm tra nhanh</option>
+              <option value="false">Không (Chỉ giảng lý thuyết)</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size: 12px; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">
+              5. Giọng đọc thuyết minh (TTS)
+            </label>
+            <select id="clarify-voice" class="prop-select" style="width: 100%; padding: 8px 12px; font-size: 13px;">
+              <option value="MyDuyen" selected>Mỹ Duyên (Nữ Nam Bộ)</option>
+              <option value="HaMy">Hà My (Nữ Bắc Bộ)</option>
+              <option value="BanMai">Ban Mai (Nữ Bắc Bộ)</option>
+              <option value="Viettel">Viettel (Chuẩn hàn lâm)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+        <button id="btn-clarify-skip" class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px;">Bỏ qua & Dùng mặc định</button>
+        <button id="btn-clarify-submit" class="btn btn-primary" style="padding: 8px 20px; font-size: 13px; font-weight: 600;">🚀 Bắt đầu sinh bài giảng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pedagogical Outline Review Modal (P3.3) -->
+  <div id="outline-review-modal" class="modal-overlay">
+    <div class="modal-box" style="width: 880px; max-width: 95vw; max-height: 88vh; display: flex; flex-direction: column; padding: 24px; border-radius: 14px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
+        <div>
+          <h3 style="font-size: 19px; font-weight: 800; color: var(--primary); margin: 0; display: flex; align-items: center; gap: 8px;">
+            <span>📋</span> Duyệt & Tinh Chỉnh Dàn Bài Sư Phạm (Outline Review)
+          </h3>
+          <p style="font-size: 13px; color: var(--text-sub); margin-top: 4px;">
+            Tùy chỉnh bố cục (Layouts) và tiêu đề cho từng slide trước khi hệ thống sinh nội dung chi tiết.
+          </p>
+        </div>
+        <button id="btn-outline-add-slide" class="btn btn-secondary" style="font-size: 12px; padding: 6px 12px; font-weight: 600;">
+          + Thêm Slide
+        </button>
+      </div>
+
+      <div id="outline-slides-container" style="display: flex; flex-direction: column; gap: 10px; overflow-y: auto; padding: 4px; max-height: 52vh;">
+        <!-- Injected dynamically via JS -->
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 16px;">
+        <span id="outline-slide-count-hint" style="font-size: 13px; font-weight: 600; color: var(--text-sub);">Tổng số: 0 slides</span>
+        <div style="display: flex; gap: 10px;">
+          <button id="btn-outline-quick-approve" class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px;">Duyệt Mặc Định</button>
+          <button id="btn-outline-approve" class="btn btn-primary" style="padding: 8px 22px; font-size: 13px; font-weight: 700;">
+            🚀 Phê Duyệt & Sinh Bài Giảng
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

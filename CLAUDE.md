@@ -37,48 +37,33 @@ The domain skills (`/hyperframes-core`, `/hyperframes-animation`, `/hyperframes-
 ## Commands
 
 ```bash
-npm run dev          # human-operated foreground preview (blocks until stopped)
-npx hyperframes preview --background  # agent-safe persistent Studio preview
-npx hyperframes preview --status      # verify the persistent preview is listening
-npx hyperframes preview --stop        # stop it when review is finished
-npm run check        # lint + runtime + layout + motion + contrast (one command)
-npm run render       # render to MP4
-npm run publish      # publish and get a shareable link
-npx hyperframes lint --verbose  # include info-level findings
-npx hyperframes lint --json     # machine-readable output for CI
+# Next.js Frontend (Primary Studio - Port 3001)
+cd web && npm run dev       # Start Next.js 15 dev server on http://localhost:3001
+cd web && npm test          # Run Vitest test suite (76 tests)
+cd web && npx playwright test # Run Playwright E2E parity suite (8 tests)
+cd web && npm run build     # Verify Next.js production build
+
+# Python Engine Tests
+pytest tests/engine/        # Run Python engine tests (61 tests)
+pytest tests/pipeline tests/test_contracts.py # Run pipeline & contract tests (96 tests)
+
+# Legacy Frontend Archive (Port 3000)
+node server.js              # Serves legacy index.html on http://localhost:3000
+
+# HyperFrames CLI Tools
+npm run check               # lint + runtime + layout + motion + contrast
+npm run render              # render to MP4
+npm run publish             # publish and get a shareable link
 npx hyperframes docs <topic> # reference docs in terminal
-```
-
-> **Agents must use `npx hyperframes preview --background` for Studio handoff.** Do not rely
-> on a shell/tool `run_in_background` wrapper around `npm run dev`: that foreground process
-> remains owned by the invoking session and can disappear while the browser stays open,
-> leaving refreshes at `ERR_CONNECTION_TIMED_OUT`. Verify with `preview --status`, keep it
-> alive through review, and stop it explicitly with `preview --stop` afterward.
-
-> **Back from the desktop app.** Once this project was opened in the HyperFrames desktop app, run `npx hyperframes catch-up` before your next change here: it lists what the person asked Framey in the app and which files changed since.
-
-> **Pinned CLI version.** These scripts pin an exact `hyperframes@X.Y.Z` so this project re-renders identically over time. Weeks later that pin lags fixes shipped since. To move up: `npx hyperframes@latest upgrade --project . --check` (shows the delta), then `npx hyperframes@latest upgrade --project .` to rewrite the pins. Always unpinned — the pinned script re-runs the old version against itself.
-
-## Documentation
-
-**For quick reference**, use the local CLI docs command (no network required):
-
-```bash
-npx hyperframes docs <topic>
-```
-
-Topics: `data-attributes`, `gsap`, `compositions`, `rendering`, `examples`, `troubleshooting`
-
-**For full documentation**, discover pages via the machine-readable index — do NOT guess URLs:
-
-```
-https://hyperframes.heygen.com/llms.txt
 ```
 
 ## Project Structure
 
-- `index.html` — main composition (root timeline)
-- `compositions/` — sub-compositions referenced via `data-composition-src`
+- `web/` — Primary Studio frontend (Next.js 15, React 19, TypeScript strict, Zustand) on port 3001
+- `templates/` — Template layouts and pack registry (single source of truth)
+- `studio/` — Core studio engine and pure state machines (single source of truth)
+- `legacy/index.html` — Legacy vanilla JS Studio archive (formerly root `index.html`) on port 3000
+- `server.js` — Legacy static server and API proxy for port 3000
 - `meta.json` — project metadata (id, name)
 - `transcript.json` — whisper word-level transcript (if generated)
 
@@ -110,8 +95,18 @@ Fix all errors before presenting the result. Warnings should be reviewed before 
 
 ---
 
-## Current State & Key Decisions (AI Lecture Studio v2 - Complete)
+## Current State & Key Decisions (AI Lecture Studio v2 + Next.js Frontend - Complete)
 
+- **Next.js Frontend Migration (Phases F0-F10 Complete)**:
+  - Full strangler pattern: `web/` hosts the modern Next.js 15 App Router + React 19 + TypeScript strict + Zustand frontend on `:3001`.
+  - Zero regression: `legacy/index.html` archived and servable on `:3000` via `node server.js`.
+  - Single source of truth preserved: `templates/`, `studio/`, `schemas/`, and `fixtures/` stay at root.
+  - Test suites green:
+    - `cd web && npm test`: 76/76 Vitest tests PASSED across 10 test suites.
+    - `cd web && npx playwright test`: 8/8 Playwright E2E tests PASSED.
+    - `cd web && npm run typecheck`: 0 TypeScript errors (strict mode).
+    - `cd web && npm run lint`: 0 ESLint errors/warnings.
+    - `cd web && npm run build`: Production build cleanly generated.
 - **Sprint v2 Completion**: 100% of tickets in `docs/TICKETS.md` (both Track A and Track B) are completed and green.
   - **Track A (Backend & Pipeline)**: Ingestion, Adaptive Clarification, Slot Filler, Media Adapters, Builder API, Subtitles, VieNeu Pronunciation Normalization, Video extraction.
   - **Track B (Engine & Studio)**:
@@ -127,13 +122,12 @@ Fix all errors before presenting the result. Warnings should be reviewed before 
 - **Test Integrity**:
   - `pytest tests/engine`: 61/61 PASSED (100% green).
   - `pytest tests/test_contracts.py tests/pipeline`: 96/96 PASSED (100% green).
-- **Next Immediate Action**: Final integration review, end-to-end smoke testing, and preparation for merge to main.
 
 ---
 
 ## Person A (Backend / Pipeline) Ownership Rules
 IMPORTANT: Person A owns server/, scripts/, schemas/, server.js, storage/, tests/pipeline/.
-YOU MUST NOT edit templates/, studio*, outline_to_hyperframes.js, tests/engine/ (Person B).
+YOU MUST NOT edit templates/, studio*, outline_to_hyperframes.js, tests/engine/, web/ (Person B).
 Schema changes go through a small separate PR that B reviews.
 IMPORTANT: AI outputs structured JSON only; providers (LLM/TTS) only via interfaces.
 IMPORTANT: v1 projects must keep opening (migrate_v1_to_v2). Never delete v1 code paths
@@ -143,7 +137,7 @@ Run tests: pytest tests/pipeline tests/test_contracts.py. Env: Windows, PYTHONUT
 ---
 
 ## Person B (Engine / Studio) Ownership Rules
-IMPORTANT: Person B owns templates/, index.html (single source of truth, studio.html removed), studio/, outline_to_hyperframes.js,
+IMPORTANT: Person B owns web/ (primary Next.js frontend), templates/, legacy/index.html (archived), studio/, outline_to_hyperframes.js,
 tests/engine/. YOU MUST NOT edit server/, scripts/, schemas/, server.js, storage/
 (Person A). Schema changes go through a small PR that both approve.
 IMPORTANT: every edit in Studio/Builder produces a patch to LessonSceneJSON v2
@@ -152,5 +146,5 @@ IMPORTANT: keep the visual output of the existing 10 layouts unchanged; the snap
 tests in tests/engine/test_templates_snapshot.py must stay green.
 Never emit an <img> with an empty or missing src; render a no-image variant instead.
 Verify HyperFrames behavior via `npx hyperframes docs ...` / --help; do not assume.
-Run tests: pytest tests/engine.
+Run tests: pytest tests/engine && (cd web && npm test).
 
