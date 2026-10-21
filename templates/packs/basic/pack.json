@@ -1,0 +1,235 @@
+{
+  "schemaVersion": "2.0.0",
+  "id": "basic",
+  "name": "Học Thuật Cơ Bản (Academic Basic)",
+  "description": "Bộ template học thuật kinh điển gồm 10 bố cục sư phạm chuẩn mực, hỗ trợ bảng màu Academic Ocean & Amber",
+  "aspectRatio": "16:9",
+  "previewVideoUrl": "renders/preview_basic.mp4",
+  "tags": {
+    "subject": ["tong-hop"],
+    "style": ["hoc-thuat-nghiem-tuc"],
+    "effect": ["nang-dong-kinetic"]
+  },
+  "tokens": {
+    "colors": {
+      "primary": "#0369A1",
+      "primaryHover": "#075985",
+      "accent": "#D97706",
+      "bgCanvas": "#F5FAFF",
+      "bgCard": "#FFFFFF",
+      "textMain": "#0F172A",
+      "textSub": "#334155",
+      "border": "#BAE6FD"
+    },
+    "fonts": {
+      "heading": "Be Vietnam Pro, sans-serif",
+      "body": "Be Vietnam Pro, sans-serif",
+      "code": "JetBrains Mono, monospace"
+    },
+    "spacing": {
+      "headerHeight": "88px",
+      "footerHeight": "76px",
+      "contentHeight": "916px",
+      "padScreenX": "72px",
+      "padScreenY": "28px",
+      "gapCards": "28px"
+    }
+  },
+  "layouts": [
+    {
+      "id": "title-slide",
+      "name": "Tiêu Đề Bài Giảng",
+      "purpose": "title",
+      "slots": [
+        { "id": "badge", "role": "badge", "accepts": ["text"], "optional": true },
+        { "id": "title", "role": "title", "accepts": ["text"] },
+        { "id": "subtitle", "role": "subtitle", "accepts": ["text"], "optional": true },
+        { "id": "author", "role": "body", "accepts": ["text"], "optional": true },
+        { "id": "media", "role": "media", "accepts": ["image", "video"], "optional": true }
+      ],
+      "decor": [],
+      "variants": [
+        { "id": "default", "name": "Mặc định (Chữ trái - Ảnh phải)" },
+        { "id": "fullscreen", "name": "Toàn màn hình (Fullscreen)" },
+        { "id": "stacked-top", "name": "Xếp chồng (Chữ trên - Ảnh dưới)" },
+        { "id": "text-left-image-right", "name": "Chữ trái - Ảnh phải" },
+        { "id": "text-right-image-left", "name": "Chữ phải - Ảnh trái" }
+      ],
+      "defaultAnimations": [
+        { "target": ".slide-title", "preset": "slide-in", "delay": 0.5, "duration": 1.0, "easing": "power2.out" }
+      ]
+    },
+    {
+      "id": "learning-objectives",
+      "name": "Mục Tiêu Bài Học",
+      "purpose": "summary",
+      "slots": [
+        { "id": "title", "role": "title", "accepts": ["text"] },
+        { "id": "subtitle", "role": "subtitle", "accepts": ["text"], "optional": true },
+        { "id": "bullets", "role": "bullets", "accepts": ["list"] }
+      ],
+      "decor": [],
+      "variants": [
+        { "id": "default", "name": "Mặc định (Dạng lưới thẻ số)" },
+        { "id": "stacked-top", "name": "Dạng danh sách xếp dọc" },
+        { "id": "no-image", "name": "Không ảnh (Toàn màn hình chữ)" }
+      ],
+      "defaultAnimations": [
+        { "target": ".objective-item", "preset": "step-by-step", "delay": 0.8, "duration": 0.6, "easing": "power2.out" }
+      ]
+    },
+    {
+      "id": "concept-explain",
+      "name": "Giải Thích Khái Niệm",
+      "purpose": "concept-explain",
+      "slots": [
+        { "id": "title", "role": "title", "accepts": ["text"] },
+        { "id": "subtitle", "role": "subtitle", "accepts": ["text"], "optional": true },
+        { "id": "body", "role": "body", "accepts": ["text"] },
+        { "id": "media", "role": "media", "accepts": ["image", "video", "diagram"], "optional": true }
+      ],
+      "decor": [],
+      "variants": [
+        { "id": "default", "name": "Mặc định (Chữ trái - Ảnh phải)" },
+        { "id": "text-left-image-right", "name": "Chữ trái - Ảnh phải" },
+        { "id": "text-right-image-left", "name": "Chữ phải - Ảnh trái" },
+        { "id": "no-image", "name": "Không ảnh (Toàn màn hình chữ)" }
+      ],
+      "defaultAnimations": [
+        { "target": ".concept-card", "preset": "fade-in", "delay": 0.5, "duration": 0.8, "easing": "power2.out" }
+      ]
+    },
+    {
+      "id": "bullet-breakdown",
+      "name": "Phân Tích Đa Điểm",
+      "purpose": "bullet-breakdown",
+      "slots": [
+        { "id": "title", "role": "title", "accepts": ["text"] },
+        { "id": "subtitle", "role": "subtitle", "accepts": ["text"], "optional": true },
+        { "id": "cards", "role": "bullets", "accepts": ["list"] }
+      ],
+      "decor": [],
+      "variants": [
+        { "id": "default", "name": "Mặc định (Lưới thẻ ngang/dọc)" },
+        { "id": "stacked-top", "name": "Xếp chồng dọc" }
+      ],
+      "defaultAnimations": [
+        { "target": ".breakdown-card", "preset": "slide-in", "delay": 0.8, "duration": 0.8, "easing": "power2.out" }
+      ]
+    },
+    {
+      "id": "image-explain",
+      "name": "Minh Họa Hình Ảnh / Sơ Đồ",
+      "purpose": "image-explain",
+      "slots": [
+        { "id": "title", "role": "title", "accepts": ["text"] },
+        { "id": "subtitle", "role": "subtitle", "accepts": ["text"], "optional": true },
+        { "id": "media", "role": "media", "accepts": ["image", "video", "diagram"] },
+        { "id": "sideText", "role": "body", "accepts": ["text"], "optional": true }
+      ],
+      "decor": [],
+      "variants": [
+        { "id": "default", "name": "Mặc định (Ảnh trái - Chữ phải)" },
+        { "id": "text-left-image-right", "name": "Chữ trái - Ảnh phải" },
+        { "id": "text-right-image-left", "name": "Chữ phải - Ảnh trái" },
+        { "id": "fullscreen", "name": "Ảnh toàn màn hình" }
+      ],
+      "defaultAnimations": [
+        { "target": ".image-explain-media", "preset": "zoom-in", "delay": 0.5, "duration": 1.0, "easing": "power2.out" }
+      ]
+    },
+    {
+      "id": "comparison",
+      "name": "So Sánh Đối Xứng 2 Cột",
+      "purpose": "comparison",
+      "slots": [
+        { "id": "title", "role": "title", "accepts": ["text"] },
+        { "id": "subtitle", "role": "subtitle", "accepts": ["text"], "optional": true },
+        { "id": "leftColumn", "role": "body", "accepts": ["text", "list"] },
+        { "id": "rightColumn", "role": "body", "accepts": ["text", "list"] }
+      ],
+      "decor": [],
+      "variants": [
+        { "id": "default", "name": "Mặc định (Hai cột đối xứng)" },
+        { "id": "stacked-top", "name": "Hai hàng xếp chồng" }
+      ],
+      "defaultAnimations": [
+        { "target": ".comparison-card", "preset": "slide-in", "delay": 0.6, "duration": 0.8, "easing": "power2.out" }
+      ]
+    },
+    {
+      "id": "timeline",
+      "name": "Dòng Thời Gian / Tiến Trình",
+      "purpose": "timeline",
+      "slots": [
+        { "id": "title", "role": "title", "accepts": ["text"] },
+        { "id": "subtitle", "role": "subtitle", "accepts": ["text"], "optional": true },
+        { "id": "timeline", "role": "timeline", "accepts": ["list"] }
+      ],
+      "decor": [],
+      "variants": [
+        { "id": "default", "name": "Mặc định (Trục ngang các bước)" },
+        { "id": "stacked-top", "name": "Trục dọc các bước" }
+      ],
+      "defaultAnimations": [
+        { "target": ".timeline-node", "preset": "fade-in", "delay": 0.6, "duration": 0.8, "easing": "power2.out" }
+      ]
+    },
+    {
+      "id": "formula-explain",
+      "name": "Giải Thích Công Thức & Logic",
+      "purpose": "formula-explain",
+      "slots": [
+        { "id": "title", "role": "title", "accepts": ["text"] },
+        { "id": "subtitle", "role": "subtitle", "accepts": ["text"], "optional": true },
+        { "id": "formula", "role": "formula", "accepts": ["text", "formula"] },
+        { "id": "note", "role": "body", "accepts": ["text"], "optional": true }
+      ],
+      "decor": [],
+      "variants": [
+        { "id": "default", "name": "Mặc định (Công thức trung tâm nổi bật)" },
+        { "id": "stacked-top", "name": "Công thức trên - Ghi chú dưới" }
+      ],
+      "defaultAnimations": [
+        { "target": ".formula-card", "preset": "zoom-in", "delay": 0.5, "duration": 1.0, "easing": "back.out" }
+      ]
+    },
+    {
+      "id": "quiz",
+      "name": "Câu Hỏi Ôn Tập Tương Tác",
+      "purpose": "quiz",
+      "slots": [
+        { "id": "title", "role": "title", "accepts": ["text"] },
+        { "id": "subtitle", "role": "subtitle", "accepts": ["text"], "optional": true },
+        { "id": "quiz", "role": "quiz", "accepts": ["chart", "list", "text"] }
+      ],
+      "decor": [],
+      "variants": [
+        { "id": "default", "name": "Mặc định (Câu hỏi kèm 4 lựa chọn)" },
+        { "id": "stacked-top", "name": "Câu hỏi trên - Lựa chọn dọc" }
+      ],
+      "defaultAnimations": [
+        { "target": ".quiz-container", "preset": "fade-in", "delay": 0.5, "duration": 0.8, "easing": "power2.out" }
+      ]
+    },
+    {
+      "id": "summary",
+      "name": "Tổng Kết Bài Học",
+      "purpose": "summary",
+      "slots": [
+        { "id": "title", "role": "title", "accepts": ["text"] },
+        { "id": "subtitle", "role": "subtitle", "accepts": ["text"], "optional": true },
+        { "id": "bullets", "role": "bullets", "accepts": ["list"] }
+      ],
+      "decor": [],
+      "variants": [
+        { "id": "default", "name": "Mặc định (Danh sách luận điểm cốt lõi)" },
+        { "id": "no-image", "name": "Không ảnh (Toàn màn hình chữ)" },
+        { "id": "stacked-top", "name": "Thẻ xếp chồng" }
+      ],
+      "defaultAnimations": [
+        { "target": ".summary-point", "preset": "fade-in", "delay": 0.8, "duration": 0.8, "easing": "power2.out" }
+      ]
+    }
+  ]
+}

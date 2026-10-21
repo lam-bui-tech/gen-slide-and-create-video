@@ -1,0 +1,262 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TemplatePack",
+  "description": "Definition of a Template Pack providing unified design tokens, categorizations, and child layouts for AI Lecture Studio v2",
+  "type": "object",
+  "required": ["id", "name", "description", "aspectRatio", "tokens", "tags", "layouts"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "default": "2.0.0",
+      "description": "Schema version of the template pack"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_-]+$",
+      "description": "Unique slug identifier of the template pack"
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name of the template pack"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed pedagogical description of the pack"
+    },
+    "previewVideoUrl": {
+      "type": "string",
+      "description": "Optional URL to short preview video loop"
+    },
+    "aspectRatio": {
+      "type": "string",
+      "enum": ["16:9"],
+      "default": "16:9"
+    },
+    "tags": {
+      "type": "object",
+      "required": ["subject", "style", "effect"],
+      "properties": {
+        "subject": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "toan-tin",
+              "khoa-hoc-tu-nhien",
+              "xa-hoi-nhan-van",
+              "ngoai-ngu",
+              "kinh-te-quan-tri",
+              "tong-hop"
+            ]
+          }
+        },
+        "style": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "hoc-thuat-nghiem-tuc",
+              "hien-dai-toi-gian",
+              "sinh-dong-tre-trung",
+              "cong-nghe-tuong-lai"
+            ]
+          }
+        },
+        "effect": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "nhe-nhang-fade",
+              "nang-dong-kinetic",
+              "chu-danh-may-typewriter"
+            ]
+          }
+        }
+      }
+    },
+    "tokens": {
+      "type": "object",
+      "required": ["colors", "fonts", "spacing"],
+      "properties": {
+        "colors": {
+          "type": "object",
+          "properties": {
+            "primary": { "type": "string" },
+            "primaryHover": { "type": "string" },
+            "accent": { "type": "string" },
+            "bgCanvas": { "type": "string" },
+            "bgCard": { "type": "string" },
+            "textMain": { "type": "string" },
+            "textSub": { "type": "string" },
+            "border": { "type": "string" }
+          }
+        },
+        "fonts": {
+          "type": "object",
+          "properties": {
+            "heading": { "type": "string", "default": "Be Vietnam Pro, sans-serif" },
+            "body": { "type": "string", "default": "Be Vietnam Pro, sans-serif" },
+            "code": { "type": "string", "default": "JetBrains Mono, monospace" }
+          }
+        },
+        "spacing": {
+          "type": "object"
+        }
+      }
+    },
+    "layouts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Layout"
+      },
+      "minItems": 1
+    }
+  },
+  "definitions": {
+    "Layout": {
+      "type": "object",
+      "required": ["id", "name", "purpose", "slots", "variants"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier of the layout within the pack"
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name of the layout"
+        },
+        "purpose": {
+          "type": "string",
+          "enum": [
+            "title",
+            "concept-explain",
+            "bullet-breakdown",
+            "image-explain",
+            "comparison",
+            "timeline",
+            "formula-explain",
+            "quiz",
+            "summary",
+            "custom"
+          ],
+          "description": "Pedagogical intent of this layout"
+        },
+        "slots": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Slot"
+          }
+        },
+        "decor": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DecorElement"
+          },
+          "default": []
+        },
+        "variants": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Variant"
+          }
+        },
+        "defaultAnimations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AnimationItem"
+          },
+          "default": []
+        }
+      }
+    },
+    "Slot": {
+      "type": "object",
+      "required": ["id", "role", "accepts"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique slot identifier in this layout"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "title",
+            "subtitle",
+            "badge",
+            "body",
+            "bullets",
+            "media",
+            "diagram",
+            "formula",
+            "quiz",
+            "timeline"
+          ]
+        },
+        "accepts": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["text", "list", "image", "video", "diagram", "chart", "formula"]
+          }
+        },
+        "constraints": {
+          "type": "object",
+          "properties": {
+            "maxChars": { "type": "integer" },
+            "maxItems": { "type": "integer" },
+            "aspectRatio": { "type": "string" }
+          }
+        },
+        "optional": {
+          "type": "boolean",
+          "default": false
+        },
+        "defaultValue": {
+          "type": ["string", "object", "array", "null"]
+        }
+      }
+    },
+    "Variant": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "layoutType": { "type": "string" }
+      }
+    },
+    "DecorElement": {
+      "type": "object",
+      "required": ["id", "type"],
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string" },
+        "content": { "type": ["string", "object", "null"] },
+        "style": { "type": "object" }
+      }
+    },
+    "AnimationItem": {
+      "type": "object",
+      "required": ["target", "preset", "delay", "duration"],
+      "properties": {
+        "target": { "type": "string" },
+        "preset": {
+          "type": "string",
+          "enum": [
+            "fade-in",
+            "slide-in",
+            "zoom-in",
+            "typewriter",
+            "step-by-step",
+            "highlight-keyword"
+          ]
+        },
+        "delay": { "type": "number", "minimum": 0.0 },
+        "duration": { "type": "number", "minimum": 0.1 },
+        "easing": { "type": "string", "default": "power2.out" }
+      }
+    }
+  }
+}

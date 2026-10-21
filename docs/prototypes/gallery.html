@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Template Gallery — AI Lecture Studio v2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../templates/tokens.css">
+  <style>
+    :root {
+      --tg-bg: #F8FAFC;
+      --tg-surface: #FFFFFF;
+      --tg-primary: #0369A1;
+      --tg-primary-hover: #075985;
+      --tg-primary-light: #E0F2FE;
+      --tg-accent: #D97706;
+      --tg-text-main: #0F172A;
+      --tg-text-sub: #334155;
+      --tg-text-muted: #64748B;
+      --tg-border: #E2E8F0;
+      --tg-border-active: #0284C7;
+      --tg-shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --tg-shadow-md: 0 4px 16px -2px rgba(3, 105, 161, 0.08), 0 2px 6px -1px rgba(0,0,0,0.04);
+      --tg-shadow-lg: 0 12px 32px -4px rgba(3, 105, 161, 0.14), 0 4px 12px -2px rgba(0,0,0,0.06);
+      --tg-radius-sm: 8px;
+      --tg-radius-md: 14px;
+      --tg-radius-lg: 20px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Be Vietnam Pro', -apple-system, sans-serif;
+      background-color: var(--tg-bg);
+      color: var(--tg-text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Header */
+    header {
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--tg-border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 16px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--tg-radius-sm);
+      background: linear-gradient(135deg, var(--tg-primary), #0284C7);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 4px 12px rgba(3, 105, 161, 0.25);
+    }
+
+    .brand-title h1 {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--tg-text-main);
+    }
+
+    .brand-title p {
+      font-size: 13px;
+      color: var(--tg-text-muted);
+      font-weight: 500;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn-create-project {
+      background: var(--tg-primary);
+      color: white;
+      padding: 10px 20px;
+      border-radius: var(--tg-radius-sm);
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-create-project:hover {
+      background: var(--tg-primary-hover);
+      box-shadow: 0 4px 12px rgba(3, 105, 161, 0.3);
+      transform: translateY(-1px);
+    }
+
+    /* Main Container */
+    .gallery-layout {
+      display: flex;
+      flex: 1;
+      max-width: 1720px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px 40px;
+      gap: 36px;
+    }
+
+    /* Filter Sidebar */
+    .filter-sidebar {
+      width: 300px;
+      flex-shrink: 0;
+      background: var(--tg-surface);
+      border: 1px solid var(--tg-border);
+      border-radius: var(--tg-radius-md);
+      padding: 24px;
+      box-shadow: var(--tg-shadow-sm);
+      height: fit-content;
+      position: sticky;
+      top: 100px;
+    }
+
+    .filter-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--tg-border);
+    }
+
+    .filter-head h2 {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .btn-reset-filters {
+      background: none;
+      border: none;
+      color: var(--tg-primary);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+    .btn-reset-filters:hover {
+      color: var(--tg-primary-hover);
+      text-decoration: underline;
+    }
+
+    .filter-group {
+      margin-bottom: 24px;
+    }
+
+    .filter-group-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--tg-text-muted);
+      margin-bottom: 12px;
+    }
+
+    .filter-options {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .filter-chip-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--tg-text-sub);
+      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: var(--tg-radius-sm);
+      transition: background-color 0.15s;
+      user-select: none;
+    }
+    .filter-chip-label:hover {
+      background-color: var(--tg-primary-light);
+      color: var(--tg-primary);
+    }
+
+    .filter-chip-label input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--tg-primary);
+      cursor: pointer;
+    }
+
+    /* Content Area */
+    .content-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Search & Stats Bar */
+    .toolbar-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 280px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 16px 12px 42px;
+      border: 1px solid var(--tg-border);
+      border-radius: var(--tg-radius-md);
+      font-size: 15px;
+      font-family: inherit;
+      background: var(--tg-surface);
+      color: var(--tg-text-main);
+      box-shadow: var(--tg-shadow-sm);
+      transition: all 0.2s ease;
+    }
+    .search-input:focus {
+      outline: none;
+      border-color: var(--tg-border-active);
+      box-shadow: 0 0 0 3px rgba(3, 105, 161, 0.15);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--tg-text-muted);
+      font-size: 18px;
+      pointer-events: none;
+    }
+
+    .results-count {
+      font-size: 14px;
+      color: var(--tg-text-muted);
+      font-weight: 500;
+    }
+
+    /* Template Cards Grid */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 28px;
+    }
+
+    .pack-card {
+      background: var(--tg-surface);
+      border: 1px solid var(--tg-border);
+      border-radius: var(--tg-radius-md);
+      overflow: hidden;
+      box-shadow: var(--tg-shadow-sm);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      position: relative;
+    }
+    .pack-card:hover {
+      border-color: var(--tg-border-active);
+      box-shadow: var(--tg-shadow-lg);
+      transform: translateY(-4px);
+    }
+
+    .card-preview {
+      width: 100%;
+      height: 205px;
+      background: #0F172A;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .preview-canvas-mock {
+      width: 100%;
+      height: 100%;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      transition: transform 0.4s ease;
+    }
+    .pack-card:hover .preview-canvas-mock {
+      transform: scale(1.02);
+    }
+
+    .mock-badge {
+      display: inline-block;
+      align-self: flex-start;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .mock-title {
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.25;
+      margin-top: 6px;
+    }
+
+    .mock-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      opacity: 0.85;
+    }
+
+    .card-body {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      gap: 12px;
+    }
+
+    .card-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .pack-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--tg-text-main);
+      line-height: 1.3;
+    }
+
+    .pack-layouts-count {
+      background: var(--tg-primary-light);
+      color: var(--tg-primary);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    .pack-desc {
+      font-size: 14px;
+      color: var(--tg-text-sub);
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      flex: 1;
+    }
+
+    .tag-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .tag-chip {
+      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 500;
+      background: #F1F5F9;
+      color: #475569;
+    }
+    .tag-chip.subject { background: #E0F2FE; color: #0369A1; }
+    .tag-chip.style { background: #FEF3C7; color: #B45309; }
+    .tag-chip.effect { background: #EDE9FE; color: #6D28D9; }
+
+    .card-footer {
+      padding: 14px 20px;
+      background: #F8FAFC;
+      border-top: 1px solid var(--tg-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .btn-view-details {
+      color: var(--tg-primary);
+      font-size: 13px;
+      font-weight: 600;
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-view-details:hover {
+      text-decoration: underline;
+    }
+
+    .btn-use-card {
+      background: var(--tg-primary);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 7px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-use-card:hover {
+      background: var(--tg-primary-hover);
+    }
+
+    /* Empty State */
+    .empty-state {
+      background: var(--tg-surface);
+      border: 1px dashed var(--tg-border);
+      border-radius: var(--tg-radius-md);
+      padding: 64px 24px;
+      text-align: center;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    .empty-icon {
+      font-size: 48px;
+      color: var(--tg-text-muted);
+    }
+    .empty-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--tg-text-main);
+    }
+    .empty-desc {
+      font-size: 14px;
+      color: var(--tg-text-muted);
+      max-width: 420px;
+    }
+
+    /* Detail Drawer / Modal */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .drawer-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .drawer-content {
+      width: 580px;
+      max-width: 100%;
+      height: 100%;
+      background: var(--tg-surface);
+      box-shadow: -8px 0 32px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .drawer-overlay.open .drawer-content {
+      transform: translateX(0);
+    }
+
+    .drawer-header {
+      padding: 24px;
+      border-bottom: 1px solid var(--tg-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .drawer-title-group h3 {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--tg-text-main);
+      margin-bottom: 6px;
+    }
+    .drawer-title-group p {
+      font-size: 14px;
+      color: var(--tg-text-muted);
+      line-height: 1.4;
+    }
+    .btn-close-drawer {
+      background: #F1F5F9;
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 18px;
+      color: var(--tg-text-sub);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+    .btn-close-drawer:hover {
+      background: #E2E8F0;
+    }
+
+    .drawer-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .drawer-section-title {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--tg-text-muted);
+      margin-bottom: 12px;
+    }
+
+    .tokens-preview-box {
+      background: #F8FAFC;
+      border: 1px solid var(--tg-border);
+      border-radius: var(--tg-radius-sm);
+      padding: 16px;
+    }
+    .color-swatches {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .color-swatch-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      background: white;
+      padding: 4px 8px;
+      border: 1px solid #E2E8F0;
+      border-radius: 6px;
+    }
+    .swatch-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,0.1);
+    }
+
+    .layouts-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .layout-item-card {
+      border: 1px solid var(--tg-border);
+      border-radius: var(--tg-radius-sm);
+      padding: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.15s;
+    }
+    .layout-item-card:hover {
+      background: #F8FAFC;
+      border-color: #CBD5E1;
+    }
+    .layout-info h4 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--tg-text-main);
+      margin-bottom: 4px;
+    }
+    .layout-info p {
+      font-size: 13px;
+      color: var(--tg-text-muted);
+    }
+    .layout-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: #E2E8F0;
+      color: #334155;
+    }
+
+    .drawer-footer {
+      padding: 20px 24px;
+      border-top: 1px solid var(--tg-border);
+      background: #F8FAFC;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .btn-cancel {
+      background: white;
+      border: 1px solid var(--tg-border);
+      padding: 10px 18px;
+      border-radius: var(--tg-radius-sm);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-confirm-use {
+      background: var(--tg-primary);
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: var(--tg-radius-sm);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-confirm-use:hover {
+      background: var(--tg-primary-hover);
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .gallery-layout {
+        flex-direction: column;
+        padding: 20px;
+      }
+      .filter-sidebar {
+        width: 100%;
+        position: static;
+      }
+      .filter-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand-group">
+      <div class="brand-icon">🎓</div>
+      <div class="brand-title">
+        <h1>Template Gallery</h1>
+        <p>AI Lecture Studio v2 — Kho Bố Cục Sư Phạm Chuẩn Mực</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="btn-create-project" id="btnQuickStart">
+        <span>⚡</span> Bắt Đầu Bài Giảng Mới
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="gallery-layout">
+
+    <!-- Filter Sidebar -->
+    <aside class="filter-sidebar" aria-label="Bộ lọc template">
+      <div class="filter-head">
+        <h2>Bộ Lọc Bố Cục</h2>
+        <button class="btn-reset-filters" id="btnResetFilters" type="button">Đặt lại</button>
+      </div>
+
+      <!-- Filter Group: Subject -->
+      <div class="filter-group">
+        <div class="filter-group-title">Môn Học (Subject)</div>
+        <div class="filter-options" id="filterSubject">
+          <label class="filter-chip-label">
+            <input type="checkbox" value="tong-hop"> Tổng Hợp
+          </label>
+          <label class="filter-chip-label">
+            <input type="checkbox" value="toan-tin"> Toán - Tin Học
+          </label>
+          <label class="filter-chip-label">
+            <input type="checkbox" value="khoa-hoc-tu-nhien"> Khoa Học Tự Nhiên
+          </label>
+          <label class="filter-chip-label">
+            <input type="checkbox" value="xa-hoi-nhan-van"> Xã Hội & Nhân Văn
+          </label>
+          <label class="filter-chip-label">
+            <input type="checkbox" value="ngoai-ngu"> Ngoại Ngữ
+          </label>
+          <label class="filter-chip-label">
+            <input type="checkbox" value="kinh-te-quan-tri"> Kinh Tế & Quản Trị
+          </label>
+        </div>
+      </div>
+
+      <!-- Filter Group: Style -->
+      <div class="filter-group">
+        <div class="filter-group-title">Phong Cách (Style)</div>
+        <div class="filter-options" id="filterStyle">
+          <label class="filter-chip-label">
+            <input type="checkbox" value="hoc-thuat-nghiem-tuc"> Học Thuật Nghiêm Túc
+          </label>
+          <label class="filter-chip-label">
+            <input type="checkbox" value="hien-dai-toi-gian"> Hiện Đại Tối Giản
+          </label>
+          <label class="filter-chip-label">
+            <input type="checkbox" value="sinh-dong-tre-trung"> Sinh Động Trẻ Trung
+          </label>
+          <label class="filter-chip-label">
+            <input type="checkbox" value="cong-nghe-tuong-lai"> Công Nghệ Tương Lai
+          </label>
+        </div>
+      </div>
+
+      <!-- Filter Group: Effect -->
+      <div class="filter-group">
+        <div class="filter-group-title">Hiệu Ứng (Effect)</div>
+        <div class="filter-options" id="filterEffect">
+          <label class="filter-chip-label">
+            <input type="checkbox" value="nang-dong-kinetic"> Năng Động Kinetic
+          </label>
+          <label class="filter-chip-label">
+            <input type="checkbox" value="nhe-nhang-fade"> Nhẹ Nhàng Fade
+          </label>
+          <label class="filter-chip-label">
+            <input type="checkbox" value="chu-danh-may-typewriter"> Chữ Đánh Máy
+          </label>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <section class="content-area">
+
+      <!-- Toolbar -->
+      <div class="toolbar-bar">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="search" id="searchInput" class="search-input" placeholder="Tìm theo tên pack, môn học, từ khóa..." aria-label="Tìm kiếm template pack">
+        </div>
+        <div class="results-count" id="resultsCount">Đang hiển thị 4 template packs</div>
+      </div>
+
+      <!-- Cards Grid -->
+      <div class="cards-grid" id="cardsGrid">
+        <!-- Rendered via JS -->
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">📂</div>
+        <h3 class="empty-title">Không tìm thấy Template Pack phù hợp</h3>
+        <p class="empty-desc">Thử nới lỏng các bộ lọc môn học/phong cách hoặc xóa từ khóa tìm kiếm để khám phá thêm các bộ template khác.</p>
+        <button class="btn-create-project" id="btnEmptyReset" style="margin-top: 10px;">Xóa bộ lọc & Tải lại</button>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- Detail Drawer -->
+  <div class="drawer-overlay" id="drawerOverlay" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+    <div class="drawer-content">
+      <div class="drawer-header">
+        <div class="drawer-title-group">
+          <h3 id="drawerTitle">Chi Tiết Template Pack</h3>
+          <p id="drawerDesc">Mô tả chi tiết và các layout sư phạm chuẩn</p>
+        </div>
+        <button class="btn-close-drawer" id="btnCloseDrawer" aria-label="Đóng chi tiết">✕</button>
+      </div>
+
+      <div class="drawer-body">
+        <div>
+          <div class="drawer-section-title">Bảng Màu & Tokens</div>
+          <div class="tokens-preview-box">
+            <div class="color-swatches" id="drawerSwatches"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="drawer-section-title">Danh Sách Bố Cục Sư Phạm (<span id="drawerLayoutsCount">0</span>)</div>
+          <div class="layouts-list" id="drawerLayoutsList"></div>
+        </div>
+      </div>
+
+      <div class="drawer-footer">
+        <button class="btn-cancel" id="btnCancelDrawer">Đóng</button>
+        <button class="btn-confirm-use" id="btnConfirmUse">Sử Dụng Template Này</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    // Mock Data conforming strictly to GET /packs (SPEC_V2 §3)
+    const MOCK_PACKS = [
+      {
+        id: "basic",
+        name: "Học Thuật Cơ Bản (Academic Basic)",
+        description: "Bộ template học thuật kinh điển gồm 10 bố cục sư phạm chuẩn mực, hỗ trợ bảng màu Academic Ocean & Amber, phù hợp giảng đường và khóa học trực tuyến.",
+        aspectRatio: "16:9",
+        previewVideoUrl: "renders/preview_basic.mp4",
+        tags: {
+          subject: ["tong-hop", "xa-hoi-nhan-van", "toan-tin"],
+          style: ["hoc-thuat-nghiem-tuc"],
+          effect: ["nang-dong-kinetic"]
+        },
+        tokens: {
+          colors: {
+            primary: "#0369A1",
+            accent: "#D97706",
+            bgCanvas: "#F5FAFF",
+            textMain: "#0F172A",
+            border: "#BAE6FD"
+          },
+          fonts: { heading: "Be Vietnam Pro", body: "Be Vietnam Pro" }
+        },
+        layouts: [
+          { id: "title-slide", name: "Tiêu Đề Bài Giảng", purpose: "title", variants: 5 },
+          { id: "learning-objectives", name: "Mục Tiêu Bài Học", purpose: "summary", variants: 3 },
+          { id: "concept-explain", name: "Giải Thích Khái Niệm", purpose: "concept-explain", variants: 4 },
+          { id: "bullet-breakdown", name: "Phân Tích Đa Điểm", purpose: "bullet-breakdown", variants: 2 },
+          { id: "image-explain", name: "Minh Họa Hình Ảnh", purpose: "image-explain", variants: 4 },
+          { id: "comparison", name: "So Sánh Đối Xứng", purpose: "comparison", variants: 2 },
+          { id: "timeline", name: "Dòng Thời Gian", purpose: "timeline", variants: 2 },
+          { id: "formula-explain", name: "Công Thức & Logic", purpose: "formula-explain", variants: 2 },
+          { id: "quiz", name: "Câu Hỏi Tương Tác", purpose: "quiz", variants: 2 },
+          { id: "summary", name: "Tổng Kết Bài Học", purpose: "summary", variants: 3 }
+        ]
+      },
+      {
+        id: "cyber-tech",
+        name: "Công Nghệ & Lập Trình (Cyber Tech)",
+        description: "Thiết kế vị lai mang âm hưởng IDE tối màu, phù hợp giảng dạy Lập trình, Trí tuệ Nhân tạo, Khoa học Dữ liệu và Kỹ thuật Phần mềm.",
+        aspectRatio: "16:9",
+        previewVideoUrl: "renders/preview_tech.mp4",
+        tags: {
+          subject: ["toan-tin", "khoa-hoc-tu-nhien"],
+          style: ["cong-nghe-tuong-lai"],
+          effect: ["chu-danh-may-typewriter", "nang-dong-kinetic"]
+        },
+        tokens: {
+          colors: {
+            primary: "#06B6D4",
+            accent: "#10B981",
+            bgCanvas: "#0B0F19",
+            textMain: "#F8FAFC",
+            border: "#1E293B"
+          },
+          fonts: { heading: "Be Vietnam Pro", body: "JetBrains Mono" }
+        },
+        layouts: [
+          { id: "title-slide", name: "Tech Hero Title", purpose: "title", variants: 3 },
+          { id: "code-walkthrough", name: "Code Block Step-through", purpose: "concept-explain", variants: 2 },
+          { id: "architecture-diagram", name: "System Architecture", purpose: "image-explain", variants: 3 },
+          { id: "terminal-quiz", name: "Interactive Debug Quiz", purpose: "quiz", variants: 2 }
+        ]
+      },
+      {
+        id: "vibrant-science",
+        name: "Khoa Học Tự Nhiên (Vibrant Science)",
+        description: "Bảng màu Emerald & Amber tràn đầy năng lượng, tối ưu cho bài giảng Sinh học, Hóa học, Y dược học và Địa lý trực quan.",
+        aspectRatio: "16:9",
+        previewVideoUrl: "renders/preview_science.mp4",
+        tags: {
+          subject: ["khoa-hoc-tu-nhien"],
+          style: ["sinh-dong-tre-trung"],
+          effect: ["nang-dong-kinetic"]
+        },
+        tokens: {
+          colors: {
+            primary: "#059669",
+            accent: "#F59E0B",
+            bgCanvas: "#F0FDF4",
+            textMain: "#064E3B",
+            border: "#A7F3D0"
+          },
+          fonts: { heading: "Be Vietnam Pro", body: "Be Vietnam Pro" }
+        },
+        layouts: [
+          { id: "title-slide", name: "Khám Phá Khoa Học", purpose: "title", variants: 2 },
+          { id: "experiment-step", name: "Quy Trình Thí Nghiệm", purpose: "timeline", variants: 2 },
+          { id: "specimen-viewer", name: "Mẫu Vật Trực Quan", purpose: "image-explain", variants: 3 }
+        ]
+      },
+      {
+        id: "minimal-modern",
+        name: "Hiện Đại Tối Giản (Minimalist Pro)",
+        description: "Bố cục thoáng đạt với tỷ lệ vàng typography Thụy Sĩ, tập trung tối đa vào thông điệp và luận điểm kinh tế - quản trị kinh doanh.",
+        aspectRatio: "16:9",
+        previewVideoUrl: "renders/preview_minimal.mp4",
+        tags: {
+          subject: ["kinh-te-quan-tri", "ngoai-ngu"],
+          style: ["hien-dai-toi-gian"],
+          effect: ["nhe-nhang-fade"]
+        },
+        tokens: {
+          colors: {
+            primary: "#18181B",
+            accent: "#71717A",
+            bgCanvas: "#FFFFFF",
+            textMain: "#09090B",
+            border: "#E4E4E7"
+          },
+          fonts: { heading: "Be Vietnam Pro", body: "Be Vietnam Pro" }
+        },
+        layouts: [
+          { id: "title-slide", name: "Executive Title", purpose: "title", variants: 2 },
+          { id: "market-stats", name: "Chỉ Số Thị Trường", purpose: "comparison", variants: 2 },
+          { id: "key-takeaways", name: "Luận Điểm Quản Trị", purpose: "summary", variants: 2 }
+        ]
+      }
+    ];
+
+    // Label mapping for human-readable Vietnamese presentation
+    const TAG_LABELS = {
+      // Subject
+      "tong-hop": "Tổng Hợp",
+      "toan-tin": "Toán - Tin",
+      "khoa-hoc-tu-nhien": "KHTN",
+      "xa-hoi-nhan-van": "KHXH & Nhân Văn",
+      "ngoai-ngu": "Ngoại Ngữ",
+      "kinh-te-quan-tri": "Kinh Tế & Quản Trị",
+      // Style
+      "hoc-thuat-nghiem-tuc": "Học Thuật",
+      "hien-dai-toi-gian": "Hiện Đại Tối Giản",
+      "sinh-dong-tre-trung": "Sinh Động Trẻ",
+      "cong-nghe-tuong-lai": "Công Nghệ",
+      // Effect
+      "nang-dong-kinetic": "Kinetic",
+      "nhe-nhang-fade": "Fade Nhẹ",
+      "chu-danh-may-typewriter": "Typewriter"
+    };
+
+    let selectedPack = null;
+
+    // Filter Logic: AND across groups, OR within group
+    function getFilteredPacks() {
+      const selectedSubjects = Array.from(document.querySelectorAll('#filterSubject input:checked')).map(el => el.value);
+      const selectedStyles = Array.from(document.querySelectorAll('#filterStyle input:checked')).map(el => el.value);
+      const selectedEffects = Array.from(document.querySelectorAll('#filterEffect input:checked')).map(el => el.value);
+      const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+
+      return MOCK_PACKS.filter(pack => {
+        // Search Term matching
+        if (searchTerm) {
+          const matchName = pack.name.toLowerCase().includes(searchTerm);
+          const matchDesc = pack.description.toLowerCase().includes(searchTerm);
+          const matchTags = Object.values(pack.tags).flat().some(t => t.toLowerCase().includes(searchTerm));
+          if (!matchName && !matchDesc && !matchTags) return false;
+        }
+
+        // Subject Filter (OR within group)
+        if (selectedSubjects.length > 0) {
+          const hasSubject = pack.tags.subject.some(s => selectedSubjects.includes(s));
+          if (!hasSubject) return false;
+        }
+
+        // Style Filter (OR within group)
+        if (selectedStyles.length > 0) {
+          const hasStyle = pack.tags.style.some(st => selectedStyles.includes(st));
+          if (!hasStyle) return false;
+        }
+
+        // Effect Filter (OR within group)
+        if (selectedEffects.length > 0) {
+          const hasEffect = pack.tags.effect.some(ef => selectedEffects.includes(ef));
+          if (!hasEffect) return false;
+        }
+
+        return true;
+      });
+    }
+
+    function renderCards() {
+      const filtered = getFilteredPacks();
+      const grid = document.getElementById('cardsGrid');
+      const empty = document.getElementById('emptyState');
+      const countLabel = document.getElementById('resultsCount');
+
+      countLabel.innerText = `Đang hiển thị ${filtered.length} template pack${filtered.length > 1 ? 's' : ''}`;
+
+      if (filtered.length === 0) {
+        grid.style.display = 'none';
+        empty.style.display = 'flex';
+        return;
+      }
+
+      grid.style.display = 'grid';
+      empty.style.display = 'none';
+
+      grid.innerHTML = filtered.map(pack => {
+        const bg = pack.tokens.colors.bgCanvas;
+        const fg = pack.tokens.colors.textMain;
+        const pri = pack.tokens.colors.primary;
+        const acc = pack.tokens.colors.accent;
+
+        return `
+          <article class="pack-card" data-pack-id="${pack.id}" tabindex="0" role="button" aria-label="Xem chi tiết ${pack.name}">
+            <div class="card-preview" style="background: ${bg}; color: ${fg}; border-bottom: 2px solid ${pri};">
+              <div class="preview-canvas-mock">
+                <div>
+                  <span class="mock-badge" style="background: ${pri}; color: white;">${pack.id.toUpperCase()}</span>
+                  <div class="mock-title" style="color: ${fg};">${pack.name}</div>
+                </div>
+                <div class="mock-meta" style="color: ${fg};">
+                  <span>✨ ${pack.layouts.length} Bố cục</span>
+                  <span>•</span>
+                  <span>⚡ GSAP Sync</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="card-header-row">
+                <h3 class="pack-name">${pack.name}</h3>
+                <span class="pack-layouts-count">${pack.layouts.length} Bố Cục</span>
+              </div>
+              <p class="pack-desc">${pack.description}</p>
+              
+              <div class="tag-chips">
+                ${pack.tags.subject.map(s => `<span class="tag-chip subject">${TAG_LABELS[s] || s}</span>`).join('')}
+                ${pack.tags.style.map(st => `<span class="tag-chip style">${TAG_LABELS[st] || st}</span>`).join('')}
+                ${pack.tags.effect.map(ef => `<span class="tag-chip effect">${TAG_LABELS[ef] || ef}</span>`).join('')}
+              </div>
+            </div>
+
+            <div class="card-footer">
+              <button class="btn-view-details" type="button">Chi tiết pack →</button>
+              <button class="btn-use-card" type="button" data-use-id="${pack.id}">Dùng template</button>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      // Attach event listeners to cards
+      grid.querySelectorAll('.pack-card').forEach(card => {
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('.btn-use-card')) {
+            const packId = e.target.closest('.btn-use-card').dataset.useId;
+            useTemplate(packId);
+            return;
+          }
+          const packId = card.dataset.packId;
+          openDrawer(packId);
+        });
+
+        card.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openDrawer(card.dataset.packId);
+          }
+        });
+      });
+    }
+
+    function openDrawer(packId) {
+      const pack = MOCK_PACKS.find(p => p.id === packId);
+      if (!pack) return;
+      selectedPack = pack;
+
+      document.getElementById('drawerTitle').innerText = pack.name;
+      document.getElementById('drawerDesc').innerText = pack.description;
+      document.getElementById('drawerLayoutsCount').innerText = pack.layouts.length;
+
+      // Render swatches
+      const swatchesBox = document.getElementById('drawerSwatches');
+      swatchesBox.innerHTML = Object.entries(pack.tokens.colors).map(([key, val]) => `
+        <div class="color-swatch-item">
+          <span class="swatch-dot" style="background: ${val};"></span>
+          <span>${key}: ${val}</span>
+        </div>
+      `).join('');
+
+      // Render layouts list
+      const layoutsBox = document.getElementById('drawerLayoutsList');
+      layoutsBox.innerHTML = pack.layouts.map((l, idx) => `
+        <div class="layout-item-card">
+          <div class="layout-info">
+            <h4>${idx + 1}. ${l.name}</h4>
+            <p>Mục đích: ${l.purpose} • ${l.variants || 1} biến thể</p>
+          </div>
+          <span class="layout-badge">${l.id}</span>
+        </div>
+      `).join('');
+
+      document.getElementById('drawerOverlay').classList.add('open');
+      document.getElementById('btnCloseDrawer').focus();
+    }
+
+    function closeDrawer() {
+      document.getElementById('drawerOverlay').classList.remove('open');
+      selectedPack = null;
+    }
+
+    function useTemplate(packId) {
+      const pack = MOCK_PACKS.find(p => p.id === packId);
+      if (!pack) return;
+      
+      const confirmMsg = `Bạn đã chọn Template Pack: "${pack.name}".\nChuyển đến Studio để tải tài liệu bài giảng?`;
+      if (confirm(confirmMsg)) {
+        window.location.href = `/studio.html?packId=${encodeURIComponent(pack.id)}`;
+      }
+    }
+
+    // Event Bindings
+    document.querySelectorAll('.filter-sidebar input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener('change', renderCards);
+    });
+
+    document.getElementById('searchInput').addEventListener('input', renderCards);
+
+    document.getElementById('btnResetFilters').addEventListener('click', () => {
+      document.querySelectorAll('.filter-sidebar input[type="checkbox"]').forEach(cb => cb.checked = false);
+      document.getElementById('searchInput').value = '';
+      renderCards();
+    });
+
+    document.getElementById('btnEmptyReset').addEventListener('click', () => {
+      document.getElementById('btnResetFilters').click();
+    });
+
+    document.getElementById('btnCloseDrawer').addEventListener('click', closeDrawer);
+    document.getElementById('btnCancelDrawer').addEventListener('click', closeDrawer);
+
+    document.getElementById('drawerOverlay').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('drawerOverlay')) {
+        closeDrawer();
+      }
+    });
+
+    document.getElementById('btnConfirmUse').addEventListener('click', () => {
+      if (selectedPack) {
+        useTemplate(selectedPack.id);
+      }
+    });
+
+    document.getElementById('btnQuickStart').addEventListener('click', () => {
+      useTemplate('basic');
+    });
+
+    // Keyboard Accessibility (ESC to close drawer)
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.getElementById('drawerOverlay').classList.contains('open')) {
+        closeDrawer();
+      }
+    });
+
+    // Initial render
+    renderCards();
+  </script>
+</body>
+</html>

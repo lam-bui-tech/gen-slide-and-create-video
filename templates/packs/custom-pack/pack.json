@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "2.0.0",
+  "id": "custom-pack",
+  "name": "Bộ Mẫu Tùy Biến (Custom Pack)",
+  "description": "Bộ mẫu bài giảng tùy biến cá nhân hóa cho phép lưu các bố cục thiết kế mới từ Chế Độ Builder",
+  "aspectRatio": "16:9",
+  "previewVideoUrl": "renders/preview_basic.mp4",
+  "tags": {
+    "subject": ["tong-hop"],
+    "style": ["hien-dai-toi-gian"],
+    "effect": ["nang-dong-kinetic"]
+  },
+  "tokens": {
+    "colors": {
+      "primary": "#0284C7",
+      "primaryHover": "#0369A1",
+      "accent": "#F59E0B",
+      "bgCanvas": "#F8FAFC",
+      "bgCard": "#FFFFFF",
+      "textMain": "#0F172A",
+      "textSub": "#334155",
+      "border": "#BAE6FD"
+    },
+    "fonts": {
+      "heading": "Be Vietnam Pro, sans-serif",
+      "body": "Be Vietnam Pro, sans-serif",
+      "code": "JetBrains Mono, monospace"
+    },
+    "spacing": {
+      "headerHeight": "88px",
+      "footerHeight": "76px",
+      "contentHeight": "916px",
+      "padScreenX": "72px",
+      "padScreenY": "28px",
+      "gapCards": "28px"
+    }
+  },
+  "layouts": [
+    {
+      "id": "title-slide",
+      "name": "Tiêu Đề Bài Giảng",
+      "purpose": "title",
+      "slots": [
+        { "id": "badge", "role": "badge", "accepts": ["text"], "optional": true },
+        { "id": "title", "role": "title", "accepts": ["text"] },
+        { "id": "subtitle", "role": "subtitle", "accepts": ["text"], "optional": true },
+        { "id": "author", "role": "body", "accepts": ["text"], "optional": true },
+        { "id": "media", "role": "media", "accepts": ["image", "video"], "optional": true }
+      ],
+      "decor": [],
+      "variants": [
+        { "id": "default", "name": "Mặc định (Chữ trái - Ảnh phải)" },
+        { "id": "fullscreen", "name": "Toàn màn hình (Fullscreen)" },
+        { "id": "stacked-top", "name": "Xếp chồng (Chữ trên - Ảnh dưới)" },
+        { "id": "text-left-image-right", "name": "Chữ trái - Ảnh phải" },
+        { "id": "text-right-image-left", "name": "Chữ phải - Ảnh trái" },
+        { "id": "no-image", "name": "Không Có Ảnh" }
+      ],
+      "defaultAnimations": [
+        { "target": ".title-hero-heading", "preset": "zoom-in", "delay": 0.2, "duration": 0.8, "easing": "back.out" }
+      ]
+    }
+  ]
+}

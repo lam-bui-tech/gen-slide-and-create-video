@@ -1,10 +1,20 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "LessonSceneJSON",
-  "description": "Unified source of truth defining all slides, elements, animations, and voice-over tracks for HyperFrames engine",
+  "description": "Unified source of truth defining all slides, slots, media recommendations, animations, and voice-over tracks for HyperFrames engine (v2)",
   "type": "object",
   "required": ["projectId", "title", "slides"],
   "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "default": 2,
+      "description": "Schema version (1 = legacy templateId/elements, 2 = packId/slotValues)"
+    },
+    "packId": {
+      "type": "string",
+      "default": "basic",
+      "description": "Selected template pack identifier"
+    },
     "projectId": {
       "type": "string",
       "description": "Unique identifier of the lecture project"
@@ -17,7 +27,7 @@
       "type": "object",
       "properties": {
         "colorScheme": { "type": "string", "default": "academic-ocean" },
-        "fontFamily": { "type": "string", "default": "Inter, sans-serif" },
+        "fontFamily": { "type": "string", "default": "Be Vietnam Pro, sans-serif" },
         "aspectRatio": { "type": "string", "default": "16:9" }
       }
     },
@@ -39,11 +49,6 @@
       "type": "object",
       "required": [
         "slideId",
-        "templateId",
-        "layoutVariant",
-        "title",
-        "elements",
-        "animations",
         "voice",
         "durationSeconds"
       ],
@@ -52,25 +57,22 @@
           "type": "string",
           "description": "Unique slide identifier (e.g. slide-01)"
         },
+        "layoutId": {
+          "type": "string",
+          "description": "Layout identifier from the chosen Template Pack"
+        },
         "templateId": {
           "type": "string",
-          "enum": [
-            "title-slide",
-            "learning-objectives",
-            "concept-explain",
-            "bullet-breakdown",
-            "image-explain",
-            "comparison",
-            "timeline",
-            "formula-explain",
-            "quiz",
-            "summary"
-          ],
-          "description": "Standard pedagogical template identifier"
+          "description": "Legacy template identifier (v1 backward compatibility)"
+        },
+        "variantId": {
+          "type": "string",
+          "default": "default",
+          "description": "Visual layout variant id"
         },
         "layoutVariant": {
           "type": "string",
-          "description": "Visual layout variant (e.g. text-left-image-right, text-right-image-left, stacked-top, fullscreen, no-image, default)"
+          "description": "Legacy layout variant alias (v1 compatibility)"
         },
         "title": {
           "type": "string",
@@ -80,18 +82,32 @@
           "type": "string",
           "description": "Optional secondary tagline or chapter tag"
         },
+        "slotValues": {
+          "type": "object",
+          "description": "Slot values mapped by slot id matching the layout definition"
+        },
+        "media": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MediaCandidate"
+          },
+          "default": [],
+          "description": "Selected or recommended media items for this slide"
+        },
         "elements": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/SlideElement"
           },
-          "description": "Structured semantic elements belonging to this slide"
+          "default": [],
+          "description": "Custom or decor semantic elements belonging to this slide"
         },
         "animations": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/AnimationItem"
           },
+          "default": [],
           "description": "GSAP animation cues synchronized with speech"
         },
         "voice": {
@@ -109,6 +125,45 @@
         }
       }
     },
+    "MediaCandidate": {
+      "type": "object",
+      "required": ["id", "source", "type", "url"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for this media candidate"
+        },
+        "source": {
+          "type": "string",
+          "enum": ["document", "diagram", "chart", "upload", "ai-image"],
+          "description": "Origin of the media candidate"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["image", "video", "diagram"],
+          "description": "Type of media"
+        },
+        "url": {
+          "type": "string",
+          "description": "Accessible relative or absolute URL to the asset"
+        },
+        "alt": {
+          "type": "string",
+          "description": "Accessible description or caption"
+        },
+        "relevance": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "description": "Relevance score between 0 and 1"
+        },
+        "license": {
+          "type": "string",
+          "default": "educational-fair-use",
+          "description": "License or provenance label"
+        }
+      }
+    },
     "SlideElement": {
       "type": "object",
       "required": ["id", "type"],
@@ -118,19 +173,7 @@
           "description": "Element DOM/Timeline identifier targetable by animations"
         },
         "type": {
-          "type": "string",
-          "enum": [
-            "text",
-            "heading",
-            "badge",
-            "card",
-            "bullet-list",
-            "image",
-            "comparison-table",
-            "timeline-step",
-            "formula",
-            "quiz-block"
-          ]
+          "type": "string"
         },
         "content": {
           "description": "Element textual or structured payload"
@@ -196,13 +239,13 @@
           "description": "Speaker voice name (e.g. MyDuyen, HaMy, BanMai)"
         },
         "audioUrl": {
-          "type": "string",
-          "description": "Path or URL to generated WAV/MP3 file"
+          "type": ["string", "null"],
+          "description": "Path or URL to generated WAV/MP3 file (nullable until synthesis)"
         },
         "durationSeconds": {
-          "type": "number",
+          "type": ["number", "null"],
           "minimum": 0.0,
-          "description": "Measured duration of the synthesized audio file"
+          "description": "Measured duration of synthesized audio (nullable until synthesis)"
         }
       }
     }

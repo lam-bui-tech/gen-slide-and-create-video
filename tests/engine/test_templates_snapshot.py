@@ -8,9 +8,16 @@ Vietnamese typography, layout variants, and generates rendered snapshot HTML.
 import json
 import os
 import re
+import sys
 import unittest
+import jsonschema
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
+
+from schemas.models import TemplatePack
+
 SNAPSHOT_DIR = os.path.join(os.path.dirname(__file__), 'snapshots')
 
 TEMPLATES_10 = [
@@ -145,6 +152,95 @@ class TestHyperFramesTemplates(unittest.TestCase):
         self.assertTrue(os.path.exists(snapshot_html_path))
         self.assertGreater(os.path.getsize(snapshot_html_path), 500)
 
+    def test_basic_pack_schema_validation(self):
+        """P1.4: templates/packs/basic/pack.json must validate against template_pack.json and Pydantic TemplatePack."""
+        pack_path = os.path.join(ROOT_DIR, 'templates', 'packs', 'basic', 'pack.json')
+        schema_path = os.path.join(ROOT_DIR, 'schemas', 'template_pack.json')
+
+        self.assertTrue(os.path.exists(pack_path), "templates/packs/basic/pack.json does not exist")
+        self.assertTrue(os.path.exists(schema_path), "schemas/template_pack.json does not exist")
+
+        with open(pack_path, 'r', encoding='utf-8') as f:
+            pack_data = json.load(f)
+        with open(schema_path, 'r', encoding='utf-8') as f:
+            schema = json.load(f)
+
+        # 1. JSON Schema validation
+        jsonschema.validate(instance=pack_data, schema=schema)
+
+        # 2. Pydantic validation
+        pack = TemplatePack.model_validate(pack_data)
+        self.assertEqual(pack.id, 'basic')
+        self.assertEqual(pack.aspectRatio, '16:9')
+        self.assertEqual(len(pack.layouts), 10)
+
+        # 3. Verify all 10 layout IDs and structure
+        layout_ids = [l.id for l in pack.layouts]
+        self.assertEqual(layout_ids, TEMPLATES_10)
+
+        for layout in pack.layouts:
+            self.assertTrue(len(layout.name) > 0)
+            self.assertTrue(len(layout.slots) > 0)
+            # Must have at least one variant with id == 'default'
+            variant_ids = [v.id for v in layout.variants]
+            self.assertIn('default', variant_ids, f"Layout {layout.id} must include 'default' variant")
+            # Must have defaultAnimations defined
+            self.assertIsNotNone(layout.defaultAnimations)
+
+    def test_render_all_10_layouts_from_pack_matches_snapshot(self):
+        """P1.4: Rendering all 10 layouts defined in basic pack produces pixel-identical output matching snapshot."""
+        pack_path = os.path.join(ROOT_DIR, 'templates', 'packs', 'basic', 'pack.json')
+        with open(pack_path, 'r', encoding='utf-8') as f:
+            pack_data = json.load(f)
+
+        layout_map = {l['id']: l for l in pack_data['layouts']}
+        slides = self.scene['slides']
+        self.assertEqual(len(slides), 10)
+
+        slide_sections = []
+        current_time = 0.0
+        for i, s in enumerate(slides):
+            template_id = s['templateId']
+            self.assertIn(template_id, layout_map, f"Template {template_id} missing from pack.json layouts")
+            layout_def = layout_map[template_id]
+
+            duration = s.get('durationSeconds', 16.0)
+            start = round(current_time, 2)
+            current_time += duration
+            active_class = "clip active" if i == 0 else "clip"
+
+            # Validate requested variant against layout supported variants
+            variant = s.get("layoutVariant", "default")
+            supported_variants = [v['id'] for v in layout_def.get('variants', [])]
+            if variant not in supported_variants:
+                variant = "default"
+
+            slide_sections.append(
+                f'<section id="{s["slideId"]}" class="{active_class}" data-start="{start}" data-duration="{duration}">\n'
+                f'  <div class="hf-template-{template_id} variant-{variant}">\n'
+                f'    <h2 class="slide-title">{s["title"]}</h2>\n'
+                f'  </div>\n'
+                f'</section>'
+            )
+
+        pack_rendered_html = (
+            "<!DOCTYPE html>\n<html lang=\"vi\">\n<head>\n"
+            "<meta charset=\"UTF-8\">\n"
+            "<link rel=\"stylesheet\" href=\"../../templates/tokens.css\">\n"
+            "<link rel=\"stylesheet\" href=\"../../templates/templates.css\">\n"
+            "</head>\n<body>\n"
+            "<div class=\"hf-viewport\">\n"
+            + "\n".join(slide_sections) +
+            "\n</div>\n</body>\n</html>"
+        )
+
+        snapshot_html_path = os.path.join(SNAPSHOT_DIR, 'all_templates_preview.html')
+        with open(snapshot_html_path, 'r', encoding='utf-8') as f:
+            existing_snapshot = f.read()
+
+        self.assertEqual(pack_rendered_html, existing_snapshot, "Pack rendered HTML does not match snapshot exactly")
+
 
 if __name__ == '__main__':
     unittest.main()
+

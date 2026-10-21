@@ -4,7 +4,9 @@
  * Implements immutable updates, schema validation, and audio-first sync calculation.
  */
 
-export const ALLOWED_TEMPLATES = [
+import { TemplateRegistry } from '../templates/registry.js';
+
+export const ALLOWED_TEMPLATES = TemplateRegistry.get('basic')?.layouts.map(l => l.id) || [
   'title-slide',
   'learning-objectives',
   'concept-explain',
@@ -48,8 +50,11 @@ export function validateSlide(slide) {
   if (!slide.slideId || typeof slide.slideId !== 'string') {
     throw new Error('Slide must have a valid string slideId');
   }
-  if (!ALLOWED_TEMPLATES.includes(slide.templateId)) {
-    throw new Error(`Invalid templateId: "${slide.templateId}". Must be one of ${ALLOWED_TEMPLATES.join(', ')}`);
+  const layoutId = slide.layoutId || slide.templateId;
+  const packId = slide.packId || 'basic';
+  const isValid = TemplateRegistry.hasLayout(packId, layoutId) || ALLOWED_TEMPLATES.includes(layoutId);
+  if (!isValid) {
+    throw new Error(`Invalid templateId: "${layoutId}". Must be one of ${ALLOWED_TEMPLATES.join(', ')}`);
   }
   if (!Array.isArray(slide.elements)) {
     throw new Error('Slide elements must be an array');
@@ -246,7 +251,128 @@ export function sceneReducer(state, action) {
       return next;
     }
 
+    case 'SWITCH_TEMPLATE_PACK': {
+      const { packId } = action.payload || {};
+      if (!packId || typeof packId !== 'string') {
+        throw new Error('SWITCH_TEMPLATE_PACK requires a valid packId string');
+      }
+      const pack = TemplateRegistry.get(packId);
+      if (!pack) {
+        throw new Error(`Pack "${packId}" not found in TemplateRegistry`);
+      }
+      next.templatePackId = packId;
+      const validLayoutIds = pack.layouts.map(l => l.id);
+      for (const slide of next.slides) {
+        slide.packId = packId;
+        const currentLayout = slide.layoutId || slide.templateId;
+        if (!validLayoutIds.includes(currentLayout) && validLayoutIds.length > 0) {
+          slide.layoutId = validLayoutIds[0];
+          slide.templateId = validLayoutIds[0];
+        }
+        validateSlide(slide);
+      }
+      return next;
+    }
+
+    case 'SET_MEDIA_SLOT': {
+      const { slideIndex, mediaUrl, variant } = action.payload;
+      if (slideIndex < 0 || slideIndex >= next.slides.length) {
+        throw new Error(`Slide index out of bounds: ${slideIndex}`);
+      }
+      const slide = next.slides[slideIndex];
+      if (!slide.slotValues) slide.slotValues = {};
+      slide.slotValues.media = mediaUrl;
+      if (variant) {
+        slide.layoutVariant = variant;
+        slide.variantId = variant;
+      } else if (slide.layoutVariant === 'no-image') {
+        slide.layoutVariant = 'default';
+        slide.variantId = 'default';
+      }
+      const imgEl = slide.elements.find(e => e.type === 'image');
+      if (imgEl) {
+        imgEl.content = mediaUrl;
+      } else {
+        slide.elements.push({ id: 'img-media', type: 'image', content: mediaUrl });
+      }
+      validateSlide(slide);
+      return next;
+    }
+
+    case 'REMOVE_MEDIA_SLOT': {
+      const { slideIndex } = action.payload;
+      if (slideIndex < 0 || slideIndex >= next.slides.length) {
+        throw new Error(`Slide index out of bounds: ${slideIndex}`);
+      }
+      const slide = next.slides[slideIndex];
+      if (slide.slotValues) {
+        delete slide.slotValues.media;
+      }
+      slide.layoutVariant = 'no-image';
+      slide.variantId = 'no-image';
+      const imgEl = slide.elements.find(e => e.type === 'image');
+      if (imgEl) {
+        imgEl.content = '';
+      }
+      validateSlide(slide);
+      return next;
+    }
+
+    case 'UPDATE_VIDEO_COMPONENT': {
+      const { slideIndex, elementId, changes } = action.payload;
+      if (slideIndex < 0 || slideIndex >= next.slides.length) {
+        throw new Error(`Slide index out of bounds: ${slideIndex}`);
+      }
+      const slide = next.slides[slideIndex];
+      const el = slide.elements.find(e => e.id === elementId || e.type === 'video');
+      if (el) {
+        Object.assign(el, changes);
+      }
+      validateSlide(slide);
+      return next;
+    }
+
+    case 'APPLY_SLIDE_CHAT_PATCH': {
+      const { slideIndex, patch } = action.payload || {};
+      if (typeof slideIndex !== 'number' || slideIndex < 0 || slideIndex >= next.slides.length) {
+        return next;
+      }
+      if (!patch || typeof patch !== 'object' || !patch.slotValues || typeof patch.slotValues !== 'object') {
+        return next;
+      }
+      const slide = next.slides[slideIndex];
+      slide.slotValues = slide.slotValues || {};
+      slide.elements = slide.elements || [];
+      slide.animations = slide.animations || [];
+
+      const sanitizeSlot = (val) => {
+        if (typeof val === 'string') {
+          return val.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+                    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+                    .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
+                    .replace(/<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi, '')
+                    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+                    .trim();
+        }
+        return val;
+      };
+
+      for (const [key, val] of Object.entries(patch.slotValues)) {
+        const cleanVal = sanitizeSlot(val);
+        slide.slotValues[key] = cleanVal;
+        if (key === 'title' && typeof cleanVal === 'string') {
+          slide.title = cleanVal;
+        }
+      }
+
+      validateSlide(slide);
+      return next;
+    }
+
     default:
       return next;
   }
 }
+
+export { sceneReducer as studioReducer };
+

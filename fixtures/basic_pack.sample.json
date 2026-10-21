@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "2.0.0",
+  "id": "basic",
+  "name": "Học Thuật Cơ Bản (Academic Basic)",
+  "description": "Bộ template học thuật kinh điển gồm 10 bố cục sư phạm chuẩn mực, bảng màu Academic Ocean & Amber",
+  "aspectRatio": "16:9",
+  "tags": {
+    "subject": ["tong-hop"],
+    "style": ["hoc-thuat-nghiem-tuc"],
+    "effect": ["nang-dong-kinetic"]
+  },
+  "tokens": {
+    "colors": {
+      "primary": "#0F4C81",
+      "primaryHover": "#0A365C",
+      "accent": "#F59E0B",
+      "bgCanvas": "#F8FAFC",
+      "bgCard": "#FFFFFF",
+      "textMain": "#0F172A",
+      "textSub": "#475569",
+      "border": "#E2E8F0"
+    },
+    "fonts": {
+      "heading": "Be Vietnam Pro, sans-serif",
+      "body": "Be Vietnam Pro, sans-serif",
+      "code": "JetBrains Mono, monospace"
+    },
+    "spacing": {}
+  },
+  "layouts": [
+    {
+      "id": "title-slide",
+      "name": "Tiêu Đề Bài Giảng",
+      "purpose": "title",
+      "slots": [
+        { "id": "badge", "role": "badge", "accepts": ["text"], "optional": true },
+        { "id": "title", "role": "title", "accepts": ["text"] },
+        { "id": "subtitle", "role": "subtitle", "accepts": ["text"], "optional": true },
+        { "id": "author", "role": "body", "accepts": ["text"], "optional": true },
+        { "id": "media", "role": "media", "accepts": ["image", "video"], "optional": true }
+      ],
+      "decor": [],
+      "variants": [
+        { "id": "default", "name": "Mặc định (Chữ trái - Ảnh phải)" },
+        { "id": "stacked-top", "name": "Xếp chồng (Chữ trên - Ảnh dưới)" }
+      ],
+      "defaultAnimations": [
+        { "target": ".slide-title", "preset": "slide-in", "delay": 0.5, "duration": 1.0, "easing": "power2.out" }
+      ]
+    },
+    {
+      "id": "concept-explain",
+      "name": "Giải Thích Khái Niệm",
+      "purpose": "concept-explain",
+      "slots": [
+        { "id": "title", "role": "title", "accepts": ["text"] },
+        { "id": "subtitle", "role": "subtitle", "accepts": ["text"], "optional": true },
+        { "id": "body", "role": "body", "accepts": ["text"] },
+        { "id": "media", "role": "media", "accepts": ["image", "video", "diagram"], "optional": true }
+      ],
+      "decor": [],
+      "variants": [
+        { "id": "default", "name": "Mặc định (Chữ trái - Ảnh phải)" },
+        { "id": "no-image", "name": "Không ảnh (Toàn màn hình chữ)" }
+      ],
+      "defaultAnimations": [
+        { "target": ".concept-card", "preset": "fade-in", "delay": 0.5, "duration": 0.8, "easing": "power2.out" }
+      ]
+    }
+  ]
+}

@@ -112,10 +112,12 @@ class TestEngineAndTemplates(unittest.TestCase):
         self.assertIn('window.__timelines', content)
 
     def test_studio_html_wysiwyg_editor(self):
-        """studio.html must include live canvas, contentEditable, image modal, and autosave."""
-        studio_path = os.path.join(ROOT_DIR, 'studio.html')
-        self.assertTrue(os.path.exists(studio_path), "studio.html does not exist")
-        with open(studio_path, 'r', encoding='utf-8') as f:
+        """index.html (primary frontend) must include live canvas, contentEditable, image modal, and autosave."""
+        target_path = os.path.join(ROOT_DIR, 'index.html')
+        if not os.path.exists(target_path):
+            target_path = os.path.join(ROOT_DIR, 'studio.html')
+        self.assertTrue(os.path.exists(target_path), "Neither index.html nor studio.html exists")
+        with open(target_path, 'r', encoding='utf-8') as f:
             content = f.read()
 
         self.assertIn('id="live-canvas"', content)

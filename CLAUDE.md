@@ -110,26 +110,47 @@ Fix all errors before presenting the result. Warnings should be reviewed before 
 
 ---
 
-## Current State & Key Decisions
+## Current State & Key Decisions (AI Lecture Studio v2 - Complete)
 
-- **TTS Engine**: Local VieNeu-TTS (`pnnbao-ump/VieNeu-TTS-v3-Turbo`) voice `Mỹ Duyên` generates high-quality Vietnamese narration tracks (`audio/slide1.wav` to `slide6.wav`, total 95.52s).
-- **Automation Pipeline**: `scripts/pptx_to_lecture.py` extracts presentation content from `.pptx` and maps into 5 master template slots (Hero, Agenda, Timeline, Diagram Process, 2-Column Dialectical Balance, and Pillars Summary).
-- **HyperFrames Composition**: `index.html` implements second-by-second kinetic GSAP timeline synchronized with VieNeu audio cues:
-  - Dynamic `.spotlight-active` highlight per card, node, arrow, and pillar as spoken.
-  - Live narration subtitle bar (`#vVoiceText`) in footer with animated soundwave indicator.
-  - 100% WCAG AA contrast compliance (126/126 checks pass).
-  - Clean `npm run check` quality gate pass.
-- **Render Output**: Successfully rendered full video to `renders/presentation.mp4` (6.2 MB, 1m 35.6s, 1080p 30fps).
-- **HyperFrames Studio Preview**: Persistent preview server active at `http://localhost:3002/#project/my-presentation`.
+- **Sprint v2 Completion**: 100% of tickets in `docs/TICKETS.md` (both Track A and Track B) are completed and green.
+  - **Track A (Backend & Pipeline)**: Ingestion, Adaptive Clarification, Slot Filler, Media Adapters, Builder API, Subtitles, VieNeu Pronunciation Normalization, Video extraction.
+  - **Track B (Engine & Studio)**:
+    - P1.4: Pack "basic" packaged at `templates/packs/basic/pack.json` with 10 layouts preserving pixel snapshot integrity.
+    - P1.5: `TemplateRegistry` & `migrateOnRead` auto-migration v1->v2.
+    - P2.1 & P2.3: Template Gallery prototype & studio modal with `SWITCH_TEMPLATE_PACK` action.
+    - P3.3: Pedagogical Outline review modal & safe slot text rendering.
+    - P4.3: Media Strip with `visualNeed` badge & 1-tap recommendations with `no-image` layout fallback.
+    - P5.1 & P5.2: Template Builder engine (snap-to-grid 8px, canvas drag-and-drop, slot/decor tagging, constraints, GSAP animations).
+    - P6.1 & P6.3: Video component on canvas with HyperFrames P6.1 attributes, trim start/end, volume ducking, and timeline scrubber sync.
+    - P7.3: Per-slide AI Chat Copilot with before/after diff review and safe `slotValues` patching.
+    - P7.4: Pedagogical Quality Review panel (pure functions in `studio/quality.js` auditing text density, narration reading speed, slide duration, and accessibility).
+- **Test Integrity**:
+  - `pytest tests/engine`: 61/61 PASSED (100% green).
+  - `pytest tests/test_contracts.py tests/pipeline`: 96/96 PASSED (100% green).
+- **Next Immediate Action**: Final integration review, end-to-end smoke testing, and preparation for merge to main.
 
 ---
 
-## AI Lecture Studio Architecture & Handoff State
+## Person A (Backend / Pipeline) Ownership Rules
+IMPORTANT: Person A owns server/, scripts/, schemas/, server.js, storage/, tests/pipeline/.
+YOU MUST NOT edit templates/, studio*, outline_to_hyperframes.js, tests/engine/ (Person B).
+Schema changes go through a small separate PR that B reviews.
+IMPORTANT: AI outputs structured JSON only; providers (LLM/TTS) only via interfaces.
+IMPORTANT: v1 projects must keep opening (migrate_v1_to_v2). Never delete v1 code paths
+until docs/TICKETS.md says so.
+Run tests: pytest tests/pipeline tests/test_contracts.py. Env: Windows, PYTHONUTF8=1.
 
-- **Core Architectural Decision**: Adopted **HyperFrames (HTML5 + CSS + GSAP)** as the unified engine for Slides, Studio Editor (WYSIWYG), and MP4 Video Rendering (superseding external Presenton and Revideo services).
-- **Key Artifacts**:
-  - Implementation Plan: `plan.md`
-  - Technical Specification & Contracts: `ai_lecture_studio_spec.md` (in brain artifacts)
-  - Interactive Prototype: `studio.html` & `server.js` (port 3000/3001)
-  - Git Repository: Connected to `https://github.com/lam-bui-tech/gen-slide-and-create-video.git` (branch `main`).
-- **Next Immediate Action**: Execute **Phase 1 — Task 1.1**: Document Ingestion Service (integrate `MarkItDown` + `python-pptx` to parse PPTX/PDF/DOCX into `DocumentContext.json`).
+---
+
+## Person B (Engine / Studio) Ownership Rules
+IMPORTANT: Person B owns templates/, index.html (single source of truth, studio.html removed), studio/, outline_to_hyperframes.js,
+tests/engine/. YOU MUST NOT edit server/, scripts/, schemas/, server.js, storage/
+(Person A). Schema changes go through a small PR that both approve.
+IMPORTANT: every edit in Studio/Builder produces a patch to LessonSceneJSON v2
+(slotValues/elements/media/animations); never edit generated HTML by hand.
+IMPORTANT: keep the visual output of the existing 10 layouts unchanged; the snapshot
+tests in tests/engine/test_templates_snapshot.py must stay green.
+Never emit an <img> with an empty or missing src; render a no-image variant instead.
+Verify HyperFrames behavior via `npx hyperframes docs ...` / --help; do not assume.
+Run tests: pytest tests/engine.
+

@@ -118,6 +118,22 @@ def normalize_outline_payload(data: Any, doc_context: DocumentContext, answers: 
             "contentPayload": s.get("contentPayload") or {}
         })
 
+    target_count = int(answers.get("slideCount")) if (answers and answers.get("slideCount")) else None
+    if target_count and target_count > 0:
+        if len(normalized_slides) > target_count:
+            normalized_slides = normalized_slides[:target_count]
+        elif len(normalized_slides) < target_count and len(normalized_slides) > 0:
+            while len(normalized_slides) < target_count:
+                idx = len(normalized_slides) + 1
+                normalized_slides.append({
+                    "slideId": f"slide-{idx}",
+                    "suggestedTemplateId": "concept-explain",
+                    "title": f"Nội dung trọng tâm {idx}",
+                    "keyTakeaways": [f"Trọng tâm kiến thức phần {idx}"],
+                    "speakerNotesDraft": f"Thuyết minh giải thích chi tiết nội dung phần {idx}.",
+                    "contentPayload": {}
+                })
+
     data["slides"] = normalized_slides
     return data
 

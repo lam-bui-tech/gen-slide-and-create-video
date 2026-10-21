@@ -71,27 +71,19 @@
   "definitions": {
     "OutlineSlide": {
       "type": "object",
-      "required": ["slideId", "suggestedTemplateId", "title", "keyTakeaways", "speakerNotesDraft"],
+      "required": ["slideId", "title", "keyTakeaways", "speakerNotesDraft"],
       "properties": {
         "slideId": {
           "type": "string",
           "description": "Stable unique ID for the slide (e.g. slide-01)"
         },
+        "suggestedLayoutId": {
+          "type": "string",
+          "description": "Suggested layout identifier from the selected template pack"
+        },
         "suggestedTemplateId": {
           "type": "string",
-          "enum": [
-            "title-slide",
-            "learning-objectives",
-            "concept-explain",
-            "bullet-breakdown",
-            "image-explain",
-            "comparison",
-            "timeline",
-            "formula-explain",
-            "quiz",
-            "summary"
-          ],
-          "description": "One of 10 standard academic pedagogical templates"
+          "description": "Suggested pedagogical template identifier (v1 alias or layoutId)"
         },
         "title": {
           "type": "string",
