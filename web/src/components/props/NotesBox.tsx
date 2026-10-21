@@ -32,10 +32,17 @@ export function NotesBox() {
 
   return (
     <div className="prop-section">
-      <div className="prop-section-title">Ghi Chú Giảng Viên</div>
+      <label
+        htmlFor="prop-notes-input"
+        className="prop-section-title"
+        style={{ display: 'block' }}
+      >
+        Ghi Chú Giảng Viên
+      </label>
       <div className="prop-group">
         <textarea
           id="prop-notes-input"
+          aria-label="Ghi chú giảng viên"
           className="prop-textarea"
           rows={3}
           placeholder="Ghi chú thêm cho người thuyết trình..."

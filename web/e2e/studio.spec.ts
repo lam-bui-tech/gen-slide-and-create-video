@@ -14,7 +14,6 @@ test.describe('AI Lecture Studio Next.js E2E Parity Suite', () => {
     await expect(page.locator('#save-status')).toBeVisible();
 
     await expect(page.locator('#btn-new-project')).toBeVisible();
-    await expect(page.locator('#btn-select-pack')).toBeVisible();
     await expect(page.locator('#btn-upload-doc')).toBeVisible();
     await expect(page.locator('#btn-pedagogy-review')).toBeVisible();
     await expect(page.locator('#btn-undo')).toBeVisible();

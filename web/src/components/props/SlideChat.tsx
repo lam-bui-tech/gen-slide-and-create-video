@@ -121,15 +121,19 @@ export function SlideChat() {
         </span>
       </div>
 
-      <div style={{ fontSize: '11px', color: 'var(--text-sub)', marginBottom: '8px' }}>
+      <label
+        htmlFor="slide-chat-input"
+        style={{ display: 'block', fontSize: '11px', color: 'var(--text-sub)', marginBottom: '8px' }}
+      >
         Nhập yêu cầu bằng tiếng Việt (ví dụ: <em>&quot;Rút gọn tiêu đề dưới 8 từ&quot;</em>,{' '}
         <em>&quot;Viết lại giải thích ngắn gọn hơn&quot;</em>):
-      </div>
+      </label>
 
       <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
         <input
           type="text"
           id="slide-chat-input"
+          aria-label="Yêu cầu sửa slide này bằng AI Copilot"
           className="prop-input"
           placeholder="Yêu cầu sửa slide này..."
           style={{ flex: 1 }}
@@ -159,6 +163,8 @@ export function SlideChat() {
       {loading && (
         <div
           id="slide-chat-loading"
+          role="status"
+          aria-live="polite"
           style={{ fontSize: '11px', color: '#4F46E5', marginBottom: '8px' }}
         >
           ⏳ AI đang phân tích và chuẩn bị bản vá slotValues...
@@ -190,7 +196,7 @@ export function SlideChat() {
             <span>🔍 So Sánh Thay Đổi (Diff)</span>
             <span
               id="slide-chat-explanation"
-              style={{ fontWeight: 400, color: '#64748B', fontSize: '10px' }}
+              style={{ fontWeight: 400, color: '#475569', fontSize: '11px' }}
             >
               {(pendingChatPatch.explanation as string) || ''}
             </span>
@@ -206,7 +212,7 @@ export function SlideChat() {
             }}
           >
             {diffEntries.length === 0 ? (
-              <div style={{ color: '#64748B' }}>Không có trường nào thay đổi.</div>
+              <div style={{ color: '#475569' }}>Không có trường nào thay đổi.</div>
             ) : (
               diffEntries.map(([field, delta]) => (
                 <div
@@ -272,7 +278,7 @@ export function SlideChat() {
               className="btn btn-secondary"
               id="btn-slide-chat-discard"
               onClick={handleDiscard}
-              style={{ flex: 1, padding: '6px 8px', fontSize: '12px', color: '#64748B' }}
+              style={{ flex: 1, padding: '6px 8px', fontSize: '12px', color: '#475569' }}
             >
               ✕ Hủy Bỏ (Discard)
             </button>

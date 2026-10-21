@@ -142,6 +142,7 @@ export function VideoInspector() {
         <input
           type="range"
           id="video-volume-slider"
+          aria-label="Thanh trượt âm lượng video"
           min="0"
           max="1"
           step="0.05"

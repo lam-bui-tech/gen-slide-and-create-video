@@ -61,7 +61,7 @@ describe('Gallery Component & Logic Tests', () => {
     it('renders header, brand title, and filter sidebar', () => {
       render(<GalleryPage />);
 
-      expect(screen.getByText('AI Lecture Studio')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 1, name: 'AI Lecture Studio' })).toBeInTheDocument();
       expect(screen.getByText('Bộ Lọc Bố Cục')).toBeInTheDocument();
       expect(screen.getByText('Môn Học (Subject)')).toBeInTheDocument();
       expect(screen.getByText('Phong Cách (Style)')).toBeInTheDocument();

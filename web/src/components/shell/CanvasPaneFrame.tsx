@@ -33,10 +33,11 @@ export function CanvasPaneFrame({
           <button
             className="btn btn-secondary btn-icon"
             id="btn-prev-slide"
+            aria-label="Chuyển về slide trước"
             onClick={() => setSlideIndex(currentSlideIndex - 1)}
             disabled={!canPrev}
             title="Slide trước (←)"
-            style={{ opacity: canPrev ? 1 : 0.4, cursor: canPrev ? 'pointer' : 'not-allowed' }}
+            style={{ opacity: canPrev ? 1 : 0.4, cursor: canPrev ? 'pointer' : 'not-allowed', minWidth: '32px', minHeight: '32px' }}
           >
             ◀
           </button>
@@ -49,10 +50,11 @@ export function CanvasPaneFrame({
           <button
             className="btn btn-secondary btn-icon"
             id="btn-next-slide"
+            aria-label="Chuyển sang slide tiếp theo"
             onClick={() => setSlideIndex(currentSlideIndex + 1)}
             disabled={!canNext}
             title="Slide tiếp (→)"
-            style={{ opacity: canNext ? 1 : 0.4, cursor: canNext ? 'pointer' : 'not-allowed' }}
+            style={{ opacity: canNext ? 1 : 0.4, cursor: canNext ? 'pointer' : 'not-allowed', minWidth: '32px', minHeight: '32px' }}
           >
             ▶
           </button>
@@ -80,7 +82,8 @@ export function CanvasPaneFrame({
             id="btn-toggle-builder-mode"
             onClick={() => toggleBuilderMode()}
             style={{
-              padding: '4px 10px',
+              padding: '6px 12px',
+              minHeight: '28px',
               fontSize: '12px',
               fontWeight: 700,
               background: mode === 'builder' ? '#E0F2FE' : '#FFFFFF',

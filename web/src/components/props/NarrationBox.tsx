@@ -54,7 +54,7 @@ export function NarrationBox() {
           display: 'flex',
           justifyContent: 'space-between',
           fontSize: '11px',
-          color: '#64748B',
+          color: '#475569',
           marginTop: '4px',
         }}
       >

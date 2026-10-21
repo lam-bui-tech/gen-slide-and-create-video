@@ -46,12 +46,15 @@ export function MediaStrip() {
   const slide = scene?.slides?.[currentSlideIndex];
   const visualNeed = (slide as any)?.visualNeed || 'diagram';
 
+  const projectId = scene?.projectId;
+  const slideId = slide?.slideId;
+
   useEffect(() => {
-    if (!scene || !slide) return;
+    if (!projectId || !slideId) return;
     let cancelled = false;
     setLoading(true);
 
-    api.getMediaRecommendations(scene.projectId, slide.slideId)
+    api.getMediaRecommendations(projectId, slideId)
       .then((data) => {
         if (!cancelled) {
           if (Array.isArray(data) && data.length > 0) {
@@ -73,7 +76,7 @@ export function MediaStrip() {
     return () => {
       cancelled = true;
     };
-  }, [scene, slide]);
+  }, [projectId, slideId]);
 
   const handleApplyCandidate = (c: MediaCandidate) => {
     if (!slide) return;
@@ -132,19 +135,19 @@ export function MediaStrip() {
     <div className="prop-section" id="media-strip-section">
       <div className="prop-section-title">
         <span>Khối Hình Ảnh / Media Strip</span>
-        <span
-          id="media-visual-need-badge"
-          style={{
-            fontSize: '10px',
-            background: '#E0F2FE',
-            color: '#0369A1',
-            padding: '2px 6px',
-            borderRadius: '4px',
-            fontWeight: 700,
-          }}
-        >
-          {visualNeed}
-        </span>
+          <span
+            id="media-visual-need-badge"
+            style={{
+              fontSize: '11px',
+              background: '#E0F2FE',
+              color: '#075985',
+              padding: '2px 6px',
+              borderRadius: '4px',
+              fontWeight: 700,
+            }}
+          >
+            {visualNeed}
+          </span>
       </div>
 
       <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
@@ -152,7 +155,7 @@ export function MediaStrip() {
           className="btn btn-secondary"
           id="btn-media-strip-upload"
           onClick={() => openImageModal()}
-          style={{ flex: 1, padding: '6px 8px', fontSize: '12px', fontWeight: 600 }}
+          style={{ flex: 1, padding: '6px 8px', fontSize: '12px', fontWeight: 600, minHeight: '32px' }}
         >
           📁 Tải Ảnh Lên
         </button>
@@ -165,8 +168,9 @@ export function MediaStrip() {
             padding: '6px 8px',
             fontSize: '12px',
             fontWeight: 600,
-            color: '#0284C7',
+            color: '#0369A1',
             borderColor: '#BAE6FD',
+            minHeight: '32px',
           }}
         >
           🎬 Chèn Video
@@ -175,7 +179,7 @@ export function MediaStrip() {
           className="btn btn-secondary"
           id="btn-media-strip-remove"
           onClick={handleRemoveMedia}
-          style={{ color: '#E11D48', padding: '6px 10px', fontSize: '12px', fontWeight: 600 }}
+          style={{ color: '#BE123C', padding: '6px 10px', fontSize: '12px', fontWeight: 600, minHeight: '32px' }}
           title="Xóa ảnh và chuyển sang bố cục no-image"
         >
           ✕ Xóa
@@ -185,6 +189,7 @@ export function MediaStrip() {
       <input
         type="file"
         id="media-strip-file-input"
+        aria-label="Tải lên tệp ảnh minh họa"
         ref={fileInputRef}
         accept="image/*"
         style={{ display: 'none' }}
@@ -206,8 +211,10 @@ export function MediaStrip() {
           </div>
         ) : (
           candidates.slice(0, 4).map((c, i) => (
-            <div
+            <button
+              type="button"
               key={i}
+              aria-label={`Áp dụng ảnh gợi ý: ${c.label || c.type || 'Ứng viên'}`}
               onClick={() => handleApplyCandidate(c)}
               style={{
                 border: '1px solid var(--border-color)',
@@ -215,23 +222,28 @@ export function MediaStrip() {
                 overflow: 'hidden',
                 cursor: 'pointer',
                 background: 'white',
+                padding: 0,
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
                 transition: 'all 0.15s',
               }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={c.url}
-                alt={c.label || 'Candidate'}
+                alt=""
                 style={{ width: '100%', height: '60px', objectFit: 'cover', display: 'block' }}
                 onError={(e) => {
                   (e.target as HTMLImageElement).src =
                     'https://placehold.co/400x300/e2e8f0/475569?text=Image';
                 }}
               />
-              <div
+              <span
                 style={{
+                  display: 'block',
                   padding: '4px',
-                  fontSize: '10px',
+                  fontSize: '11px',
                   fontWeight: 600,
                   textAlign: 'center',
                   background: '#F8FAFC',
@@ -239,11 +251,12 @@ export function MediaStrip() {
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
+                  width: '100%',
                 }}
               >
                 {c.label || c.type || 'Ứng viên'}
-              </div>
-            </div>
+              </span>
+            </button>
           ))
         )}
       </div>

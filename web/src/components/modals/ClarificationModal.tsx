@@ -72,7 +72,13 @@ export function ClarificationModal() {
   };
 
   return (
-    <div id="clarification-modal" className="modal-overlay open">
+    <div
+      id="clarification-modal"
+      className="modal-overlay open"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="clarification-modal-title"
+    >
       <div
         className="modal-box"
         style={{
@@ -95,7 +101,10 @@ export function ClarificationModal() {
         >
           <div style={{ fontSize: '30px' }}>🎯</div>
           <div>
-            <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>
+            <h3
+              id="clarification-modal-title"
+              style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}
+            >
               Thiết lập Sư phạm cho Bài giảng
             </h3>
             <p
@@ -114,11 +123,15 @@ export function ClarificationModal() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '22px' }}>
           <div>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-main)', display: 'block', marginBottom: '6px' }}>
+            <label
+              htmlFor="clarify-audience"
+              style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-main)', display: 'block', marginBottom: '6px', cursor: 'pointer' }}
+            >
               1. Đối tượng người học trọng tâm là ai?
             </label>
             <select
               id="clarify-audience"
+              aria-label="Đối tượng người học trọng tâm"
               className="prop-select"
               style={{ width: '100%', padding: '8px 12px', fontSize: '13px' }}
               value={audience}
@@ -133,11 +146,15 @@ export function ClarificationModal() {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-main)', display: 'block', marginBottom: '6px' }}>
+              <label
+                htmlFor="clarify-duration"
+                style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-main)', display: 'block', marginBottom: '6px', cursor: 'pointer' }}
+              >
                 2. Thời lượng bài giảng
               </label>
               <select
                 id="clarify-duration"
+                aria-label="Thời lượng bài giảng"
                 className="prop-select"
                 style={{ width: '100%', padding: '8px 12px', fontSize: '13px' }}
                 value={duration}
@@ -150,11 +167,15 @@ export function ClarificationModal() {
               </select>
             </div>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-main)', display: 'block', marginBottom: '6px' }}>
+              <label
+                htmlFor="clarify-slides"
+                style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-main)', display: 'block', marginBottom: '6px', cursor: 'pointer' }}
+              >
                 3. Số lượng slide
               </label>
               <select
                 id="clarify-slides"
+                aria-label="Số lượng slide"
                 className="prop-select"
                 style={{ width: '100%', padding: '8px 12px', fontSize: '13px' }}
                 value={slides}
@@ -171,11 +192,15 @@ export function ClarificationModal() {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-main)', display: 'block', marginBottom: '6px' }}>
+              <label
+                htmlFor="clarify-quiz"
+                style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-main)', display: 'block', marginBottom: '6px', cursor: 'pointer' }}
+              >
                 4. Câu hỏi trắc nghiệm
               </label>
               <select
                 id="clarify-quiz"
+                aria-label="Kèm câu hỏi trắc nghiệm"
                 className="prop-select"
                 style={{ width: '100%', padding: '8px 12px', fontSize: '13px' }}
                 value={quiz}
@@ -186,11 +211,15 @@ export function ClarificationModal() {
               </select>
             </div>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-main)', display: 'block', marginBottom: '6px' }}>
+              <label
+                htmlFor="clarify-voice"
+                style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-main)', display: 'block', marginBottom: '6px', cursor: 'pointer' }}
+              >
                 5. Giọng đọc thuyết minh (TTS)
               </label>
               <select
                 id="clarify-voice"
+                aria-label="Giọng đọc thuyết minh TTS"
                 className="prop-select"
                 style={{ width: '100%', padding: '8px 12px', fontSize: '13px' }}
                 value={voice}

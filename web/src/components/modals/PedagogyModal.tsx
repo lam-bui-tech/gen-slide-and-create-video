@@ -44,7 +44,13 @@ export function PedagogyModal() {
   };
 
   return (
-    <div className="modal-overlay open" id="pedagogy-modal">
+    <div
+      className="modal-overlay open"
+      id="pedagogy-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="pedagogy-modal-title"
+    >
       <div
         className="modal-box"
         style={{
@@ -69,6 +75,7 @@ export function PedagogyModal() {
         >
           <div>
             <h3
+              id="pedagogy-modal-title"
               style={{
                 fontSize: '18px',
                 fontWeight: 800,
@@ -89,6 +96,7 @@ export function PedagogyModal() {
           <button
             className="btn btn-secondary btn-icon"
             id="btn-close-pedagogy-modal"
+            aria-label="Đóng bảng kiểm tra sư phạm"
             onClick={closePedagogyModal}
           >
             ✕
@@ -118,7 +126,7 @@ export function PedagogyModal() {
               paddingRight: '12px',
             }}
           >
-            <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>ĐIỂM SƯ PHẠM</div>
+            <div style={{ fontSize: '11px', fontWeight: 700, color: '#475569' }}>ĐIỂM SƯ PHẠM</div>
             <div
               id="pedagogy-score-val"
               style={{ fontSize: '32px', fontWeight: 900, color: scoreColor, lineHeight: 1.1 }}
@@ -134,19 +142,19 @@ export function PedagogyModal() {
               <div style={{ fontSize: '18px', fontWeight: 800, color: '#E11D48' }} id="pedagogy-error-count">
                 {errorCount}
               </div>
-              <div style={{ fontSize: '11px', color: '#64748B' }}>Lỗi cần sửa</div>
+              <div style={{ fontSize: '11px', color: '#475569' }}>Lỗi cần sửa</div>
             </div>
             <div style={{ background: 'white', border: '1px solid #FED7AA', borderRadius: '6px', padding: '8px', textAlign: 'center' }}>
               <div style={{ fontSize: '18px', fontWeight: 800, color: '#D97706' }} id="pedagogy-warning-count">
                 {warningCount}
               </div>
-              <div style={{ fontSize: '11px', color: '#64748B' }}>Cảnh báo</div>
+              <div style={{ fontSize: '11px', color: '#475569' }}>Cảnh báo</div>
             </div>
             <div style={{ background: 'white', border: '1px solid #BBF7D0', borderRadius: '6px', padding: '8px', textAlign: 'center' }}>
               <div style={{ fontSize: '18px', fontWeight: 800, color: '#16A34A' }} id="pedagogy-passed-count">
                 {passedCount}
               </div>
-              <div style={{ fontSize: '11px', color: '#64748B' }}>Slide chuẩn</div>
+              <div style={{ fontSize: '11px', color: '#475569' }}>Slide chuẩn</div>
             </div>
           </div>
         </div>
@@ -176,7 +184,7 @@ export function PedagogyModal() {
                       #{iss.slideIndex + 1}
                     </td>
                     <td style={{ padding: '8px 10px', color: '#334155' }}>{iss.rule}</td>
-                    <td style={{ padding: '8px 10px', color: '#64748B' }}>{iss.message}</td>
+                    <td style={{ padding: '8px 10px', color: '#475569' }}>{iss.message}</td>
                     <td style={{ padding: '8px 10px', textAlign: 'right' }}>
                       <button
                         className="btn btn-secondary"

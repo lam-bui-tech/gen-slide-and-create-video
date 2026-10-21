@@ -14,12 +14,20 @@ export function UploadProgressModal() {
   const isError = uploadProgress.icon === '⚠️' || uploadProgress.step.includes('thất bại') || uploadProgress.step.includes('Lỗi');
 
   return (
-    <div id="upload-progress-modal" className="modal-overlay open">
+    <div
+      id="upload-progress-modal"
+      className="modal-overlay open"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="upload-step-title"
+    >
       <div className="modal-box" style={{ textAlign: 'center', maxWidth: '440px', padding: '28px' }}>
         <div style={{ fontSize: '42px', marginBottom: '12px' }} id="upload-step-icon">
           {uploadProgress.icon || '📤'}
         </div>
         <h3
+          role="status"
+          aria-live="polite"
           style={{
             fontSize: '18px',
             fontWeight: 700,
@@ -34,6 +42,11 @@ export function UploadProgressModal() {
           {uploadProgress.desc}
         </p>
         <div
+          role="progressbar"
+          aria-valuenow={uploadProgress.percent}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Tiến trình xử lý tài liệu"
           style={{
             width: '100%',
             height: '8px',

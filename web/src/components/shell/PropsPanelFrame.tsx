@@ -13,7 +13,7 @@ export function PropsPanelFrame({
   const mode = useStudioStore((s) => s.mode);
 
   return (
-    <aside className="props-panel">
+    <aside className="props-panel" aria-label="Bảng thuộc tính và tinh chỉnh slide">
       {mode === 'builder' ? (
         <div id="builder-inspector-panel" style={{ display: 'flex', flexDirection: 'column' }}>
           {builderInspector}

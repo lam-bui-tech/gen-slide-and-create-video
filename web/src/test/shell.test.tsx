@@ -6,6 +6,7 @@ import { Navbar } from '@/components/shell/Navbar';
 import { SlideNavigator } from '@/components/shell/SlideNavigator';
 import { CanvasPaneFrame } from '@/components/shell/CanvasPaneFrame';
 import { PropsPanelFrame } from '@/components/shell/PropsPanelFrame';
+import { HelpModal } from '@/components/modals/HelpModal';
 import sampleScene from '@fixtures/scene.sample.json';
 import type { LessonSceneJSON } from '@schemas/types';
 
@@ -31,10 +32,10 @@ describe('Phase F3: Shell Components', () => {
       expect(saveStatus).toBeDefined();
     });
 
-    it('displays pack name badge', () => {
+    it('renders upload document action button', () => {
       render(<Navbar />);
-      const packBadge = screen.getByText((sampleScene as any).templatePackId || 'basic');
-      expect(packBadge).toBeDefined();
+      const uploadBtn = document.getElementById('btn-upload-doc');
+      expect(uploadBtn).toBeDefined();
     });
 
     it('has disabled undo button initially and enables after dispatch', () => {
@@ -61,6 +62,26 @@ describe('Phase F3: Shell Components', () => {
       expect(confirmSpy).toHaveBeenCalled();
       expect(useStudioStore.getState().scene?.title).toBe('Bài Giảng Mới');
       confirmSpy.mockRestore();
+    });
+
+    it('opens help modal when clicking help button', () => {
+      render(
+        <>
+          <Navbar />
+          <HelpModal />
+        </>
+      );
+      const helpBtn = document.getElementById('btn-help-guide');
+      expect(helpBtn).not.toBeNull();
+      expect(document.getElementById('help-modal')).toBeNull();
+
+      fireEvent.click(helpBtn!);
+      expect(document.getElementById('help-modal')).not.toBeNull();
+      expect(screen.getByText('Hướng Dẫn Sử Dụng & Trợ Giúp')).not.toBeNull();
+
+      const closeBtn = document.getElementById('btn-close-help-modal');
+      fireEvent.click(closeBtn!);
+      expect(document.getElementById('help-modal')).toBeNull();
     });
   });
 

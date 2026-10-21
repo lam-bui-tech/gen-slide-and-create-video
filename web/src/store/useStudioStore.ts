@@ -50,6 +50,7 @@ export interface StudioState {
   pendingOutline: LessonOutline | null;
 
   isPedagogyModalOpen: boolean;
+  isHelpModalOpen: boolean;
   isImageModalOpen: boolean;
   activeImageTargetId: string | null;
 
@@ -84,7 +85,7 @@ export interface StudioState {
   undo: () => void;
   redo: () => void;
   setSaveStatus: (status: 'saved' | 'saving' | 'error', savedAt?: string) => void;
-  createNewEmptyProject: () => void;
+  createNewEmptyProject: (packId?: string) => void;
 
   // UI Actions
   openGalleryModal: (intent?: 'upload' | 'switch-pack') => void;
@@ -97,6 +98,8 @@ export interface StudioState {
 
   openPedagogyModal: () => void;
   closePedagogyModal: () => void;
+  openHelpModal: () => void;
+  closeHelpModal: () => void;
 
   openClarificationModal: (
     questions: Array<{ id: string; question: string; suggestedAnswer?: string; options?: string[] }>,
@@ -169,6 +172,7 @@ export const useStudioStore = create<StudioState>()(
       pendingOutline: null,
 
       isPedagogyModalOpen: false,
+      isHelpModalOpen: false,
       isImageModalOpen: false,
       activeImageTargetId: null,
 
@@ -285,15 +289,17 @@ export const useStudioStore = create<StudioState>()(
         });
       },
 
-      createNewEmptyProject: () => {
+      createNewEmptyProject: (packId?: string) => {
+        const chosenPack = packId || 'basic';
         const defaultScene: LessonSceneJSON = {
           schemaVersion: 2,
           projectId: `proj-${Date.now().toString().slice(-8)}`,
           title: 'Bài Giảng Mới',
-          packId: 'basic',
+          packId: chosenPack,
           slides: [
             {
               slideId: 'slide-01',
+              layoutId: 'title-slide',
               templateId: 'title-slide',
               variantId: 'default',
               layoutVariant: 'default',
@@ -352,6 +358,8 @@ export const useStudioStore = create<StudioState>()(
 
       openPedagogyModal: () => set({ isPedagogyModalOpen: true }),
       closePedagogyModal: () => set({ isPedagogyModalOpen: false }),
+      openHelpModal: () => set({ isHelpModalOpen: true }),
+      closeHelpModal: () => set({ isHelpModalOpen: false }),
 
       openClarificationModal: (questions, docTitle = '') => {
         set({

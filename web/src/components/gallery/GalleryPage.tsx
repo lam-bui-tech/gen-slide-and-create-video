@@ -73,15 +73,27 @@ export function GalleryPage() {
     <div className="gallery-page-container">
       {/* Header */}
       <header className="gallery-header">
-        <div className="gallery-brand-group">
-          <div className="gallery-brand-icon">🎨</div>
+        <Link
+          href="/"
+          className="gallery-brand-group"
+          aria-label="AI Lecture Studio - Về trang chủ"
+        >
+          <div className="gallery-brand-icon" aria-hidden="true">🎨</div>
           <div className="gallery-brand-title">
             <h1 className="nav-brand">AI Lecture Studio</h1>
             <p>Thư Viện Template Sư Phạm Chuẩn Mực & Đa Dạng Bố Cục</p>
           </div>
-        </div>
+        </Link>
 
         <div className="gallery-top-actions">
+          <a
+            href="#help-section"
+            className="btn-help-link"
+            id="btn-header-help"
+            aria-label="Xem hướng dẫn và trợ giúp"
+          >
+            ❓ Trợ Giúp
+          </a>
           <button
             className="btn-quick-basic"
             id="btn-quick-start"
@@ -119,7 +131,7 @@ export function GalleryPage() {
 
           {/* Filter Group: Subject */}
           <div className="filter-group">
-            <div className="filter-group-title">Môn Học (Subject)</div>
+            <h3 className="filter-group-title">Môn Học (Subject)</h3>
             <div className="filter-options" id="filter-subject">
               {SUBJECT_OPTIONS.map((opt) => (
                 <label key={opt.value} className="filter-chip-label">
@@ -139,7 +151,7 @@ export function GalleryPage() {
 
           {/* Filter Group: Style */}
           <div className="filter-group">
-            <div className="filter-group-title">Phong Cách (Style)</div>
+            <h3 className="filter-group-title">Phong Cách (Style)</h3>
             <div className="filter-options" id="filter-style">
               {STYLE_OPTIONS.map((opt) => (
                 <label key={opt.value} className="filter-chip-label">
@@ -159,7 +171,7 @@ export function GalleryPage() {
 
           {/* Filter Group: Effect */}
           <div className="filter-group">
-            <div className="filter-group-title">Hiệu Ứng (Effect)</div>
+            <h3 className="filter-group-title">Hiệu Ứng (Effect)</h3>
             <div className="filter-options" id="filter-effect">
               {EFFECT_OPTIONS.map((opt) => (
                 <label key={opt.value} className="filter-chip-label">
@@ -194,7 +206,12 @@ export function GalleryPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <div className="results-count" id="results-count">
+            <div
+              className="results-count"
+              id="results-count"
+              role="status"
+              aria-live="polite"
+            >
               Đang hiển thị {filteredPacks.length} template pack
               {filteredPacks.length > 1 ? 's' : ''}
             </div>
@@ -213,16 +230,7 @@ export function GalleryPage() {
                     key={pack.id}
                     className="pack-card"
                     data-pack-id={pack.id}
-                    tabIndex={0}
-                    role="button"
-                    aria-label={`Xem chi tiết ${pack.name}`}
                     onClick={() => setSelectedPack(pack)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setSelectedPack(pack);
-                      }
-                    }}
                   >
                     <div
                       className="card-preview"
@@ -284,6 +292,7 @@ export function GalleryPage() {
                       <button
                         className="btn-view-details"
                         type="button"
+                        aria-label={`Xem chi tiết pack ${pack.name}`}
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedPack(pack);
@@ -295,6 +304,7 @@ export function GalleryPage() {
                         className="btn-use-card"
                         type="button"
                         data-use-id={pack.id}
+                        aria-label={`Dùng template ${pack.name}`}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleUseTemplate(pack.id);
@@ -328,13 +338,143 @@ export function GalleryPage() {
         </section>
       </main>
 
+      {/* Footer (Help, FAQ & Documentation) */}
+      <footer className="gallery-footer" id="help-section" aria-label="Thông tin hỗ trợ và tài liệu">
+        <div className="gallery-footer-inner">
+          <div className="footer-col footer-col-about">
+            <Link href="/" className="footer-brand" aria-label="AI Lecture Studio">
+              <span className="footer-brand-badge" aria-hidden="true">🎨</span>
+              <span>AI Lecture Studio</span>
+            </Link>
+            <p className="footer-desc">
+              Hệ thống phòng thu và biên tập video bài giảng sư phạm tự động hóa cao cấp.
+              Hỗ trợ chuẩn bố cục trực quan, đồng bộ giọng đọc AI và timeline chuyển động chuẩn xác.
+            </p>
+          </div>
+
+          <div className="footer-col">
+            <h3>Tài Liệu & Hướng Dẫn</h3>
+            <ul className="footer-links">
+              <li>
+                <a
+                  href="#help-section"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    alert(
+                      'Tài liệu hướng dẫn:\n1. Chọn một Template Pack phù hợp với môn học.\n2. Bấm "Chi tiết pack" để xem danh sách bố cục hoặc "Dùng template" để vào phòng thu ngay.'
+                    );
+                  }}
+                >
+                  📖 Hướng Dẫn Soạn Bài
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#help-section"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    alert(
+                      'Quy trình làm video:\n1. Soạn nội dung & ghi chú slide\n2. Cấu hình âm thanh/voiceover AI\n3. Xem thử timeline và hoạt ảnh\n4. Xuất video MP4 qua Render Engine.'
+                    );
+                  }}
+                >
+                  ⚙️ Quy Trình Làm Video
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#help-section"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    alert('Thư viện layout: Hơn 50+ bố cục sư phạm tích hợp sẵn theo từng nhóm bộ môn chuyên sâu.');
+                  }}
+                >
+                  📐 Thư Viện Bố Cục Sư Phạm
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <div className="footer-col">
+            <h3>Câu Hỏi Thường Gặp (FAQ)</h3>
+            <ul className="footer-links">
+              <li>
+                <a
+                  href="#help-section"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    alert('Hệ thống hỗ trợ xuất video MP4 Full HD 1080p và 4K chuẩn xác từng khung hình.');
+                  }}
+                >
+                  ❓ Xuất Video Như Thế Nào?
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#help-section"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    alert('Bạn có thể tùy biến toàn bộ màu sắc, typography và hiệu ứng qua hệ thống Design Tokens.');
+                  }}
+                >
+                  🎨 Tùy Chỉnh Bảng Màu
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#help-section"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    alert('Toàn bộ bài giảng và tệp tin của bạn được lưu an toàn trên máy cục bộ.');
+                  }}
+                >
+                  🔒 Bảo Mật Dữ Liệu
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <div className="footer-col">
+            <h3>Hỗ Trợ & Liên Hệ</h3>
+            <ul className="footer-links">
+              <li>
+                <a href="https://github.com" target="_blank" rel="noopener noreferrer">
+                  💬 Báo Lỗi & Góp Ý (GitHub)
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#help-section"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    alert('Email hỗ trợ kỹ thuật: support@ailecturestudio.local\nThời gian phản hồi: trong vòng 24 giờ.');
+                  }}
+                >
+                  ✉️ Hỗ Trợ Kỹ Thuật
+                </a>
+              </li>
+              <li>
+                <Link href="/studio">
+                  🚀 Mở Phòng Thu Studio
+                </Link>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="footer-bottom">
+          <div>© 2026 AI Lecture Studio. Nền tảng soạn thảo bài giảng sư phạm hiện đại.</div>
+        </div>
+      </footer>
+
       {/* Detail Drawer */}
       <div
         className={`gallery-drawer-overlay ${selectedPack ? 'open' : ''}`}
         id="gallery-drawer-overlay"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="drawer-title"
+        role={selectedPack ? 'dialog' : undefined}
+        aria-modal={selectedPack ? 'true' : undefined}
+        aria-labelledby={selectedPack ? 'drawer-title' : undefined}
+        aria-hidden={!selectedPack}
         onClick={(e) => {
           if (e.target === e.currentTarget) {
             setSelectedPack(null);

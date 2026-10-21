@@ -31,6 +31,7 @@ export function TimelineBar({
         id="btn-timeline-play"
         onClick={isPlaying ? onPause : onPlay}
         title={isPlaying ? 'Tạm dừng' : 'Phát hoạt họa slide này'}
+        aria-label={isPlaying ? 'Tạm dừng hoạt họa' : 'Phát hoạt họa slide'}
       >
         {isPlaying ? '⏸' : '▶'}
       </button>
@@ -40,6 +41,7 @@ export function TimelineBar({
         id="btn-timeline-stop"
         onClick={onStop}
         title="Dừng và về 0s"
+        aria-label="Dừng và về 0 giây"
       >
         ⏹
       </button>
@@ -53,6 +55,7 @@ export function TimelineBar({
           type="range"
           className="timeline-slider"
           id="timeline-slider"
+          aria-label="Thanh trượt thời gian hoạt họa slide"
           min="0"
           max={maxDur}
           step="0.05"

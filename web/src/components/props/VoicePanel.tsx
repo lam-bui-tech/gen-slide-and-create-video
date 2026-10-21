@@ -93,7 +93,7 @@ export function VoicePanel() {
           <div style={{ fontWeight: 700, color: '#0369A1' }} id="voice-duration-label">
             🎙️ Audio: {voiceDuration}s
           </div>
-          <div style={{ fontSize: '11px', color: '#64748B' }} id="slide-duration-label">
+          <div style={{ fontSize: '11px', color: '#334155', fontWeight: 600 }} id="slide-duration-label">
             ⏱️ Slide: {slideDuration}s (Audio + 1.0s)
           </div>
         </div>

@@ -3,9 +3,11 @@
 import React, { useRef } from 'react';
 import Link from 'next/link';
 import { useStudioStore } from '@/store/useStudioStore';
+import { useFlowMachine } from '@/hooks/useFlowMachine';
 import { api } from '@/lib/api';
 
 export function Navbar() {
+  const { handleDocumentUploadFlow } = useFlowMachine();
   const scene = useStudioStore((s) => s.scene);
   const historyIndex = useStudioStore((s) => s.historyIndex);
   const history = useStudioStore((s) => s.history);
@@ -16,8 +18,8 @@ export function Navbar() {
   const undo = useStudioStore((s) => s.undo);
   const redo = useStudioStore((s) => s.redo);
   const createNewEmptyProject = useStudioStore((s) => s.createNewEmptyProject);
-  const openGalleryModal = useStudioStore((s) => s.openGalleryModal);
   const openPedagogyModal = useStudioStore((s) => s.openPedagogyModal);
+  const openHelpModal = useStudioStore((s) => s.openHelpModal);
   const openPresentationMode = useStudioStore((s) => s.openPresentationMode);
   const setActiveExport = useStudioStore((s) => s.setActiveExport);
 
@@ -66,96 +68,97 @@ export function Navbar() {
     }
   };
 
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    openGalleryModal('upload');
+    try {
+      await handleDocumentUploadFlow(file);
+    } catch (err: unknown) {
+      console.error('[Navbar] Document upload error:', err);
+    } finally {
+      e.target.value = '';
+    }
   };
 
-  const packLabel = (scene as any)?.templatePackId || scene?.packId || 'basic';
   const saveLabel =
     saveStatus === 'saved' ? 'Đã lưu' : saveStatus === 'saving' ? 'Đang lưu...' : 'Lỗi lưu';
   const saveDotColor =
-    saveStatus === 'saved' ? '#10B981' : saveStatus === 'saving' ? '#F59E0B' : '#EF4444';
+    saveStatus === 'saved' ? '#047857' : saveStatus === 'saving' ? '#D97706' : '#DC2626';
 
   const canUndo = historyIndex > 0;
   const canRedo = historyIndex < history.length - 1;
 
   return (
     <header className="studio-navbar">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0, whiteSpace: 'nowrap' }}>
         <Link href="/" className="nav-brand" title="Về Thư Viện Mẫu (Gallery)">
           <div className="nav-brand-badge">⚡</div>
           <span>AI Lecture Studio</span>
         </Link>
+        <label htmlFor="project-title-input" className="sr-only">
+          Tên bài giảng
+        </label>
         <input
           type="text"
           id="project-title-input"
+          aria-label="Tên bài giảng"
           className="nav-project-title"
-          defaultValue={scene?.title || 'Chương 1: Triết Học & Thế Giới Quan'}
+          defaultValue={scene?.title || 'Bài Giảng Mới'}
           key={scene?.title}
           onBlur={handleTitleBlur}
           title="Nhấp để đổi tên bài giảng"
         />
-        <div id="save-status" className={`save-indicator ${saveStatus}`}>
+        <div id="save-status" role="status" aria-live="polite" className={`save-indicator ${saveStatus}`}>
           <span style={{ color: saveDotColor, marginRight: '4px' }}>●</span> {saveLabel}
         </div>
       </div>
 
       <div className="nav-actions">
-        <Link
-          href="/"
-          className="btn btn-secondary"
-          id="btn-nav-gallery"
-          title="Xem toàn bộ Thư Viện Mẫu Template (Gallery)"
-          style={{ padding: '7px 12px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-        >
-          🏛️ Thư Viện
-        </Link>
-
         <button
           className="btn btn-secondary"
           id="btn-new-project"
           onClick={handleNewProject}
           title="Tạo bài giảng mới sạch hoàn toàn"
           style={{
-            padding: '7px 14px',
+            padding: '6px 10px',
+            fontSize: '12px',
             fontWeight: 700,
-            color: '#0284C7',
+            color: '#075985',
             background: '#F0F9FF',
             borderColor: '#BAE6FD',
+            minHeight: '32px',
           }}
         >
-          ✨ Tạo Bài Mới
-        </button>
-
-        <button
-          className="btn btn-secondary"
-          id="btn-select-pack"
-          onClick={() => openGalleryModal('switch-pack')}
-          title="Chọn hoặc thay đổi Bộ Mẫu Giảng Dạy (Template Pack)"
-          style={{ padding: '7px 14px', fontWeight: 600 }}
-        >
-          🎨 Bộ Mẫu (<span id="current-pack-label">{packLabel}</span>)
+          ✨ Tạo Mới
         </button>
 
         <button
           className="btn btn-primary"
           id="btn-upload-doc"
-          onClick={() => openGalleryModal('upload')}
+          onClick={() => fileInputRef.current?.click()}
+          title="Tải lên tài liệu giáo án bài giảng (hỗ trợ .pptx, .pdf, .docx, .md)"
           style={{
-            background: 'linear-gradient(135deg, #0284c7, #0369a1)',
+            background: 'linear-gradient(135deg, #0369A1, #075985)',
             color: 'white',
-            padding: '7px 16px',
+            padding: '6px 12px',
+            fontSize: '12px',
             fontWeight: 700,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            cursor: 'pointer',
+            border: 'none',
+            borderRadius: '6px',
+            minHeight: '32px',
           }}
         >
-          📥 Tải Tài Liệu (PPTX/PDF/DOCX/MD)
+          📥 Tải Tài Liệu
         </button>
         <input
           type="file"
           id="input-doc-file"
           ref={fileInputRef}
+          aria-label="Tải lên tệp tài liệu bài giảng (.pptx, .pdf, .docx, .md)"
           accept=".pptx,.pdf,.docx,.md"
           style={{ display: 'none' }}
           onChange={handleFileInputChange}
@@ -167,25 +170,47 @@ export function Navbar() {
           onClick={openPedagogyModal}
           title="Bảng kiểm tra chất lượng sư phạm (mật độ chữ, tốc độ đọc, trợ năng)"
           style={{
-            padding: '7px 12px',
+            padding: '6px 10px',
+            fontSize: '12px',
             fontWeight: 600,
-            color: '#0284C7',
+            color: '#075985',
             borderColor: '#BAE6FD',
-            background: '#F0F9FF',
+            background: '#E0F2FE',
+            minHeight: '32px',
           }}
         >
-          🎯 Sư Phạm (<span id="pedagogy-badge">100%</span>)
+          🎯 Sư Phạm (<span id="pedagogy-badge" style={{ color: '#075985', fontWeight: 700 }}>100%</span>)
         </button>
 
-        <div style={{ height: '20px', width: '1px', background: 'var(--border-color)', margin: '0 4px' }} />
+        <button
+          className="btn btn-secondary"
+          id="btn-help-guide"
+          onClick={openHelpModal}
+          title="Hướng dẫn sử dụng và trợ giúp (FAQ)"
+          aria-label="Hướng dẫn sử dụng và trợ giúp phím tắt"
+          style={{
+            padding: '6px 10px',
+            fontSize: '12px',
+            fontWeight: 600,
+            color: 'var(--text-main)',
+            borderColor: 'var(--border-color)',
+            background: '#F8FAFC',
+            minHeight: '32px',
+          }}
+        >
+          ❓ Trợ Giúp
+        </button>
+
+        <div style={{ height: '20px', width: '1px', background: 'var(--border-color)', margin: '0 2px' }} />
 
         <button
           className="btn btn-secondary btn-icon"
           id="btn-undo"
           title="Hoàn tác (Ctrl+Z)"
+          aria-label="Hoàn tác thay đổi vừa thực hiện"
           onClick={undo}
           disabled={!canUndo}
-          style={{ opacity: canUndo ? 1 : 0.4, cursor: canUndo ? 'pointer' : 'not-allowed' }}
+          style={{ opacity: canUndo ? 1 : 0.4, cursor: canUndo ? 'pointer' : 'not-allowed', minWidth: '32px', minHeight: '32px', padding: '6px 8px' }}
         >
           ↶
         </button>
@@ -193,14 +218,15 @@ export function Navbar() {
           className="btn btn-secondary btn-icon"
           id="btn-redo"
           title="Làm lại (Ctrl+Y)"
+          aria-label="Làm lại thao tác vừa hoàn tác"
           onClick={redo}
           disabled={!canRedo}
-          style={{ opacity: canRedo ? 1 : 0.4, cursor: canRedo ? 'pointer' : 'not-allowed' }}
+          style={{ opacity: canRedo ? 1 : 0.4, cursor: canRedo ? 'pointer' : 'not-allowed', minWidth: '32px', minHeight: '32px', padding: '6px 8px' }}
         >
           ↷
         </button>
 
-        <div style={{ height: '20px', width: '1px', background: 'var(--border-color)', margin: '0 6px' }} />
+        <div style={{ height: '20px', width: '1px', background: 'var(--border-color)', margin: '0 2px' }} />
 
         <button
           className="btn btn-primary"
@@ -210,10 +236,13 @@ export function Navbar() {
           style={{
             background: 'linear-gradient(135deg, #10B981, #059669)',
             color: 'white',
-            padding: '7px 16px',
+            padding: '6px 12px',
+            fontSize: '12px',
             fontWeight: 700,
             border: 'none',
+            borderRadius: '6px',
             boxShadow: '0 2px 4px rgba(16,185,129,0.3)',
+            minHeight: '32px',
           }}
         >
           ▶ Trình Chiếu
@@ -225,8 +254,9 @@ export function Navbar() {
           onClick={() => handleExport('pdf')}
           disabled={isAudioJobRunning}
           title="Xuất toàn bộ bài giảng sang PDF vector"
+          style={{ padding: '6px 10px', fontSize: '12px', minHeight: '32px' }}
         >
-          📄 Xuất PDF
+          📄 PDF
         </button>
         <button
           className="btn btn-secondary"
@@ -234,8 +264,9 @@ export function Navbar() {
           onClick={() => handleExport('pptx')}
           disabled={isAudioJobRunning}
           title="Xuất bài giảng sang PPTX (Image Pack)"
+          style={{ padding: '6px 10px', fontSize: '12px', minHeight: '32px' }}
         >
-          📊 Xuất PPTX
+          📊 PPTX
         </button>
         <button
           className="btn btn-primary"
@@ -243,8 +274,9 @@ export function Navbar() {
           onClick={() => handleExport('mp4')}
           disabled={isAudioJobRunning}
           title="Render video bài giảng 1080p qua HyperFrames CLI"
+          style={{ padding: '6px 12px', fontSize: '12px', fontWeight: 700, minHeight: '32px' }}
         >
-          🎬 Xuất MP4 (1080p)
+          🎬 Xuất MP4
         </button>
       </div>
     </header>

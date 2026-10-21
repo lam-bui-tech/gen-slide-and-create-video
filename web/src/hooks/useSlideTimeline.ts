@@ -35,17 +35,21 @@ export function useSlideTimeline(
     }
   }, [containerRef]);
 
+  const slideRef = useRef(slide);
+  slideRef.current = slide;
+
   // GSAP Context effect: builds and cleans up timeline idempotently
   useEffect(() => {
-    if (!containerRef.current || !slide) return;
+    if (!containerRef.current || !slideRef.current) return;
     const container = containerRef.current;
+    const currentSlideData = slideRef.current;
 
     // Reset state for new slide
     setCurrentTime(0);
     setIsPlaying(false);
 
     const ctx = gsap.context(() => {
-      const tl = buildGsapTimelineForSlide(slide, container);
+      const tl = buildGsapTimelineForSlide(currentSlideData, container);
       if (tl) {
         timelineRef.current = tl;
         // WYSIWYG Studio mode: set to progress(1) initially so user sees final state
@@ -69,7 +73,7 @@ export function useSlideTimeline(
       ctx.revert();
       timelineRef.current = null;
     };
-  }, [slideHash, slide, syncVideoTime, containerRef]);
+  }, [slideHash, syncVideoTime, containerRef]);
 
   const play = useCallback(() => {
     const tl = timelineRef.current;

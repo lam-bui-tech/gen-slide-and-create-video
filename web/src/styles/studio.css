@@ -50,7 +50,7 @@
   /* Typography Colors - 100% WCAG AA / AAA Verified */
   --hf-text-main: #0F172A;        /* Slate 900 - 15.8:1 contrast on white */
   --hf-text-sub: #334155;         /* Slate 700 - 9.1:1 contrast on white */
-  --hf-text-muted: #64748B;       /* Slate 500 - 4.6:1 contrast on white */
+  --hf-text-muted: #475569;       /* Slate 600 - 7.0:1 contrast on white */
   --hf-text-inverse: #FFFFFF;
 
   /* Borders & Dividers */
@@ -970,10 +970,27 @@
       font-family: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
       background: var(--app-bg);
       color: var(--text-main);
-      height: 100vh;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
+    }
+
+    body:has(.studio-app-root) {
+      height: 100vh;
       overflow: hidden;
+    }
+
+    /* Accessible screen-reader only utility */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
 
     /* Top Navigation Bar */
@@ -984,57 +1001,71 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 20px;
+      padding: 0 16px;
+      gap: 12px;
       z-index: 50;
       flex-shrink: 0;
+      white-space: nowrap;
+      overflow-x: auto;
     }
 
     .nav-brand {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 8px;
       font-weight: 800;
-      font-size: 17px;
+      font-size: 15px;
       color: var(--primary);
       text-decoration: none;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .nav-brand-badge {
-      width: 34px;
-      height: 34px;
+      width: 28px;
+      height: 28px;
       background: linear-gradient(135deg, var(--hf-primary, #0369A1), #0284C7);
       color: white;
-      border-radius: 8px;
+      border-radius: 6px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
+      font-size: 14px;
       box-shadow: 0 2px 4px rgba(3, 105, 161, 0.2);
+      flex-shrink: 0;
     }
 
     .nav-center {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 8px;
+      flex-shrink: 0;
     }
 
     .nav-project-title {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       color: var(--text-main);
-      padding: 6px 12px;
+      padding: 5px 10px;
       border-radius: 6px;
       background: #F1F5F9;
-      border: 1px solid transparent;
+      border: 1px solid var(--border-color);
       outline: none;
-      min-width: 260px;
+      width: 150px;
+      max-width: 180px;
+      min-width: 110px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
       transition: all 0.2s;
+      flex-shrink: 0;
     }
 
     .nav-project-title:focus {
       border-color: var(--primary);
       background: white;
       box-shadow: 0 0 0 2px rgba(3, 105, 161, 0.1);
+      width: 190px;
     }
 
     .save-indicator {
@@ -1042,9 +1073,11 @@
       font-weight: 600;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
-    .save-indicator.saved { color: #059669; }
+    .save-indicator.saved { color: #047857; font-weight: 700; }
     .save-indicator.saving { color: #D97706; animation: pulse 1s infinite; }
 
     @keyframes pulse {
@@ -1055,7 +1088,8 @@
     .nav-actions {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
+      flex-shrink: 0;
     }
 
     .btn {
@@ -1071,6 +1105,9 @@
       border: 1px solid transparent;
       transition: all 0.15s ease;
       white-space: nowrap;
+    }
+    button *, a * {
+      pointer-events: none;
     }
 
     .btn-secondary {
@@ -1098,6 +1135,11 @@
 
     .btn-icon {
       padding: 7px 10px;
+      min-width: 28px;
+      min-height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
     /* Main Workspace 3-Pane Layout */
@@ -1147,10 +1189,28 @@
       background: #FFFFFF;
       border: 2px solid var(--border-color);
       border-radius: 8px;
-      padding: 10px;
-      cursor: pointer;
+      padding: 0;
+      cursor: default;
       transition: all 0.2s ease;
       position: relative;
+    }
+    .slide-card-main-btn {
+      width: 100%;
+      background: none;
+      border: none;
+      padding: 10px;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-family: inherit;
+      color: inherit;
+      border-radius: 6px;
+      outline: none;
+    }
+    .slide-card-main-btn:focus-visible {
+      box-shadow: 0 0 0 2px var(--primary);
     }
 
     .slide-card-item:hover {
@@ -1191,7 +1251,7 @@
       align-items: center;
       gap: 6px;
       font-size: 11px;
-      color: #64748B;
+      color: #475569;
     }
 
     .slide-card-actions {
@@ -1210,17 +1270,19 @@
     }
 
     .card-action-btn {
-      width: 22px;
-      height: 22px;
+      width: 28px;
+      min-width: 28px;
+      height: 28px;
+      min-height: 28px;
       display: flex;
       align-items: center;
       justify-content: center;
       border-radius: 4px;
       border: none;
       background: #F1F5F9;
-      color: #475569;
+      color: #334155;
       cursor: pointer;
-      font-size: 11px;
+      font-size: 13px;
     }
     .card-action-btn:hover {
       background: #E2E8F0;
@@ -1498,9 +1560,18 @@
       background: #F8FAFC;
       font-size: 12px;
       font-weight: 500;
+      font-family: inherit;
+      color: var(--text-main);
+      min-height: 28px;
+      line-height: 1.2;
       text-align: center;
       cursor: pointer;
       transition: all 0.15s;
+      outline: none;
+    }
+    .variant-pill:focus-visible {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-subtle);
     }
     .variant-pill:hover {
       background: #F1F5F9;

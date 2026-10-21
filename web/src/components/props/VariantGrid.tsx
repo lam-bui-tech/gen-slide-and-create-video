@@ -54,14 +54,17 @@ export function VariantGrid() {
       </select>
       <div className="variant-grid" id="variant-pills-container">
         {VARIANT_OPTIONS.map((opt) => (
-          <div
+          <button
+            type="button"
             key={opt.value}
             className={`variant-pill ${opt.value === currentVariant ? 'active' : ''}`}
             data-variant={opt.value}
+            aria-pressed={opt.value === currentVariant}
+            aria-label={`Biến thể ${opt.label}`}
             onClick={() => handleSelectVariant(opt.value)}
           >
             {opt.label}
-          </div>
+          </button>
         ))}
       </div>
     </div>

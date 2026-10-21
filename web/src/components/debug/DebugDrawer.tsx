@@ -263,7 +263,7 @@ export function DebugDrawer() {
                     <span>
                       {isCurrent ? '👉 ' : ''}Bước {idx}: <strong>{snap.title}</strong> ({snap.slides?.length || 0} slides)
                     </span>
-                    <span style={{ fontSize: '10px', color: isCurrent ? '#BAE6FD' : '#64748B' }}>
+                    <span style={{ fontSize: '10px', color: isCurrent ? '#BAE6FD' : '#94A3B8' }}>
                       {isCurrent ? 'HIỆN TẠI' : idx < historyIndex ? 'UNDO' : 'REDO'}
                     </span>
                   </div>
@@ -276,7 +276,7 @@ export function DebugDrawer() {
         {activeTab === 'actions' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {actionLog.length === 0 ? (
-              <div style={{ color: '#64748B', textAlign: 'center', padding: '20px' }}>Chưa có hành động nào được ghi nhận.</div>
+              <div style={{ color: '#94A3B8', textAlign: 'center', padding: '20px' }}>Chưa có hành động nào được ghi nhận.</div>
             ) : (
               actionLog.map((act) => (
                 <div
@@ -298,7 +298,7 @@ export function DebugDrawer() {
                       {act.type}
                     </code>
                   </div>
-                  <span style={{ color: '#64748B', fontSize: '10px' }}>
+                  <span style={{ color: '#94A3B8', fontSize: '10px' }}>
                     {new Date(act.timestamp).toLocaleTimeString()}
                   </span>
                 </div>

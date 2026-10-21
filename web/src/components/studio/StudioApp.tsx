@@ -15,7 +15,6 @@ import { ModalHost } from '@/components/modals/ModalHost';
 import { PresentationMode } from '@/components/presentation/PresentationMode';
 import { ErrorBoundary } from '@/components/debug/ErrorBoundary';
 import { DebugDrawer } from '@/components/debug/DebugDrawer';
-import sampleScene from '@fixtures/scene.sample.json';
 import type { LessonSceneJSON } from '@schemas/types';
 
 interface StudioAppProps {
@@ -27,6 +26,7 @@ interface StudioAppProps {
 export function StudioApp({ projectId, initialScene, initialPackId }: StudioAppProps) {
   const scene = useStudioStore((s) => s.scene);
   const setScene = useStudioStore((s) => s.setScene);
+  const createNewEmptyProject = useStudioStore((s) => s.createNewEmptyProject);
   const currentSlideIndex = useStudioStore((s) => s.currentSlideIndex);
   const setSlideIndex = useStudioStore((s) => s.setSlideIndex);
   const undo = useStudioStore((s) => s.undo);
@@ -38,25 +38,28 @@ export function StudioApp({ projectId, initialScene, initialPackId }: StudioAppP
   useAutosave(500);
   useExportPolling(1000);
 
+  const hasInitializedRef = React.useRef(false);
+  const appliedPackRef = React.useRef<string | null>(null);
+
   // Initial load
   useEffect(() => {
     if (initialScene) {
       setScene(initialScene);
-      return;
-    }
-
-    if (!scene) {
+    } else if (!hasInitializedRef.current && !useStudioStore.getState().scene) {
+      hasInitializedRef.current = true;
       if (projectId) {
         api.getScene(projectId)
           .then((loadedScene) => {
             setScene(loadedScene);
           })
           .catch((err) => {
-            console.warn('[StudioApp] Failed to load project, falling back to sample fixture:', err);
-            setScene(sampleScene as unknown as LessonSceneJSON);
+            console.warn('[StudioApp] Failed to load project, creating clean empty project:', err);
+            appliedPackRef.current = initialPackId || 'basic';
+            createNewEmptyProject(initialPackId);
           });
       } else {
-        setScene(sampleScene as unknown as LessonSceneJSON);
+        appliedPackRef.current = initialPackId || 'basic';
+        createNewEmptyProject(initialPackId);
       }
     }
 
@@ -70,11 +73,14 @@ export function StudioApp({ projectId, initialScene, initialPackId }: StudioAppP
       .catch((err) => {
         console.warn('[StudioApp] Could not fetch packs:', err);
       });
-  }, [projectId, initialScene, scene, setScene, setAvailablePacks]);
+  }, [projectId, initialScene, initialPackId, setScene, setAvailablePacks, createNewEmptyProject]);
 
   // Auto-apply initialPackId if provided from gallery redirect
   useEffect(() => {
-    if (initialPackId && scene && ((scene as any).packId !== initialPackId && (scene as any).templatePack !== initialPackId)) {
+    if (!initialPackId || !scene) return;
+    const currentPack = scene.packId || (scene as any).templatePackId || (scene as any).templatePack;
+    if (currentPack !== initialPackId && appliedPackRef.current !== initialPackId) {
+      appliedPackRef.current = initialPackId;
       dispatch(
         { type: 'SWITCH_TEMPLATE_PACK', payload: { packId: initialPackId } },
         `Chuyển template pack sang ${initialPackId}`

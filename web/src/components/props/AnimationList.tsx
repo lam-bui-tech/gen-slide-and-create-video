@@ -119,7 +119,7 @@ export function AnimationList() {
         }}
       >
         <span>Hiệu Ứng Trên Slide Hiện Tại ({animations.length}):</span>
-        <span style={{ fontSize: '10px', fontWeight: 400, color: '#64748B' }}>
+        <span style={{ fontSize: '10px', fontWeight: 400, color: '#475569' }}>
           Bấm ▶ để xem thử
         </span>
       </div>
@@ -150,7 +150,7 @@ export function AnimationList() {
                   {anim.target}
                 </span>
               </div>
-              <span style={{ color: '#64748B', fontSize: '10px', flexShrink: 0 }}>
+              <span style={{ color: '#475569', fontSize: '10px', flexShrink: 0 }}>
                 +{anim.delay}s ({anim.duration}s)
               </span>
             </div>

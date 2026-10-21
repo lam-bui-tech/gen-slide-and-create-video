@@ -260,6 +260,7 @@ export function sceneReducer(state, action) {
       if (!pack) {
         throw new Error(`Pack "${packId}" not found in TemplateRegistry`);
       }
+      next.packId = packId;
       next.templatePackId = packId;
       const validLayoutIds = pack.layouts.map(l => l.id);
       for (const slide of next.slides) {

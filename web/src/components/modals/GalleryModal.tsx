@@ -20,6 +20,7 @@ export function GalleryModal() {
 
   const packs = availablePacks.length > 0 ? availablePacks : [
     {
+      id: 'basic',
       packId: 'basic',
       name: 'Bộ Mẫu Cơ Bản (Academic Ocean)',
       description: 'Bộ mẫu chuẩn giảng dạy đại học, tông màu xanh biển học thuật.',
@@ -27,6 +28,7 @@ export function GalleryModal() {
       layouts: Array(10).fill({}),
     },
     {
+      id: 'modern-dark',
       packId: 'modern-dark',
       name: 'Hiện Đại Tối Giản (Modern Minimal)',
       description: 'Tông đen/xám cao cấp, thích hợp cho kỹ thuật và lập trình.',
@@ -34,6 +36,7 @@ export function GalleryModal() {
       layouts: Array(8).fill({}),
     },
     {
+      id: 'warm-pedagogy',
       packId: 'warm-pedagogy',
       name: 'Sư Phạm Trẻ Trung (Warm Editorial)',
       description: 'Tông màu ấm áp, kích thích tương tác cho học sinh và sinh viên.',
@@ -43,7 +46,8 @@ export function GalleryModal() {
   ];
 
   const filteredPacks = packs.filter((p: any) => {
-    if (search && !p.name.toLowerCase().includes(search.toLowerCase()) && !p.packId.toLowerCase().includes(search.toLowerCase())) {
+    const pId = p.id || p.packId || '';
+    if (search && !p.name?.toLowerCase().includes(search.toLowerCase()) && !pId.toLowerCase().includes(search.toLowerCase())) {
       return false;
     }
     if (subjectFilter && !p.tags?.includes(subjectFilter)) {
@@ -69,7 +73,13 @@ export function GalleryModal() {
   };
 
   return (
-    <div className="modal-overlay open" id="gallery-step-modal">
+    <div
+      className="modal-overlay open"
+      id="gallery-step-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="gallery-modal-title"
+    >
       <div
         className="modal-box"
         style={{
@@ -94,6 +104,7 @@ export function GalleryModal() {
         >
           <div>
             <h2
+              id="gallery-modal-title"
               style={{
                 fontSize: '20px',
                 fontWeight: 800,
@@ -115,6 +126,7 @@ export function GalleryModal() {
           <button
             id="btn-close-gallery-modal"
             className="btn btn-secondary btn-icon"
+            aria-label="Đóng thư viện mẫu"
             style={{ fontSize: '16px' }}
             onClick={closeGalleryModal}
           >
@@ -128,6 +140,7 @@ export function GalleryModal() {
             type="text"
             id="gallery-search-input"
             placeholder="🔍 Tìm kiếm bộ mẫu..."
+            aria-label="Tìm kiếm bộ mẫu template"
             className="prop-input"
             style={{ flex: 1, minWidth: '220px' }}
             value={search}
@@ -135,6 +148,7 @@ export function GalleryModal() {
           />
           <select
             id="gallery-filter-subject"
+            aria-label="Lọc theo môn học"
             className="prop-select"
             style={{ width: '160px' }}
             value={subjectFilter}
@@ -149,6 +163,7 @@ export function GalleryModal() {
           </select>
           <select
             id="gallery-filter-style"
+            aria-label="Lọc theo phong cách"
             className="prop-select"
             style={{ width: '170px' }}
             value={styleFilter}
@@ -173,12 +188,23 @@ export function GalleryModal() {
             maxHeight: '50vh',
           }}
         >
-          {filteredPacks.map((pack: any) => {
-            const isSelected = pack.packId === selectedGalleryPackId;
+          {filteredPacks.map((pack: any, index: number) => {
+            const packId = pack.id || pack.packId || `pack-${index}`;
+            const isSelected = packId === selectedGalleryPackId;
             return (
               <div
-                key={pack.packId}
-                onClick={() => setSelectedGalleryPackId(pack.packId)}
+                key={packId}
+                role="button"
+                tabIndex={0}
+                aria-pressed={isSelected}
+                aria-label={`Chọn bộ mẫu ${pack.name}`}
+                onClick={() => setSelectedGalleryPackId(packId)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setSelectedGalleryPackId(packId);
+                  }
+                }}
                 style={{
                   border: `2px solid ${isSelected ? 'var(--primary)' : 'var(--border-color)'}`,
                   background: isSelected ? '#F0F9FF' : '#FFFFFF',
@@ -198,8 +224,8 @@ export function GalleryModal() {
                 <p style={{ fontSize: '12px', color: 'var(--text-sub)', marginBottom: '12px' }}>
                   {pack.description}
                 </p>
-                <div style={{ fontSize: '11px', color: '#64748B' }}>
-                  Mã gói: <code>{pack.packId}</code> · {pack.layouts?.length || 10} layouts
+                <div style={{ fontSize: '11px', color: '#475569' }}>
+                  Mã gói: <code>{packId}</code> · {pack.layouts?.length || 10} layouts
                 </div>
               </div>
             );

@@ -80,11 +80,11 @@ export function PresentationMode() {
           <span id="pres-slide-indicator" style={{ fontWeight: 700, color: '#38BDF8' }}>
             Slide {presentationIndex + 1} / {totalSlides}
           </span>
-          <span style={{ color: '#64748B' }}>|</span>
+          <span style={{ color: '#94A3B8' }}>|</span>
           <span id="pres-timer-current" style={{ color: '#F8FAFC' }}>
             {currentTimeStr}
           </span>
-          <span style={{ color: '#64748B' }}>/</span>
+          <span style={{ color: '#94A3B8' }}>/</span>
           <span id="pres-timer-total" style={{ color: '#94A3B8' }}>
             {totalTimeStr}
           </span>
