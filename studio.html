@@ -668,6 +668,10 @@
     </div>
 
     <div class="nav-actions">
+      <button class="btn btn-secondary" id="btn-new-project" title="Tạo bài giảng mới sạch hoàn toàn" style="padding: 7px 14px; font-weight: 700; color: #0284C7; background: #F0F9FF; border-color: #BAE6FD;">
+        ✨ Tạo Bài Mới
+      </button>
+
       <button class="btn btn-secondary" id="btn-select-pack" title="Chọn hoặc thay đổi Bộ Mẫu Giảng Dạy (Template Pack)" style="padding: 7px 14px; font-weight: 600;">
         🎨 Bộ Mẫu (<span id="current-pack-label">basic</span>)
       </button>
@@ -1025,11 +1029,35 @@
         </div>
       </div>
 
-      <!-- 3. Animation Presets & Cues (Phase 3.2 UI) -->
+      <!-- 3. Animation Presets & Cues (Vietnamese User-Friendly UI) -->
       <div class="prop-section">
         <div class="prop-section-title">
-          <span>Hiệu Ứng Hoạt Họa (GSAP)</span>
-          <button class="btn btn-secondary" id="btn-add-anim" style="padding: 2px 8px; font-size: 11px;">+ Thêm</button>
+          <span>✨ Hoạt Họa & Chuyển Động</span>
+          <button class="btn btn-secondary" id="btn-add-anim" style="padding: 2px 8px; font-size: 11px;">+ Tùy biến</button>
+        </div>
+
+        <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 8px;">
+          Bộ hiệu ứng 1-chạm (nhấn để áp dụng ngay vào slide):
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 12px;">
+          <button class="btn btn-secondary btn-quick-anim" data-preset="fade-in" style="padding: 6px 8px; font-size: 11px; justify-content: flex-start;">
+            🌟 Hiện Mượt (Fade In)
+          </button>
+          <button class="btn btn-secondary btn-quick-anim" data-preset="slide-in" style="padding: 6px 8px; font-size: 11px; justify-content: flex-start;">
+            🚀 Trượt Vào (Slide Up)
+          </button>
+          <button class="btn btn-secondary btn-quick-anim" data-preset="zoom-in" style="padding: 6px 8px; font-size: 11px; justify-content: flex-start;">
+            🎯 Phóng To (Zoom/Pop)
+          </button>
+          <button class="btn btn-secondary btn-quick-anim" data-preset="typewriter" style="padding: 6px 8px; font-size: 11px; justify-content: flex-start;">
+            ⌨️ Đánh Máy (Typewriter)
+          </button>
+        </div>
+
+        <div style="font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 6px; display: flex; justify-content: space-between;">
+          <span>Hiệu Ứng Trên Slide Hiện Tại:</span>
+          <span style="font-size: 10px; font-weight: 400; color: #64748B;">Bấm ▶ để xem thử</span>
         </div>
 
         <div id="anim-list-container">
@@ -1175,6 +1203,10 @@
             Tiếp Tục Với Bộ Mẫu Đã Chọn ➜
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Pedagogical Quality Review Modal (P7.4) -->
   <div class="modal-overlay" id="pedagogy-modal">
     <div class="modal-box" style="width: 760px; max-width: 95vw; max-height: 85vh; display: flex; flex-direction: column; padding: 22px; border-radius: 12px;">
@@ -1278,7 +1310,7 @@
 
       async loadAvailablePacks() {
         try {
-          const apiBase = window.location.port === '8000' ? '' : (window.location.port === '3000' ? '' : 'http://localhost:8000');
+          const apiBase = window.API_BASE || (window.location.port === '8000' ? '' : 'http://localhost:8000');
           const res = await fetch(`${apiBase}/packs`);
           if (res.ok) {
             this.availablePacks = await res.json();
@@ -1796,7 +1828,7 @@
 
         const layoutPayload = exportLayoutForSave(this.draftLayout);
         try {
-          const apiBase = window.location.port === '8000' ? '' : (window.location.port === '3000' ? '' : 'http://localhost:8000');
+          const apiBase = window.API_BASE || (window.location.port === '8000' ? '' : 'http://localhost:8000');
           const res = await fetch(`${apiBase}/packs/${packId}/layouts`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1817,8 +1849,57 @@
         }
       }
 
+      createNewEmptyProject(force = false) {
+        if (!force && !confirm('Bạn có chắc muốn tạo bài giảng mới? Trạng thái hiện tại sẽ được làm sạch.')) return;
+        localStorage.removeItem('lecture_scene_state');
+        const projectId = 'proj-' + Math.random().toString(16).substring(2, 10);
+        this.scene = {
+          projectId: projectId,
+          title: 'Welcome !',
+          slides: [
+            {
+              slideId: 'slide-01',
+              templateId: 'title-slide',
+              layoutVariant: 'default',
+              title: 'Welcome !',
+              elements: [
+                {
+                  id: 'welcome-sub',
+                  type: 'text',
+                  role: 'body',
+                  content: 'Chào mừng bạn đến với AI Lecture Studio! Hãy bấm nút "Tải Tài Liệu (PPTX/PDF)" hoặc chọn "Bộ Mẫu" để bắt đầu soạn bài giảng chuyên nghiệp.'
+                },
+                {
+                  id: 'welcome-img',
+                  type: 'image',
+                  role: 'media',
+                  content: 'storage/projects/proj-1281288d/images/intro_cover.jpg'
+                }
+              ],
+              animations: [
+                { target: '.title-hero-heading', preset: 'zoom-in', delay: 0.2, duration: 1.0 },
+                { target: '.title-hero-content', preset: 'fade-in', delay: 0.5, duration: 1.0 }
+              ],
+              voice: {
+                narration: 'Chào mừng bạn đến với công cụ soạn bài giảng AI Lecture Studio! Hãy bắt đầu bằng cách tải tài liệu hoặc thêm slide mới.',
+                provider: 'vieneu',
+                durationSeconds: 5.0
+              },
+              durationSeconds: 6.0
+            }
+          ]
+        };
+        this.currentSlideIndex = 0;
+        this.history = [JSON.parse(JSON.stringify(this.scene))];
+        this.historyIndex = 0;
+        this.triggerAutosave();
+        this.renderAll();
+      }
+
       async init() {
-        // Try local storage or fetch fixtures
+        this.bindEvents();
+
+        // Try local storage
         const saved = localStorage.getItem('lecture_scene_state');
         if (saved) {
           try {
@@ -1827,39 +1908,14 @@
         }
 
         if (!this.scene) {
-          try {
-            const res = await fetch('/fixtures/scene.sample.json');
-            this.scene = await res.json();
-          } catch (e) {
-            console.error('Failed to load sample fixture, creating minimal scene:', e);
-            this.scene = {
-              projectId: 'project-sample',
-              title: 'Bài Giảng Mẫu',
-              slides: [
-                {
-                  slideId: 'slide-01',
-                  templateId: 'title-slide',
-                  layoutVariant: 'default',
-                  title: 'Chương 1: Triết Học & Thế Giới Quan',
-                  elements: [],
-                  animations: [],
-                  voice: { narration: 'Chào mừng các bạn đến với bài giảng.', provider: 'vieneu', durationSeconds: 5.0 },
-                  durationSeconds: 6.0
-                }
-              ]
-            };
-          }
+          // Clean default state: Welcome !
+          this.createNewEmptyProject(true);
+        } else {
+          this.scene = migrateOnRead(this.scene);
+          this.history = [JSON.parse(JSON.stringify(this.scene))];
+          this.historyIndex = 0;
+          this.renderAll();
         }
-
-        // Transparent migration from v1 to v2 if needed
-        this.scene = migrateOnRead(this.scene);
-
-        // Initialize history
-        this.history = [JSON.parse(JSON.stringify(this.scene))];
-        this.historyIndex = 0;
-
-        this.bindEvents();
-        this.renderAll();
       }
 
       dispatch(action, actionName = 'Thay đổi dữ liệu') {
@@ -2240,31 +2296,36 @@
 
         let candidates = [];
         try {
-          const apiBase = window.location.port === '8000' ? '' : (window.location.port === '3000' ? '' : 'http://localhost:8000');
+          const apiBase = window.API_BASE || (window.location.port === '8000' ? '' : 'http://localhost:8000');
           const res = await fetch(`${apiBase}/projects/${this.scene.projectId || 'demo'}/media-recommendations/${slide.slideId}`);
           if (res.ok) {
             candidates = await res.json();
           }
         } catch (e) {
-          // Fallback to default candidates
+          // Fallback to rich default candidates
         }
 
         if (!Array.isArray(candidates) || candidates.length === 0) {
           candidates = [
             {
-              url: 'https://images.unsplash.com/photo-1507842229451-7f01be7fe7ab?w=400&q=80',
+              url: 'storage/projects/proj-1281288d/images/rect_geometry.jpg',
               type: 'document',
-              label: 'Tài Liệu Gốc'
+              label: '📐 Hình Chữ Nhật'
             },
             {
-              url: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400&q=80',
+              url: 'storage/projects/proj-1281288d/images/grid_area.jpg',
               type: 'diagram',
-              label: 'Sơ Đồ SVG'
+              label: '📊 Lưới Diện Tích (Grid)'
             },
             {
-              url: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=400&q=80',
+              url: 'storage/projects/proj-1281288d/images/area_vs_perimeter.svg',
+              type: 'vector',
+              label: '⚡ Sơ Đồ Vector SVG'
+            },
+            {
+              url: 'storage/projects/proj-1281288d/images/intro_cover.jpg',
               type: 'stock',
-              label: 'Kho Mẫu'
+              label: '🎨 Minh Họa Nghệ Thuật'
             }
           ];
         }
@@ -2319,8 +2380,54 @@
         if (!container) return;
         container.innerHTML = '';
 
+        // Bind quick animation buttons
+        document.querySelectorAll('.btn-quick-anim').forEach(btn => {
+          btn.onclick = () => {
+            const preset = btn.getAttribute('data-preset');
+            let target = '.slide-title';
+            if (slide.templateId === 'title-slide') target = '.title-hero-heading';
+            else if (slide.templateId === 'concept-explain') target = '.concept-card';
+            else if (slide.templateId === 'image-explain') target = '.explain-image-wrap';
+            else if (slide.templateId === 'bullet-breakdown') target = '.breakdown-card';
+
+            this.dispatch({
+              type: 'ADD_ANIMATION',
+              payload: {
+                slideIndex: this.currentSlideIndex,
+                animation: {
+                  target: target,
+                  preset: preset,
+                  delay: 0.3,
+                  duration: 1.0,
+                  easing: 'power2.out'
+                }
+              }
+            }, `Thêm hiệu ứng ${preset}`);
+            setTimeout(() => this.playSlideTimeline(), 200);
+          };
+        });
+
+        const getTargetLabel = (target) => {
+          if (!target) return 'Toàn bộ slide';
+          if (target.includes('title') || target.includes('heading')) return '📌 Tiêu đề chính';
+          if (target.includes('sub')) return '📝 Phụ đề / Tóm tắt';
+          if (target.includes('image') || target.includes('media')) return '🖼️ Khung hình ảnh';
+          if (target.includes('concept') || target.includes('card') || target.includes('explain')) return '📑 Khung nội dung';
+          if (target.includes('breakdown')) return '📊 Thẻ luận điểm';
+          if (target.includes('bullet') || target.includes('summary')) return '⭐ Mục tổng kết';
+          return target;
+        };
+
+        const PRESET_LABELS = {
+          'fade-in': '🌟 Hiện Mượt (Fade In)',
+          'slide-in': '🚀 Trượt Vào (Slide In)',
+          'zoom-in': '🎯 Phóng To (Zoom In)',
+          'typewriter': '⌨️ Đánh Máy (Typewriter)',
+          'step-by-step': '⏱️ Từng Bước (Step)'
+        };
+
         if (!slide.animations || slide.animations.length === 0) {
-          container.innerHTML = `<div style="font-size: 12px; color: #94A3B8; font-style: italic;">Chưa có hiệu ứng hoạt họa riêng.</div>`;
+          container.innerHTML = `<div style="font-size: 12px; color: #94A3B8; font-style: italic;">Chưa có hiệu ứng riêng. Bấm các nút hiệu ứng 1-chạm ở trên để thêm.</div>`;
           return;
         }
 
@@ -2328,16 +2435,16 @@
           const row = document.createElement('div');
           row.className = 'anim-row';
           row.innerHTML = `
-            <div class="anim-row-header">
-              <span style="color: var(--primary); font-family: monospace;">${anim.target}</span>
-              <button class="card-action-btn delete btn-del-anim" style="width: 18px; height: 18px;">✕</button>
+            <div class="anim-row-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <span style="color: var(--primary); font-weight: 700; font-size: 12px;">${getTargetLabel(anim.target)}</span>
+              <button class="card-action-btn delete btn-del-anim" style="width: 18px; height: 18px;" title="Xóa hiệu ứng này">✕</button>
             </div>
             <div class="anim-controls-grid">
               <select class="prop-select anim-preset-select" style="padding: 4px 6px; font-size: 11px;">
-                ${ALLOWED_PRESETS.map(p => `<option value="${p}" ${p === anim.preset ? 'selected' : ''}>${p}</option>`).join('')}
+                ${ALLOWED_PRESETS.map(p => `<option value="${p}" ${p === anim.preset ? 'selected' : ''}>${PRESET_LABELS[p] || p}</option>`).join('')}
               </select>
-              <input type="number" step="0.1" min="0" class="prop-input anim-delay-input" value="${anim.delay || 0}" title="Delay (s)" style="padding: 4px 6px; font-size: 11px;" />
-              <input type="number" step="0.1" min="0.1" class="prop-input anim-duration-input" value="${anim.duration || 1.0}" title="Duration (s)" style="padding: 4px 6px; font-size: 11px;" />
+              <input type="number" step="0.1" min="0" class="prop-input anim-delay-input" value="${anim.delay || 0}" title="Trễ (giây)" placeholder="Trễ (s)" style="padding: 4px 6px; font-size: 11px;" />
+              <input type="number" step="0.1" min="0.1" class="prop-input anim-duration-input" value="${anim.duration || 1.0}" title="Thời lượng (giây)" placeholder="Thời lượng (s)" style="padding: 4px 6px; font-size: 11px;" />
             </div>
           `;
 
@@ -2498,7 +2605,7 @@
         if (loading) loading.style.display = 'block';
         if (diffBox) diffBox.style.display = 'none';
 
-        const apiBase = window.location.port === '8000' ? '' : (window.location.port === '3000' ? '' : 'http://localhost:8000');
+        const apiBase = window.API_BASE || (window.location.port === '8000' ? '' : 'http://localhost:8000');
         let result = null;
 
         try {
@@ -2758,16 +2865,27 @@
           }, 'Đổi template');
         };
 
-        // Variant Pills
+        // Variant Pills & Dropdown
         document.querySelectorAll('#variant-pills-container .variant-pill').forEach(pill => {
           pill.onclick = () => {
             const v = pill.dataset.variant;
             this.dispatch({
               type: 'UPDATE_SLIDE',
-              payload: { slideIndex: this.currentSlideIndex, changes: { layoutVariant: v } }
+              payload: { slideIndex: this.currentSlideIndex, changes: { layoutVariant: v, variantId: v } }
             }, 'Đổi layout variant');
           };
         });
+
+        const variantSelect = document.getElementById('prop-variant-select');
+        if (variantSelect) {
+          variantSelect.onchange = (e) => {
+            const v = e.target.value;
+            this.dispatch({
+              type: 'UPDATE_SLIDE',
+              payload: { slideIndex: this.currentSlideIndex, changes: { layoutVariant: v, variantId: v } }
+            }, 'Đổi layout variant');
+          };
+        }
 
         // Narration text blur
         const narrationInput = document.getElementById('prop-narration-input');
@@ -3390,11 +3508,24 @@
           };
         }
 
-        // Export Buttons Handler (Triggers Person A's real /export pipeline)
+        // New Empty Project Button
+        const btnNewProj = document.getElementById('btn-new-project');
+        if (btnNewProj) {
+          btnNewProj.onclick = () => this.createNewEmptyProject();
+        }
+
+        // Export Buttons Handler (Triggers Person A's real /export pipeline with auto-sync)
         document.getElementById('btn-export-mp4').onclick = async () => {
           if (!confirm('Khởi chạy kết xuất video bài giảng MP4 (1080p 30fps)?')) return;
           try {
-            const apiBase = window.location.port === '8000' ? '' : (window.location.port === '3000' ? '' : 'http://localhost:8000');
+            const apiBase = window.API_BASE || (window.location.port === '8000' ? '' : 'http://localhost:8000');
+            // Sync current edits to backend storage before export
+            await fetch(`${apiBase}/projects/${this.scene.projectId || 'demo'}/scene`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(this.scene)
+            }).catch(() => {});
+
             const res = await fetch(`${apiBase}/projects/${this.scene.projectId || 'demo'}/export`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -3409,7 +3540,14 @@
 
         document.getElementById('btn-export-pdf').onclick = async () => {
           try {
-            const apiBase = window.location.port === '8000' ? '' : (window.location.port === '3000' ? '' : 'http://localhost:8000');
+            const apiBase = window.API_BASE || (window.location.port === '8000' ? '' : 'http://localhost:8000');
+            // Sync current edits to backend storage before export
+            await fetch(`${apiBase}/projects/${this.scene.projectId || 'demo'}/scene`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(this.scene)
+            }).catch(() => {});
+
             const res = await fetch(`${apiBase}/projects/${this.scene.projectId || 'demo'}/export`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -3424,7 +3562,14 @@
 
         document.getElementById('btn-export-pptx').onclick = async () => {
           try {
-            const apiBase = window.location.port === '8000' ? '' : (window.location.port === '3000' ? '' : 'http://localhost:8000');
+            const apiBase = window.API_BASE || (window.location.port === '8000' ? '' : 'http://localhost:8000');
+            // Sync current edits to backend storage before export
+            await fetch(`${apiBase}/projects/${this.scene.projectId || 'demo'}/scene`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(this.scene)
+            }).catch(() => {});
+
             const res = await fetch(`${apiBase}/projects/${this.scene.projectId || 'demo'}/export`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -3439,7 +3584,7 @@
       }
 
       async pollExportDownload(exportId, formatName) {
-        const apiBase = window.location.port === '8000' ? '' : (window.location.port === '3000' ? '' : 'http://localhost:8000');
+        const apiBase = window.API_BASE || (window.location.port === '8000' ? '' : 'http://localhost:8000');
         const modal = document.getElementById('upload-progress-modal');
         const titleEl = document.getElementById('upload-step-title');
         const descEl = document.getElementById('upload-step-desc');
@@ -3466,10 +3611,24 @@
                 clearInterval(interval);
                 if (barEl) barEl.style.width = '100%';
                 if (titleEl) titleEl.innerText = `✅ Hoàn tất kết xuất ${formatName}!`;
-                setTimeout(() => {
-                  if (modal) modal.classList.remove('open');
-                  window.open(job.downloadUrl.startsWith('http') ? job.downloadUrl : `${apiBase}${job.downloadUrl}`, '_blank');
-                }, 800);
+                const fullUrl = job.downloadUrl.startsWith('http') ? job.downloadUrl : `${apiBase}${job.downloadUrl}`;
+                if (descEl) {
+                  descEl.innerHTML = `
+                    <div style="margin-top: 14px;">
+                      <a href="${fullUrl}" target="_blank" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; font-weight: 700; text-decoration: none; font-size: 14px; background: #0284c7; border-radius: 8px;">
+                        <span>📥</span> Mở / Tải Về Tệp ${formatName}
+                      </a>
+                      <div style="margin-top: 12px;">
+                        <button class="btn btn-secondary" id="btn-close-export-done" style="padding: 5px 16px; font-size: 12px;">Đóng Hộp Thoại</button>
+                      </div>
+                    </div>
+                  `;
+                  const closeDoneBtn = document.getElementById('btn-close-export-done');
+                  if (closeDoneBtn) closeDoneBtn.onclick = () => modal.classList.remove('open');
+                }
+                try {
+                  window.open(fullUrl, '_blank');
+                } catch (oe) {}
                 return;
               } else if (job.status === 'failed') {
                 clearInterval(interval);
@@ -3495,7 +3654,7 @@
         const descEl = document.getElementById('upload-step-desc');
         const iconEl = document.getElementById('upload-step-icon');
         const barEl = document.getElementById('upload-progress-bar');
-        const apiBase = window.location.port === '8000' ? '' : (window.location.port === '3000' ? '' : 'http://localhost:8000');
+        const apiBase = window.API_BASE || (window.location.port === '8000' ? '' : 'http://localhost:8000');
 
         modal.classList.add('open');
 
@@ -3711,6 +3870,9 @@
       <div style="width: 100%; height: 8px; background: #E2E8F0; border-radius: 9999px; overflow: hidden;">
         <div id="upload-progress-bar" style="width: 20%; height: 100%; background: linear-gradient(90deg, #0284c7, #38bdf8); transition: width 0.3s ease;"></div>
       </div>
+    </div>
+  </div>
+
   <!-- Clarification Questions Modal -->
   <div id="clarification-modal" class="modal-overlay">
     <div class="modal-box" style="max-width: 560px; text-align: left; padding: 24px; border-radius: 14px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);">

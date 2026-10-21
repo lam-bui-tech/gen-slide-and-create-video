@@ -22,6 +22,47 @@
   justify-items: center;
 }
 
+.hf-template-title-slide.variant-text-right-image-left {
+  grid-template-columns: 0.85fr 1.15fr;
+}
+.hf-template-title-slide.variant-text-right-image-left .title-hero-content {
+  order: 2;
+}
+.hf-template-title-slide.variant-text-right-image-left .title-hero-image-wrap {
+  order: 1;
+}
+
+.hf-template-title-slide.variant-stacked-top {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  align-items: center;
+}
+.hf-template-title-slide.variant-stacked-top .title-hero-image-wrap {
+  height: 380px;
+  width: 70%;
+  order: 1;
+  margin-bottom: 24px;
+}
+.hf-template-title-slide.variant-stacked-top .title-hero-content {
+  order: 2;
+  align-items: center;
+}
+
+.hf-template-title-slide.variant-no-image {
+  grid-template-columns: 1fr;
+  text-align: center;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+.hf-template-title-slide.variant-no-image .title-hero-image-wrap {
+  display: none;
+}
+.hf-template-title-slide.variant-no-image .title-hero-content {
+  align-items: center;
+}
+
 .title-hero-content {
   display: flex;
   flex-direction: column;
@@ -142,6 +183,46 @@
 .hf-template-concept-explain.variant-no-image {
   grid-template-columns: 1fr;
 }
+.hf-template-concept-explain.variant-no-image .concept-image-wrap {
+  display: none;
+}
+
+.hf-template-concept-explain.variant-stacked-top {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.hf-template-concept-explain.variant-stacked-top .concept-image-wrap {
+  height: 320px;
+  order: 1;
+  margin-bottom: 24px;
+}
+.hf-template-concept-explain.variant-stacked-top .concept-card {
+  order: 2;
+}
+
+.hf-template-concept-explain.variant-fullscreen {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hf-template-concept-explain.variant-fullscreen .concept-image-wrap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.2;
+  border-radius: 0;
+  border: none;
+}
+.hf-template-concept-explain.variant-fullscreen .concept-card {
+  position: relative;
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  max-width: 1100px;
+}
 
 .concept-card {
   background: var(--hf-bg-surface);
@@ -252,6 +333,50 @@
 }
 .hf-template-image-explain.variant-text-right-image-left .explain-text-card {
   order: 2;
+}
+
+.hf-template-image-explain.variant-stacked-top {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.hf-template-image-explain.variant-stacked-top .explain-image-wrap {
+  height: 380px;
+  order: 1;
+  margin-bottom: 24px;
+}
+.hf-template-image-explain.variant-stacked-top .explain-text-card {
+  order: 2;
+}
+
+.hf-template-image-explain.variant-no-image {
+  grid-template-columns: 1fr;
+}
+.hf-template-image-explain.variant-no-image .explain-image-wrap {
+  display: none;
+}
+
+.hf-template-image-explain.variant-fullscreen {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hf-template-image-explain.variant-fullscreen .explain-image-wrap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.2;
+  border-radius: 0;
+  border: none;
+}
+.hf-template-image-explain.variant-fullscreen .explain-text-card {
+  position: relative;
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  max-width: 1100px;
 }
 
 .explain-image-wrap {

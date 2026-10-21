@@ -78,7 +78,7 @@ function renderMediaBlock(slide, imgEl, defaultId, wrapClass) {
  * 1. Title Slide (Hero)
  */
 function renderTitleSlide(slide) {
-  let variant = slide.variantId || slide.layoutVariant || 'default';
+  let variant = slide.layoutVariant || slide.variantId || 'default';
   const badgeEl = slide.elements?.find(e => e.type === 'badge');
   const authorEl = slide.elements?.find(e => e.id === 'txt-author' || e.type === 'text');
   const imgEl = slide.elements?.find(e => e.type === 'image');
@@ -118,7 +118,9 @@ function renderTitleSlide(slide) {
  */
 function renderLearningObjectives(slide) {
   const listEl = slide.elements?.find(e => e.type === 'bullet-list');
-  const items = Array.isArray(listEl?.content) ? listEl.content : [];
+  const items = (Array.isArray(listEl?.content) && listEl.content.length > 0) 
+    ? listEl.content 
+    : (Array.isArray(slide.slotValues?.bullets) ? slide.slotValues.bullets : []);
 
   const itemsHtml = items.map((item, idx) => `
     <div class="objective-item obj-item-${idx}">
@@ -144,7 +146,7 @@ function renderLearningObjectives(slide) {
  * 3. Concept Explain
  */
 function renderConceptExplain(slide) {
-  let variant = slide.variantId || slide.layoutVariant || 'default';
+  let variant = slide.layoutVariant || slide.variantId || 'default';
   const cardEl = slide.elements?.find(e => e.type === 'card' || e.type === 'text');
   const imgEl = slide.elements?.find(e => e.type === 'image');
   const vidEl = slide.elements?.find(e => e.type === 'video');
@@ -217,7 +219,7 @@ function renderBulletBreakdown(slide) {
  * 5. Image Explain
  */
 function renderImageExplain(slide) {
-  let variant = slide.variantId || slide.layoutVariant || 'default';
+  let variant = slide.layoutVariant || slide.variantId || 'default';
   const imgEl = slide.elements?.find(e => e.type === 'image');
   const vidEl = slide.elements?.find(e => e.type === 'video');
   const txtEl = slide.elements?.find(e => e.type === 'text');
@@ -325,6 +327,8 @@ function renderTimeline(slide) {
 function renderFormulaExplain(slide) {
   const formulaEl = slide.elements?.find(e => e.type === 'formula');
   const noteEl = slide.elements?.find(e => e.type === 'text');
+  const formulaText = formulaEl?.content || slide.slotValues?.formula || '';
+  const noteText = noteEl?.content || slide.slotValues?.notes || (Array.isArray(slide.slotValues?.variables) ? slide.slotValues.variables.join(' • ') : '');
 
   return `
     <div class="hf-template-formula-explain">
@@ -334,11 +338,11 @@ function renderFormulaExplain(slide) {
       </div>
       <div class="formula-stage">
         <div class="formula-display-box" id="${formulaEl?.id || 'formula-box'}">
-          ${escapeHtml(formulaEl?.content || '')}
+          ${escapeHtml(formulaText)}
         </div>
-        ${noteEl ? `
-          <div class="formula-explanation-box" id="${noteEl.id || 'formula-note'}">
-            ${escapeHtml(noteEl.content)}
+        ${noteText ? `
+          <div class="formula-explanation-box" id="${noteEl?.id || 'formula-note'}">
+            ${escapeHtml(noteText)}
           </div>` : ''}
       </div>
     </div>
@@ -351,9 +355,11 @@ function renderFormulaExplain(slide) {
 function renderQuiz(slide) {
   const quizEl = slide.elements?.find(e => e.type === 'quiz-block');
   const qData = quizEl?.content || {};
-  const question = qData.question || 'Câu hỏi củng cố kiến thức:';
-  const options = Array.isArray(qData.options) ? qData.options : [];
-  const correctIdx = qData.correctIndex ?? 0;
+  const question = qData.question || slide.slotValues?.question || 'Câu hỏi củng cố kiến thức:';
+  const options = (Array.isArray(qData.options) && qData.options.length > 0)
+    ? qData.options
+    : (Array.isArray(slide.slotValues?.options) ? slide.slotValues.options : []);
+  const correctIdx = qData.correctIndex ?? slide.slotValues?.correctIndex ?? 0;
 
   const optionsHtml = options.map((opt, idx) => `
     <div class="quiz-option opt-${idx} ${idx === correctIdx ? 'correct' : ''}">
@@ -385,7 +391,9 @@ function renderQuiz(slide) {
  */
 function renderSummary(slide) {
   const listEl = slide.elements?.find(e => e.type === 'bullet-list');
-  const bullets = Array.isArray(listEl?.content) ? listEl.content : [];
+  const bullets = (Array.isArray(listEl?.content) && listEl.content.length > 0)
+    ? listEl.content
+    : (Array.isArray(slide.slotValues?.bullets) ? slide.slotValues.bullets : []);
 
   const bulletsHtml = bullets.map((b, idx) => `
     <div class="summary-bullet-item">

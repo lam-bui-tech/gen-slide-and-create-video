@@ -400,7 +400,7 @@ export function sceneToHyperFramesHtml(scene, options = {}) {
     </style>
   </head>
   <body>
-    <div id="root">
+    <div id="root" data-composition-id="${escapeHtml(compositionId)}" data-width="1920" data-height="1080" data-duration="${totalDuration}">
       <div class="hf-bg-grid"></div>
 
       <!-- Header -->
