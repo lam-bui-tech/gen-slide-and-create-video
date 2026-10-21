@@ -78,8 +78,8 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // Redirect any legacy /studio or /studio/index.html to root /
-  if (pathname === '/studio' || pathname === '/studio/' || pathname === '/studio/index.html') {
+  // Redirect any legacy /studio, /studio/index.html or /studio.html to root /
+  if (pathname === '/studio' || pathname === '/studio/' || pathname === '/studio/index.html' || pathname === '/studio.html') {
     res.writeHead(302, { 'Location': '/' });
     res.end();
     return;

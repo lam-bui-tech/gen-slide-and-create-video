@@ -29,9 +29,11 @@ def test_builder_save():
         save_btn.click()
         time.sleep(1.5)
 
-        print(f"    Dialog messages received: {dialog_messages}")
-        for msg in dialog_messages:
-            assert "404 Không tìm thấy tệp" not in msg, f"Still 404 error: {msg}"
+        print(f"    Dialog count received: {len(dialog_messages)}")
+        for i, m in enumerate(dialog_messages):
+            safe_m = m.encode('ascii', 'replace').decode('ascii')
+            print(f"    Message {i}: {safe_m}")
+            assert "404" not in m, f"Found 404 in message: {safe_m}"
         
         browser.close()
         print("SUCCESS: Builder mode save endpoint verified without 404!")

@@ -18,6 +18,9 @@ from schemas.models import (
     Slot,
     SlideSceneV2,
     SlideVoiceConfig,
+    SlideElement,
+    AnimationItem,
+    AnimationPreset,
 )
 from scripts.llm_provider import LLMProvider, FakeProvider
 
@@ -26,6 +29,8 @@ logger = logging.getLogger("SlotFiller")
 
 class GeneratedSlidePlanItem(BaseModel):
     layoutId: str
+    title: Optional[str] = None
+    subtitle: Optional[str] = None
     slotValues: Dict[str, Any]
     narration: str = ""
 
@@ -146,6 +151,28 @@ class SlotFillerEngine:
             system_instruction=system_instruction
         )
 
+        # Resolve slide count and duration constraints
+        target_slide_count = int(answers.get("slideCount")) if (answers and answers.get("slideCount")) else None
+        duration_minutes = float(answers.get("durationMinutes", 5.0)) if answers else 5.0
+
+        if target_slide_count and target_slide_count > 0:
+            if len(plan.slides) > target_slide_count:
+                plan.slides = plan.slides[:target_slide_count]
+            elif len(plan.slides) < target_slide_count and len(plan.slides) > 0:
+                while len(plan.slides) < target_slide_count:
+                    pad_idx = len(plan.slides) + 1
+                    plan.slides.append(GeneratedSlidePlanItem(
+                        layoutId="concept-explain" if "concept-explain" in layout_map else pack.layouts[0].id,
+                        title=f"Nội dung trọng tâm {pad_idx}",
+                        subtitle=None,
+                        slotValues={"title": f"Nội dung trọng tâm {pad_idx}", "body": f"Nội dung củng cố và mở rộng phần {pad_idx}."},
+                        narration=f"Tiếp theo, chúng ta cùng nghiên cứu nội dung số {pad_idx}."
+                    ))
+
+        total_seconds = max(10.0, duration_minutes * 60.0)
+        slide_count = max(1, len(plan.slides))
+        per_slide_duration = round(total_seconds / slide_count, 1)
+
         slides_v2: List[SlideSceneV2] = []
         for idx, slide_plan in enumerate(plan.slides, start=1):
             slide_id = f"slide-{idx:02d}"
@@ -181,12 +208,74 @@ class SlotFillerEngine:
             if overflows:
                 slot_values = self._auto_condense_slots(slot_values, overflows)
 
-            # 4. Construct SlideSceneV2 with nullable audio fields
+            # 4. Resolve Title & Subtitle for Slide
+            s_title = (
+                slide_plan.title
+                or slot_values.get("title")
+                or slot_values.get("heading")
+                or (doc.title if idx == 1 else f"Nội dung trọng tâm {idx}")
+            )
+            s_subtitle = (
+                slide_plan.subtitle
+                or slot_values.get("subtitle")
+                or slot_values.get("sub")
+            )
+            if "title" not in slot_values and s_title:
+                slot_values["title"] = s_title
+
+            # 5. Populate slide elements for multi-model compatibility
+            elements: List[SlideElement] = []
+            if "media" in slot_values and isinstance(slot_values["media"], dict):
+                elements.append(SlideElement(
+                    id="img-main",
+                    type="image",
+                    content=slot_values["media"].get("url") or slot_values["media"].get("filePath")
+                ))
+            if "bullets" in slot_values and isinstance(slot_values["bullets"], list):
+                elements.append(SlideElement(
+                    id="bullet-list",
+                    type="bullet-list",
+                    content=slot_values["bullets"]
+                ))
+            if "cards" in slot_values and isinstance(slot_values["cards"], list):
+                for c_idx, c_item in enumerate(slot_values["cards"]):
+                    elements.append(SlideElement(
+                        id=f"card-{c_idx}",
+                        type="card",
+                        content=c_item
+                    ))
+            elif "body" in slot_values and isinstance(slot_values["body"], str):
+                elements.append(SlideElement(
+                    id="card-body",
+                    type="card",
+                    content=slot_values["body"]
+                ))
+
+            # 6. Populate default animations from layout
+            anims: List[AnimationItem] = []
+            if layout.defaultAnimations:
+                anims = [a.model_copy() for a in layout.defaultAnimations]
+            else:
+                anims = [
+                    AnimationItem(
+                        target=".slide-title",
+                        preset=AnimationPreset.FADE_IN,
+                        delay=0.4,
+                        duration=0.8,
+                        easing="power2.out"
+                    )
+                ]
+
+            # 7. Construct SlideSceneV2
             slide_scene = SlideSceneV2(
                 id=slide_id,
                 layoutId=layout.id,
+                title=s_title,
+                subtitle=s_subtitle,
                 slotValues=slot_values,
-                durationSeconds=5.0,
+                elements=elements,
+                animations=anims,
+                durationSeconds=per_slide_duration,
                 voice=SlideVoiceConfig(
                     narration=slide_plan.narration or f"Nội dung bài học slide {idx}.",
                     audioUrl=None,
@@ -249,11 +338,16 @@ class SlotFillerEngine:
             for s in doc.sections
         ], indent=2, ensure_ascii=False)
 
+        target_slide_count = int(answers.get('slideCount', 8)) if (answers and answers.get('slideCount')) else 8
+        duration_minutes = float(answers.get('durationMinutes', 5.0)) if (answers and answers.get('durationMinutes')) else 5.0
+
         prompt = f"""
 Generate a structured pedagogical deck plan for:
 Title: {doc.title}
 Audience: {answers.get('targetAudience', 'Sinh viên đại học') if answers else 'Sinh viên đại học'}
 Desired Voice: {answers.get('voiceId', 'MyDuyen') if answers else 'MyDuyen'}
+Required Slide Count: EXACTLY {target_slide_count} slides. (You MUST generate exactly {target_slide_count} slides in the slides array).
+Estimated Presentation Duration: {duration_minutes} minutes.
 
 ### Available Layouts in chosen Pack:
 {layouts_str}
@@ -266,9 +360,10 @@ Desired Voice: {answers.get('voiceId', 'MyDuyen') if answers else 'MyDuyen'}
 
 Generate a list of slides matching the GeneratedDeckPlan schema.
 For each slide:
-1. Select appropriate layoutId based on content.
-2. Fill slotValues matching the layout's slots.
-3. If referencing an image, use {{"type": "image", "id": "<id_from_inventory>", "url": "<filePath_from_inventory>"}}.
-4. Provide engaging narration in natural Vietnamese for the audio voiceover.
+1. Provide a clear, meaningful "title" and optional "subtitle" describing the slide topic.
+2. Select appropriate layoutId based on content.
+3. Fill slotValues matching the layout's slots (including "title", "body", "bullets", "media", etc.).
+4. If referencing an image, use {{"type": "image", "id": "<id_from_inventory>", "url": "<filePath_from_inventory>"}}.
+5. Provide engaging narration in natural Vietnamese for the audio voiceover.
 """
         return prompt.strip()

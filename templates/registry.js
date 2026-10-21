@@ -12,6 +12,7 @@
 
 import basicPackData from './packs/basic/pack.json' with { type: 'json' };
 import pedagogyVisualPackData from './packs/pedagogy-visual/pack.json' with { type: 'json' };
+import customPackData from './packs/custom-pack/pack.json' with { type: 'json' };
 
 const VALID_SUBJECT_TAGS = new Set([
   'toan-tin',
@@ -58,6 +59,10 @@ class Registry {
     // Register new rich pedagogy-visual pack
     if (pedagogyVisualPackData) {
       this.registerPack(pedagogyVisualPackData);
+    }
+    // Register custom-pack for builder saves
+    if (customPackData) {
+      this.registerPack(customPackData);
     }
   }
 

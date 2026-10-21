@@ -143,7 +143,7 @@ Run tests: pytest tests/pipeline tests/test_contracts.py. Env: Windows, PYTHONUT
 ---
 
 ## Person B (Engine / Studio) Ownership Rules
-IMPORTANT: Person B owns templates/, studio.html, studio/, outline_to_hyperframes.js,
+IMPORTANT: Person B owns templates/, index.html (single source of truth, studio.html removed), studio/, outline_to_hyperframes.js,
 tests/engine/. YOU MUST NOT edit server/, scripts/, schemas/, server.js, storage/
 (Person A). Schema changes go through a small PR that both approve.
 IMPORTANT: every edit in Studio/Builder produces a patch to LessonSceneJSON v2

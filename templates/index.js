@@ -54,12 +54,12 @@ function renderMediaBlock(slide, imgEl, defaultId, wrapClass) {
 
     return `
       <div class="${wrapClass}">
-        <video id="${vidEl.id || defaultId}" class="clip" src="${escapeHtml(videoSrc)}"
+        <video id="${vidEl.id || defaultId}" class="hf-embedded-video" src="${escapeHtml(videoSrc)}"
           data-start="${slide.start || 0}" data-duration="${duration}"
           data-media-start="${trimStart}" data-media-end="${trimEnd}"
           data-volume="${effectiveVolume.toFixed(1)}" data-ducking="${vidEl.ducking ? 'true' : 'false'}"
           ${hasAudioAttr} ${mutedAttr} ${posterAttr} playsinline preload="metadata"
-          style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+          style="width: 100%; height: 100%; object-fit: contain; background: #000000; border-radius: 8px;">
         </video>
       </div>`;
   }
@@ -72,6 +72,20 @@ function renderMediaBlock(slide, imgEl, defaultId, wrapClass) {
     <div class="${wrapClass}">
       <img id="${imgEl?.id || defaultId}" src="${escapeHtml(imgSrc)}" alt="${escapeHtml(slide.title)}" onerror="this.style.display='none'" />
     </div>`;
+}
+
+function getSlideTitle(slide, defaultTitle = 'Slide Tiêu Đề') {
+  if (slide.title && String(slide.title).trim()) return String(slide.title).trim();
+  if (slide.slotValues?.title && String(slide.slotValues.title).trim()) return String(slide.slotValues.title).trim();
+  if (slide.slotValues?.heading && String(slide.slotValues.heading).trim()) return String(slide.slotValues.heading).trim();
+  return defaultTitle;
+}
+
+function getSlideSubtitle(slide) {
+  if (slide.subtitle && String(slide.subtitle).trim()) return String(slide.subtitle).trim();
+  if (slide.slotValues?.subtitle && String(slide.slotValues.subtitle).trim()) return String(slide.slotValues.subtitle).trim();
+  if (slide.slotValues?.sub && String(slide.slotValues.sub).trim()) return String(slide.slotValues.sub).trim();
+  return '';
 }
 
 /**
@@ -92,6 +106,9 @@ function renderTitleSlide(slide) {
     variant = 'no-image';
   }
 
+  const title = getSlideTitle(slide, 'Tiêu Đề Bài Giảng');
+  const subtitle = getSlideSubtitle(slide);
+
   const badgeText = slide.slotValues?.badge || badgeEl?.content;
   const badgeHtml = badgeText ? `<div id="${badgeEl?.id || 'badge-course'}" class="hf-badge">${escapeHtml(badgeText)}</div>` : '';
   const authorText = slide.slotValues?.author || authorEl?.content;
@@ -103,8 +120,8 @@ function renderTitleSlide(slide) {
     <div class="hf-template-title-slide variant-${variant}">
       <div class="title-hero-content">
         ${badgeHtml}
-        <h1 class="slide-title title-hero-heading">${escapeHtml(slide.title)}</h1>
-        ${slide.subtitle ? `<p class="title-hero-sub">${escapeHtml(slide.subtitle)}</p>` : ''}
+        <h1 class="slide-title title-hero-heading">${escapeHtml(title)}</h1>
+        ${subtitle ? `<p class="title-hero-sub">${escapeHtml(subtitle)}</p>` : ''}
         ${authorHtml}
       </div>
       ${mediaHtml}
@@ -117,6 +134,9 @@ function renderTitleSlide(slide) {
  * 2. Learning Objectives
  */
 function renderLearningObjectives(slide) {
+  const title = getSlideTitle(slide, 'Mục Tiêu Bài Học');
+  const subtitle = getSlideSubtitle(slide);
+
   const listEl = slide.elements?.find(e => e.type === 'bullet-list');
   const items = (Array.isArray(listEl?.content) && listEl.content.length > 0) 
     ? listEl.content 
@@ -125,15 +145,15 @@ function renderLearningObjectives(slide) {
   const itemsHtml = items.map((item, idx) => `
     <div class="objective-item obj-item-${idx}">
       <div class="objective-num">${String(idx + 1).padStart(2, '0')}</div>
-      <div class="objective-text">${escapeHtml(item.replace(/^\d+[\.\)]\s*/, ''))}</div>
+      <div class="objective-text">${escapeHtml(String(item).replace(/^\d+[\.\)]\s*/, ''))}</div>
     </div>
   `).join('\n');
 
   return `
     <div class="hf-template-learning-objectives">
       <div class="hf-slide-header">
-        <h2 class="slide-title hf-slide-title">${escapeHtml(slide.title)}</h2>
-        ${slide.subtitle ? `<p class="hf-slide-subtitle">${escapeHtml(slide.subtitle)}</p>` : ''}
+        <h2 class="slide-title hf-slide-title">${escapeHtml(title)}</h2>
+        ${subtitle ? `<p class="hf-slide-subtitle">${escapeHtml(subtitle)}</p>` : ''}
       </div>
       <div class="objectives-grid" id="${listEl?.id || 'obj-list'}">
         ${itemsHtml}
@@ -147,6 +167,9 @@ function renderLearningObjectives(slide) {
  */
 function renderConceptExplain(slide) {
   let variant = slide.layoutVariant || slide.variantId || 'default';
+  const title = getSlideTitle(slide, 'Giải Thích Khái Niệm');
+  const subtitle = getSlideSubtitle(slide);
+
   const cardEl = slide.elements?.find(e => e.type === 'card' || e.type === 'text');
   const imgEl = slide.elements?.find(e => e.type === 'image');
   const vidEl = slide.elements?.find(e => e.type === 'video');
@@ -172,8 +195,8 @@ function renderConceptExplain(slide) {
     <div class="hf-template-concept-explain variant-${variant}">
       <div>
         <div class="hf-slide-header">
-          <h2 class="slide-title hf-slide-title">${escapeHtml(slide.title)}</h2>
-          ${slide.subtitle ? `<p class="hf-slide-subtitle">${escapeHtml(slide.subtitle)}</p>` : ''}
+          <h2 class="slide-title hf-slide-title">${escapeHtml(title)}</h2>
+          ${subtitle ? `<p class="hf-slide-subtitle">${escapeHtml(subtitle)}</p>` : ''}
         </div>
         ${cardHtml}
       </div>
@@ -186,7 +209,20 @@ function renderConceptExplain(slide) {
  * 4. Bullet Breakdown
  */
 function renderBulletBreakdown(slide) {
-  const cardEls = slide.elements?.filter(e => e.type === 'card') || [];
+  const title = getSlideTitle(slide, 'Phân Tích Chi Tiết');
+  const subtitle = getSlideSubtitle(slide);
+
+  let cardEls = slide.elements?.filter(e => e.type === 'card') || [];
+  if (cardEls.length === 0) {
+    const rawCards = slide.slotValues?.cards || slide.slotValues?.bullets || [];
+    if (Array.isArray(rawCards) && rawCards.length > 0) {
+      cardEls = rawCards.map((c, idx) => ({
+        id: `card-${idx}`,
+        type: 'card',
+        content: typeof c === 'object' ? c : { heading: `Điểm ${idx + 1}`, body: String(c) }
+      }));
+    }
+  }
 
   const cardsHtml = cardEls.map((c, idx) => {
     const heading = c.content?.heading || `Điểm ${idx + 1}`;
@@ -205,8 +241,8 @@ function renderBulletBreakdown(slide) {
   return `
     <div class="hf-template-bullet-breakdown">
       <div class="hf-slide-header">
-        <h2 class="slide-title hf-slide-title">${escapeHtml(slide.title)}</h2>
-        ${slide.subtitle ? `<p class="hf-slide-subtitle">${escapeHtml(slide.subtitle)}</p>` : ''}
+        <h2 class="slide-title hf-slide-title">${escapeHtml(title)}</h2>
+        ${subtitle ? `<p class="hf-slide-subtitle">${escapeHtml(subtitle)}</p>` : ''}
       </div>
       <div class="cards-breakdown-grid">
         ${cardsHtml}
@@ -220,6 +256,9 @@ function renderBulletBreakdown(slide) {
  */
 function renderImageExplain(slide) {
   let variant = slide.layoutVariant || slide.variantId || 'default';
+  const title = getSlideTitle(slide, 'Minh Họa Hình Ảnh / Sơ Đồ');
+  const subtitle = getSlideSubtitle(slide);
+
   const imgEl = slide.elements?.find(e => e.type === 'image');
   const vidEl = slide.elements?.find(e => e.type === 'video');
   const txtEl = slide.elements?.find(e => e.type === 'text');
@@ -240,8 +279,8 @@ function renderImageExplain(slide) {
       ${mediaHtml}
       <div>
         <div class="hf-slide-header">
-          <h2 class="slide-title hf-slide-title">${escapeHtml(slide.title)}</h2>
-          ${slide.subtitle ? `<p class="hf-slide-subtitle">${escapeHtml(slide.subtitle)}</p>` : ''}
+          <h2 class="slide-title hf-slide-title">${escapeHtml(title)}</h2>
+          ${subtitle ? `<p class="hf-slide-subtitle">${escapeHtml(subtitle)}</p>` : ''}
         </div>
         <div class="explain-text-card" id="${txtEl?.id || 'txt-side'}">
           <p>${escapeHtml(sideText)}</p>
@@ -255,22 +294,34 @@ function renderImageExplain(slide) {
  * 6. Comparison
  */
 function renderComparison(slide) {
-  const cols = slide.elements?.filter(e => e.type === 'card') || [];
+  const title = getSlideTitle(slide, 'So Sánh & Đối Chiếu');
+  const subtitle = getSlideSubtitle(slide);
+
+  let cols = slide.elements?.filter(e => e.type === 'card') || [];
+  if (cols.length === 0) {
+    const leftData = slide.slotValues?.leftColumn || slide.slotValues?.left || { title: 'Vế Thứ Nhất', items: [] };
+    const rightData = slide.slotValues?.rightColumn || slide.slotValues?.right || { title: 'Vế Thứ Hai', items: [] };
+    cols = [
+      { id: 'col-left', type: 'card', content: typeof leftData === 'object' ? leftData : { title: 'Vế Thứ Nhất', items: [String(leftData)] } },
+      { id: 'col-right', type: 'card', content: typeof rightData === 'object' ? rightData : { title: 'Vế Thứ Hai', items: [String(rightData)] } }
+    ];
+  }
+
   const colLeft = cols[0];
   const colRight = cols[1];
 
   const renderCol = (c, sideClass) => {
     if (!c) return '';
-    const title = c.content?.title || (sideClass === 'col-left' ? 'Vế Thứ Nhất' : 'Vế Thứ Hai');
-    const items = Array.isArray(c.content?.items) ? c.content.items : [];
+    const colTitle = c.content?.title || (sideClass === 'col-left' ? 'Vế Thứ Nhất' : 'Vế Thứ Hai');
+    const items = Array.isArray(c.content?.items) ? c.content.items : (Array.isArray(c.content) ? c.content : []);
     return `
-      <div class="comparison-col ${sideClass}" id="${c.id}">
+      <div class="comparison-col ${sideClass}" id="${c.id || sideClass}">
         <div class="comparison-col-header">
           <span>${sideClass === 'col-left' ? '⚖️' : '⚡'}</span>
-          <h3>${escapeHtml(title)}</h3>
+          <h3>${escapeHtml(colTitle)}</h3>
         </div>
         <ul class="comparison-list">
-          ${items.map(it => `<li><span>✓</span> ${escapeHtml(it)}</li>`).join('\n')}
+          ${items.map(it => `<li><span>✓</span> ${escapeHtml(String(it))}</li>`).join('\n')}
         </ul>
       </div>
     `;
@@ -279,8 +330,8 @@ function renderComparison(slide) {
   return `
     <div class="hf-template-comparison">
       <div class="hf-slide-header">
-        <h2 class="slide-title hf-slide-title">${escapeHtml(slide.title)}</h2>
-        ${slide.subtitle ? `<p class="hf-slide-subtitle">${escapeHtml(slide.subtitle)}</p>` : ''}
+        <h2 class="slide-title hf-slide-title">${escapeHtml(title)}</h2>
+        ${subtitle ? `<p class="hf-slide-subtitle">${escapeHtml(subtitle)}</p>` : ''}
       </div>
       <div class="comparison-grid">
         ${renderCol(colLeft, 'col-left')}
@@ -294,13 +345,18 @@ function renderComparison(slide) {
  * 7. Timeline
  */
 function renderTimeline(slide) {
+  const title = getSlideTitle(slide, 'Tiến Trình & Mốc Thời Gian');
+  const subtitle = getSlideSubtitle(slide);
+
   const timelineEl = slide.elements?.find(e => e.type === 'timeline-step' || e.type === 'timeline');
-  const steps = Array.isArray(timelineEl?.content) ? timelineEl.content : [];
+  const steps = (Array.isArray(timelineEl?.content) && timelineEl.content.length > 0)
+    ? timelineEl.content
+    : (Array.isArray(slide.slotValues?.timeline) ? slide.slotValues.timeline : (Array.isArray(slide.slotValues?.steps) ? slide.slotValues.steps : []));
 
   const stepsHtml = steps.map((s, idx) => `
     <div class="timeline-step-card step-${idx} ${s.highlight ? 'highlight' : ''}">
-      <div class="timeline-time-badge">${escapeHtml(s.time)}</div>
-      <div class="timeline-event-title">${escapeHtml(s.event)}</div>
+      <div class="timeline-time-badge">${escapeHtml(s.time || `Mốc ${idx + 1}`)}</div>
+      <div class="timeline-event-title">${escapeHtml(s.event || s.title || `Sự kiện ${idx + 1}`)}</div>
       ${s.desc ? `<p class="timeline-event-desc">${escapeHtml(s.desc)}</p>` : ''}
     </div>
   `).join('\n');
@@ -308,8 +364,8 @@ function renderTimeline(slide) {
   return `
     <div class="hf-template-timeline">
       <div class="hf-slide-header">
-        <h2 class="slide-title hf-slide-title">${escapeHtml(slide.title)}</h2>
-        ${slide.subtitle ? `<p class="hf-slide-subtitle">${escapeHtml(slide.subtitle)}</p>` : ''}
+        <h2 class="slide-title hf-slide-title">${escapeHtml(title)}</h2>
+        ${subtitle ? `<p class="hf-slide-subtitle">${escapeHtml(subtitle)}</p>` : ''}
       </div>
       <div class="timeline-track-wrap" id="${timelineEl?.id || 'timeline-track'}">
         <div class="timeline-line"></div>
@@ -325,6 +381,9 @@ function renderTimeline(slide) {
  * 8. Formula Explain
  */
 function renderFormulaExplain(slide) {
+  const title = getSlideTitle(slide, 'Công Thức & Định Lý');
+  const subtitle = getSlideSubtitle(slide);
+
   const formulaEl = slide.elements?.find(e => e.type === 'formula');
   const noteEl = slide.elements?.find(e => e.type === 'text');
   const formulaText = formulaEl?.content || slide.slotValues?.formula || '';
@@ -333,8 +392,8 @@ function renderFormulaExplain(slide) {
   return `
     <div class="hf-template-formula-explain">
       <div class="hf-slide-header">
-        <h2 class="slide-title hf-slide-title">${escapeHtml(slide.title)}</h2>
-        ${slide.subtitle ? `<p class="hf-slide-subtitle">${escapeHtml(slide.subtitle)}</p>` : ''}
+        <h2 class="slide-title hf-slide-title">${escapeHtml(title)}</h2>
+        ${subtitle ? `<p class="hf-slide-subtitle">${escapeHtml(subtitle)}</p>` : ''}
       </div>
       <div class="formula-stage">
         <div class="formula-display-box" id="${formulaEl?.id || 'formula-box'}">
@@ -353,6 +412,9 @@ function renderFormulaExplain(slide) {
  * 9. Quiz
  */
 function renderQuiz(slide) {
+  const title = getSlideTitle(slide, 'Câu Hỏi Củng Cố');
+  const subtitle = getSlideSubtitle(slide);
+
   const quizEl = slide.elements?.find(e => e.type === 'quiz-block');
   const qData = quizEl?.content || {};
   const question = qData.question || slide.slotValues?.question || 'Câu hỏi củng cố kiến thức:';
@@ -364,15 +426,15 @@ function renderQuiz(slide) {
   const optionsHtml = options.map((opt, idx) => `
     <div class="quiz-option opt-${idx} ${idx === correctIdx ? 'correct' : ''}">
       <span class="quiz-badge">${String.fromCharCode(65 + idx)}</span>
-      <span>${escapeHtml(opt.replace(/^[A-D]\.\s*/, ''))}</span>
+      <span>${escapeHtml(String(opt).replace(/^[A-D]\.\s*/, ''))}</span>
     </div>
   `).join('\n');
 
   return `
     <div class="hf-template-quiz">
       <div class="hf-slide-header">
-        <h2 class="slide-title hf-slide-title">${escapeHtml(slide.title)}</h2>
-        ${slide.subtitle ? `<p class="hf-slide-subtitle">${escapeHtml(slide.subtitle)}</p>` : ''}
+        <h2 class="slide-title hf-slide-title">${escapeHtml(title)}</h2>
+        ${subtitle ? `<p class="hf-slide-subtitle">${escapeHtml(subtitle)}</p>` : ''}
       </div>
       <div class="quiz-container" id="${quizEl?.id || 'quiz-box'}">
         <div class="quiz-question-box question-txt">
@@ -390,6 +452,9 @@ function renderQuiz(slide) {
  * 10. Summary
  */
 function renderSummary(slide) {
+  const title = getSlideTitle(slide, 'Tổng Kết Bài Học');
+  const subtitle = getSlideSubtitle(slide);
+
   const listEl = slide.elements?.find(e => e.type === 'bullet-list');
   const bullets = (Array.isArray(listEl?.content) && listEl.content.length > 0)
     ? listEl.content
@@ -398,15 +463,15 @@ function renderSummary(slide) {
   const bulletsHtml = bullets.map((b, idx) => `
     <div class="summary-bullet-item">
       <div class="summary-bullet-icon">✦</div>
-      <div class="summary-bullet-text">${escapeHtml(b)}</div>
+      <div class="summary-bullet-text">${escapeHtml(String(b))}</div>
     </div>
   `).join('\n');
 
   return `
     <div class="hf-template-summary">
       <div class="hf-slide-header">
-        <h2 class="slide-title hf-slide-title">${escapeHtml(slide.title)}</h2>
-        ${slide.subtitle ? `<p class="hf-slide-subtitle">${escapeHtml(slide.subtitle)}</p>` : ''}
+        <h2 class="slide-title hf-slide-title">${escapeHtml(title)}</h2>
+        ${subtitle ? `<p class="hf-slide-subtitle">${escapeHtml(subtitle)}</p>` : ''}
       </div>
       <div class="summary-card-deck" id="${listEl?.id || 'summary-points'}">
         ${bulletsHtml}
@@ -442,9 +507,28 @@ export function renderSlide(slide, index = 0, startOffset = 0) {
 export function buildGsapTimelineForSlide(slide, containerEl) {
   if (typeof gsap === 'undefined' || !containerEl) return null;
   const tl = gsap.timeline({ paused: true });
-  if (!Array.isArray(slide.animations)) return tl;
 
-  slide.animations.forEach(anim => {
+  let animList = Array.isArray(slide.animations) && slide.animations.length > 0
+    ? slide.animations
+    : null;
+
+  if (!animList) {
+    const packId = slide.packId || 'basic';
+    const layoutId = slide.layoutId || slide.templateId || 'concept-explain';
+    const layout = TemplateRegistry.getLayout(packId, layoutId);
+    if (layout?.defaultAnimations && layout.defaultAnimations.length > 0) {
+      animList = layout.defaultAnimations;
+    } else {
+      animList = [
+        { target: '.slide-title, .title-hero-heading', preset: 'slide-in', delay: 0.2, duration: 0.8 },
+        { target: '.title-hero-sub, .hf-slide-subtitle, .hf-badge', preset: 'fade-in', delay: 0.4, duration: 0.6 },
+        { target: '.concept-card, .objective-item, .breakdown-card, .explain-text-card, .comparison-col, .timeline-step-card, .formula-stage, .quiz-container, .summary-card-deck', preset: 'slide-in', delay: 0.6, duration: 0.8 },
+        { target: 'img, video, .concept-image-wrap, .title-hero-image-wrap, .explain-image-wrap', preset: 'zoom-in', delay: 0.5, duration: 0.8 }
+      ];
+    }
+  }
+
+  animList.forEach(anim => {
     const targets = containerEl.querySelectorAll(anim.target);
     if (!targets || targets.length === 0) return;
 
@@ -457,10 +541,10 @@ export function buildGsapTimelineForSlide(slide, containerEl) {
         tl.fromTo(targets, { opacity: 0 }, { opacity: 1, duration, ease }, delay);
         break;
       case 'slide-in':
-        tl.fromTo(targets, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration, ease }, delay);
+        tl.fromTo(targets, { opacity: 0, y: 35 }, { opacity: 1, y: 0, duration, ease }, delay);
         break;
       case 'zoom-in':
-        tl.fromTo(targets, { opacity: 0, scale: 0.88 }, { opacity: 1, scale: 1, duration, ease }, delay);
+        tl.fromTo(targets, { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration, ease }, delay);
         break;
       case 'typewriter':
         tl.fromTo(targets, { opacity: 0, clipPath: 'inset(0 100% 0 0)' }, { opacity: 1, clipPath: 'inset(0 0% 0 0)', duration, ease }, delay);
@@ -476,6 +560,10 @@ export function buildGsapTimelineForSlide(slide, containerEl) {
         break;
     }
   });
+
+  // Ensure the GSAP timeline spans the entire slide duration so scrubbing matches durationSeconds
+  const maxDur = Math.max(1.0, slide.durationSeconds || 5.0);
+  tl.set({}, {}, maxDur);
 
   return tl;
 }

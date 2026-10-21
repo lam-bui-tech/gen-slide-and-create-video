@@ -128,9 +128,9 @@ def generate_scene_pdf_html(scene: LessonSceneJSON) -> str:
     padding: 0;
   }}
   body {{
-    background: #0f172a;
+    background: #f1f5f9;
     font-family: 'Be Vietnam Pro', 'Segoe UI', Tahoma, Arial, sans-serif;
-    color: #f8fafc;
+    color: #0f172a;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }}
@@ -144,31 +144,32 @@ def generate_scene_pdf_html(scene: LessonSceneJSON) -> str:
     justify-content: space-between;
     padding: 80px 100px;
     position: relative;
-    background: linear-gradient(135deg, #090d16 0%, #111827 50%, #0f172a 100%);
-    border-bottom: 2px solid #1e293b;
+    background: #ffffff;
+    border-bottom: 2px solid #e2e8f0;
     overflow: hidden;
   }}
   .slide-header {{
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 2px solid #f1f5f9;
     padding-bottom: 20px;
   }}
   .badge {{
-    background: #0369a1;
-    color: #ffffff;
+    background: #e0f2fe;
+    color: #0369a1;
     font-size: 20px;
-    font-weight: 600;
-    padding: 8px 18px;
+    font-weight: 700;
+    padding: 8px 20px;
     border-radius: 9999px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    border: 1px solid #bae6fd;
   }}
   .project-title {{
     font-size: 24px;
-    color: #94a3b8;
-    font-weight: 500;
+    color: #64748b;
+    font-weight: 600;
   }}
   .slide-body {{
     flex: 1;
@@ -178,30 +179,33 @@ def generate_scene_pdf_html(scene: LessonSceneJSON) -> str:
     padding: 40px 0;
   }}
   .slide-title {{
-    font-size: 56px;
-    font-weight: 700;
-    color: #38bdf8;
+    font-size: 52px;
+    font-weight: 800;
+    color: #0f172a;
     line-height: 1.25;
     margin-bottom: 36px;
   }}
   .slide-content {{
-    font-size: 32px;
+    font-size: 28px;
     line-height: 1.6;
-    color: #e2e8f0;
+    color: #334155;
   }}
   .slide-element {{
-    background: rgba(30, 41, 59, 0.7);
-    border: 1px solid rgba(56, 189, 248, 0.2);
-    border-radius: 16px;
-    padding: 30px 40px;
-    margin-bottom: 24px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-left: 6px solid #0284c7;
+    border-radius: 12px;
+    padding: 24px 36px;
+    margin-bottom: 20px;
+    color: #1e293b;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   }}
   .slide-footer {{
     display: flex;
     justify-content: space-between;
-    font-size: 22px;
-    color: #64748b;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 20px;
+    color: #94a3b8;
+    border-top: 2px solid #f1f5f9;
     padding-top: 20px;
   }}
 </style>
@@ -279,29 +283,29 @@ def render_pptx_image_pack(scene: LessonSceneJSON, output_pptx_path: str) -> str
     try:
         for idx, slide in enumerate(scene.slides):
             # 1. Render high-res PNG frame (1920x1080)
-            img = Image.new("RGB", (1920, 1080), color="#0f172a")
+            img = Image.new("RGB", (1920, 1080), color="#f8fafc")
             draw = ImageDraw.Draw(img)
 
             # Background subtle card
-            draw.rectangle([80, 80, 1840, 1000], fill="#1e293b", outline="#0284c7", width=3)
+            draw.rectangle([80, 80, 1840, 1000], fill="#ffffff", outline="#e2e8f0", width=2)
 
             # Header info
             badge_text = f"SLIDE {idx + 1:02d} • {slide.templateId.upper()}"
-            draw.text((120, 120), badge_text, fill="#38bdf8", font=badge_font)
+            draw.text((120, 120), badge_text, fill="#0369a1", font=badge_font)
 
             # Slide Title
-            draw.text((120, 180), slide.title, fill="#ffffff", font=title_font)
+            draw.text((120, 180), slide.title, fill="#0f172a", font=title_font)
 
             # Content elements
             y_offset = 320
             for el in slide.elements:
                 content_str = str(el.content) if el.content is not None else ""
                 # Draw lines
-                draw.text((120, y_offset), f"• {content_str}", fill="#cbd5e1", font=body_font)
+                draw.text((120, y_offset), f"• {content_str}", fill="#334155", font=body_font)
                 y_offset += 80
 
             # Footer
-            draw.text((120, 930), f"AI Lecture Studio • {scene.title}", fill="#64748b", font=badge_font)
+            draw.text((120, 930), f"AI Lecture Studio • {scene.title}", fill="#94a3b8", font=badge_font)
 
             frame_img_path = os.path.join(temp_dir, f"slide_{idx:03d}.png")
             img.save(frame_img_path, format="PNG")

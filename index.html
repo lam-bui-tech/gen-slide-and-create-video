@@ -648,7 +648,119 @@
       width: 520px;
       max-width: 90vw;
       padding: 24px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
+
+    /* Presentation Mode Fullscreen */
+    .presentation-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      background: #000000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .presentation-viewport {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .presentation-slide-stage {
+      width: 1920px;
+      height: 1080px;
+      background: #FFFFFF;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 60px rgba(0,0,0,0.9);
+      transform-origin: center center;
+    }
+    .presentation-hud {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 9999px;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      color: white;
+      z-index: 1000000;
+      pointer-events: auto;
+      transition: opacity 0.35s ease, transform 0.35s ease;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    }
+    .presentation-hud.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(-50%) translateY(20px);
+    }
+    .hud-left, .hud-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .hud-center {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+    }
+    .hud-btn {
+      background: rgba(255, 255, 255, 0.12);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .hud-btn:hover {
+      background: rgba(255, 255, 255, 0.28);
+      transform: scale(1.1);
+    }
+    .hud-btn.primary {
+      background: #0284C7;
+      border-color: #38BDF8;
+    }
+    .hud-btn.primary:hover {
+      background: #0369A1;
+    }
+    .hud-btn.danger {
+      background: #E11D48;
+      border-radius: 20px;
+      width: auto;
+      padding: 0 16px;
+      font-weight: 700;
+      font-size: 12px;
+    }
+    .hud-btn.danger:hover {
+      background: #BE123C;
+    }
+    .hud-indicator {
+      font-size: 13px;
+      font-weight: 700;
+      color: #38BDF8;
+      min-width: 90px;
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .hud-slider {
+      width: 240px;
+      accent-color: #38BDF8;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -691,6 +803,10 @@
       <button class="btn btn-secondary btn-icon" id="btn-redo" title="Làm lại (Ctrl+Y)">↷</button>
 
       <div style="height: 20px; width: 1px; background: var(--border-color); margin: 0 6px;"></div>
+
+      <button class="btn btn-primary" id="btn-presentation-mode" title="Trình chiếu toàn màn hình toàn bộ bài giảng trước khi xuất MP4" style="background: linear-gradient(135deg, #10B981, #059669); color: white; padding: 7px 16px; font-weight: 700; border: none; box-shadow: 0 2px 4px rgba(16,185,129,0.3);">
+        ▶ Trình Chiếu
+      </button>
 
       <button class="btn btn-secondary" id="btn-export-pdf" title="Xuất toàn bộ bài giảng sang PDF vector">
         📄 Xuất PDF
@@ -1272,6 +1388,37 @@
     </div>
   </div>
 
+  <!-- Presentation Mode Fullscreen Modal (P8 Preview) -->
+  <div class="presentation-modal" id="presentation-modal" style="display: none;">
+    <div class="presentation-viewport" id="presentation-viewport">
+      <div class="presentation-slide-stage" id="presentation-slide-stage">
+        <!-- Rendered live slide in 1920x1080 stage -->
+      </div>
+    </div>
+
+    <!-- Floating HUD Controller -->
+    <div class="presentation-hud" id="presentation-hud">
+      <div class="hud-left">
+        <button class="hud-btn" id="pres-btn-prev" title="Slide trước (← / PageUp)">◀</button>
+        <button class="hud-btn primary" id="pres-btn-play" title="Phát / Tạm dừng (Space)">▶</button>
+        <button class="hud-btn" id="pres-btn-next" title="Slide tiếp theo (→ / PageDown)">▶</button>
+      </div>
+
+      <div class="hud-center">
+        <span id="pres-slide-indicator" style="font-weight: 700; color: #38BDF8;">Slide 1 / 10</span>
+        <span style="color: #64748B;">|</span>
+        <span id="pres-timer-current" style="color: #F8FAFC;">00:00.0</span>
+        <span style="color: #64748B;">/</span>
+        <span id="pres-timer-total" style="color: #94A3B8;">00:16.0</span>
+      </div>
+
+      <div class="hud-right">
+        <button class="hud-btn" id="pres-btn-fullscreen" title="Toàn màn hình (F)">⛶</button>
+        <button class="hud-btn danger" id="pres-btn-close" title="Thoát trình chiếu (Esc)">✕ Thoát</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     import { sceneReducer, validateSlide, computeSlideDuration, recomputeTotalDuration, ALLOWED_PRESETS, ALLOWED_VARIANTS } from '/studio/reducer.js';
     import { TEMPLATES, renderSlide, buildGsapTimelineForSlide } from '/templates/index.js';
@@ -1306,6 +1453,13 @@
         this.draftLayout = null;
         this.activeBuilderElementId = null;
         this.pendingChatPatch = null;
+
+        this.isPresentationActive = false;
+        this.presentationIndex = 0;
+        this.presentationTimeline = null;
+        this.presentationAudio = null;
+        this.presentationIsPlaying = false;
+        this.hudHideTimeout = null;
       }
 
       async loadAvailablePacks() {
@@ -1898,6 +2052,7 @@
 
       async init() {
         this.bindEvents();
+        this.initPresentationMode();
 
         // Try local storage
         const saved = localStorage.getItem('lecture_scene_state');
@@ -2049,7 +2204,7 @@
               <span>#${String(idx + 1).padStart(2, '0')} · ${s.templateId}</span>
               <span>${s.durationSeconds || 16}s</span>
             </div>
-            <div class="slide-card-title">${s.title || 'Slide không tên'}</div>
+            <div class="slide-card-title">${s.title || s.slotValues?.title || s.slotValues?.heading || `Slide ${idx + 1}`}</div>
             <div class="slide-card-sub">
               <span>🎙️ ${s.voice?.durationSeconds || 0}s</span>
               <span>✦ ${s.layoutVariant || 'default'}</span>
@@ -2180,6 +2335,9 @@
             this.openImageModal(img.src);
           };
         });
+
+        // Setup GSAP animation timeline for this slide
+        this.setupSlideTimeline();
       }
 
       renderProperties() {
@@ -2276,7 +2434,7 @@
       }
 
       syncVideoTime(time) {
-        const vid = document.querySelector('#slide-canvas video');
+        const vid = document.querySelector('#live-canvas video');
         if (!vid) return;
         const trimStart = parseFloat(vid.getAttribute('data-media-start') || '0');
         const trimEnd = parseFloat(vid.getAttribute('data-media-end') || String(vid.duration || 9999));
@@ -2517,7 +2675,7 @@
             this.isPlaying = false;
             const playBtn = document.getElementById('btn-timeline-play');
             if (playBtn) playBtn.innerText = '▶';
-            const vid = document.querySelector('#slide-canvas video');
+            const vid = document.querySelector('#live-canvas video');
             if (vid) vid.pause();
           });
         }
@@ -2535,7 +2693,7 @@
         const playBtn = document.getElementById('btn-timeline-play');
         if (playBtn) playBtn.innerText = '⏸';
 
-        const vid = document.querySelector('#slide-canvas video');
+        const vid = document.querySelector('#live-canvas video');
         if (vid) vid.play().catch(() => {});
       }
 
@@ -2546,7 +2704,7 @@
         const playBtn = document.getElementById('btn-timeline-play');
         if (playBtn) playBtn.innerText = '▶';
 
-        const vid = document.querySelector('#slide-canvas video');
+        const vid = document.querySelector('#live-canvas video');
         if (vid) vid.pause();
       }
 
@@ -2562,7 +2720,7 @@
         if (slider) slider.value = 0;
         if (curTimeEl) curTimeEl.innerText = '00:00.0';
 
-        const vid = document.querySelector('#slide-canvas video');
+        const vid = document.querySelector('#live-canvas video');
         if (vid) {
           vid.pause();
           const trimStart = parseFloat(vid.getAttribute('data-media-start') || '0');
@@ -3032,7 +3190,7 @@
 
         const slider = document.getElementById('timeline-slider');
         if (slider) {
-          slider.oninput = (e) => {
+          const onScrub = (e) => {
             const time = parseFloat(e.target.value);
             if (this.currentTimeline) {
               this.currentTimeline.pause(time);
@@ -3043,6 +3201,8 @@
             if (curTimeEl) curTimeEl.innerText = this.formatSeconds(time);
             this.syncVideoTime(time);
           };
+          slider.oninput = onScrub;
+          slider.onchange = onScrub;
         }
 
         // Image Modal
@@ -3852,6 +4012,273 @@
         } finally {
           modal.classList.remove('open');
           document.getElementById('input-doc-file').value = '';
+        }
+      }
+
+      // ==========================================
+      // Presentation Mode Fullscreen Preview (P8)
+      // ==========================================
+      initPresentationMode() {
+        const btnOpen = document.getElementById('btn-presentation-mode');
+        if (btnOpen) btnOpen.onclick = () => this.openPresentationMode();
+
+        const btnClose = document.getElementById('pres-btn-close');
+        if (btnClose) btnClose.onclick = () => this.closePresentationMode();
+
+        const btnPrev = document.getElementById('pres-btn-prev');
+        if (btnPrev) btnPrev.onclick = () => this.prevPresentationSlide();
+
+        const btnNext = document.getElementById('pres-btn-next');
+        if (btnNext) btnNext.onclick = () => this.nextPresentationSlide();
+
+        const btnPlay = document.getElementById('pres-btn-play');
+        if (btnPlay) btnPlay.onclick = () => this.togglePresentationPlayPause();
+
+        const btnFullscreen = document.getElementById('pres-btn-fullscreen');
+        if (btnFullscreen) btnFullscreen.onclick = () => this.togglePresentationFullscreen();
+
+        window.addEventListener('resize', () => {
+          if (this.isPresentationActive) this.fitPresentationStage();
+        });
+
+        const modal = document.getElementById('presentation-modal');
+        if (modal) {
+          modal.addEventListener('mousemove', () => this.resetHudTimer());
+        }
+
+        window.addEventListener('keydown', (e) => {
+          if (!this.isPresentationActive) return;
+          if (e.key === 'Escape') {
+            e.preventDefault();
+            this.closePresentationMode();
+          } else if (e.key === ' ' || e.code === 'Space') {
+            e.preventDefault();
+            this.togglePresentationPlayPause();
+          } else if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === 'Enter') {
+            e.preventDefault();
+            this.nextPresentationSlide();
+          } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+            e.preventDefault();
+            this.prevPresentationSlide();
+          } else if (e.key.toLowerCase() === 'f') {
+            e.preventDefault();
+            this.togglePresentationFullscreen();
+          }
+        });
+      }
+
+      openPresentationMode() {
+        if (!this.scene || !this.scene.slides || this.scene.slides.length === 0) {
+          alert('Chưa có slide nào trong bài giảng để trình chiếu.');
+          return;
+        }
+        // Dừng timeline hiện tại ở studio editor
+        this.stopSlideTimeline();
+
+        this.isPresentationActive = true;
+        this.presentationIndex = this.currentSlideIndex;
+        const modal = document.getElementById('presentation-modal');
+        if (modal) {
+          modal.style.display = 'flex';
+        }
+        this.fitPresentationStage();
+        this.resetHudTimer();
+        this.playPresentationSlide(this.presentationIndex, true);
+      }
+
+      closePresentationMode() {
+        this.isPresentationActive = false;
+        if (this.presentationTimeline) {
+          this.presentationTimeline.kill();
+          this.presentationTimeline = null;
+        }
+        if (this.presentationAudio) {
+          this.presentationAudio.pause();
+          this.presentationAudio = null;
+        }
+        if (document.fullscreenElement) {
+          document.exitFullscreen().catch(() => {});
+        }
+        const modal = document.getElementById('presentation-modal');
+        if (modal) modal.style.display = 'none';
+
+        // Trả lại slide hiện tại trong Studio Editor
+        this.setSlideIndex(this.presentationIndex);
+      }
+
+      fitPresentationStage() {
+        const stage = document.getElementById('presentation-slide-stage');
+        if (!stage) return;
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const scale = Math.min(vw / 1920, vh / 1080) * 0.96;
+        stage.style.transform = `scale(${scale})`;
+      }
+
+      resetHudTimer() {
+        const hud = document.getElementById('presentation-hud');
+        if (!hud) return;
+        hud.classList.remove('hidden');
+        if (this.hudHideTimeout) clearTimeout(this.hudHideTimeout);
+        this.hudHideTimeout = setTimeout(() => {
+          if (this.isPresentationActive && this.presentationIsPlaying) {
+            hud.classList.add('hidden');
+          }
+        }, 2500);
+      }
+
+      playPresentationSlide(idx, autoPlay = true) {
+        if (!this.scene?.slides || idx < 0 || idx >= this.scene.slides.length) return;
+        this.presentationIndex = idx;
+
+        // Dừng timeline và audio trước đó
+        if (this.presentationTimeline) {
+          this.presentationTimeline.kill();
+          this.presentationTimeline = null;
+        }
+        if (this.presentationAudio) {
+          this.presentationAudio.pause();
+          this.presentationAudio = null;
+        }
+
+        const slide = this.scene.slides[idx];
+        const stage = document.getElementById('presentation-slide-stage');
+        if (!stage) return;
+
+        // Render slide markup
+        stage.innerHTML = renderSlide(slide, 0, 0);
+
+        // Update HUD indicator
+        const ind = document.getElementById('pres-slide-indicator');
+        const tot = document.getElementById('pres-timer-total');
+        const cur = document.getElementById('pres-timer-current');
+        const playBtn = document.getElementById('pres-btn-play');
+        const slideDur = slide.durationSeconds || 16.0;
+
+        if (ind) ind.innerText = `Slide ${idx + 1} / ${this.scene.slides.length}`;
+        if (tot) tot.innerText = this.formatSeconds(slideDur);
+        if (cur) cur.innerText = '00:00.0';
+
+        // Build GSAP animation timeline
+        this.presentationTimeline = buildGsapTimelineForSlide(slide, stage);
+        
+        // Voice Audio Handling
+        if (slide.voice?.audioUrl) {
+          const audio = new Audio(slide.voice.audioUrl);
+          this.presentationAudio = audio;
+          audio.currentTime = 0;
+        }
+
+        // Embedded video handling
+        const embeddedVid = stage.querySelector('video');
+        if (embeddedVid) {
+          const trimStart = parseFloat(embeddedVid.getAttribute('data-media-start') || '0');
+          embeddedVid.currentTime = trimStart;
+          embeddedVid.pause();
+        }
+
+        // Timeline updates
+        if (this.presentationTimeline) {
+          this.presentationTimeline.eventCallback('onUpdate', () => {
+            if (this.presentationTimeline) {
+              const time = this.presentationTimeline.time();
+              if (cur) cur.innerText = this.formatSeconds(time);
+              if (embeddedVid) {
+                const trimStart = parseFloat(embeddedVid.getAttribute('data-media-start') || '0');
+                const trimEnd = parseFloat(embeddedVid.getAttribute('data-media-end') || '9999');
+                if (trimStart + time <= trimEnd) {
+                  if (Math.abs(embeddedVid.currentTime - (trimStart + time)) > 0.3) {
+                    embeddedVid.currentTime = trimStart + time;
+                  }
+                }
+              }
+            }
+          });
+
+          this.presentationTimeline.eventCallback('onComplete', () => {
+            this.presentationIsPlaying = false;
+            if (playBtn) playBtn.innerText = '▶';
+            if (embeddedVid) embeddedVid.pause();
+            if (this.presentationAudio) this.presentationAudio.pause();
+
+            // Tự động chuyển slide kế tiếp sau 0.8s
+            if (this.presentationIndex < this.scene.slides.length - 1) {
+              setTimeout(() => {
+                if (this.isPresentationActive) {
+                  this.nextPresentationSlide();
+                }
+              }, 800);
+            }
+          });
+        }
+
+        if (autoPlay) {
+          this.presentationIsPlaying = true;
+          if (playBtn) playBtn.innerText = '⏸';
+          if (this.presentationTimeline) this.presentationTimeline.restart();
+          if (this.presentationAudio) {
+            this.presentationAudio.play().catch(() => {});
+          }
+          if (embeddedVid) {
+            embeddedVid.play().catch(() => {});
+          }
+        } else {
+          this.presentationIsPlaying = false;
+          if (playBtn) playBtn.innerText = '▶';
+          if (this.presentationTimeline) this.presentationTimeline.progress(1);
+        }
+      }
+
+      togglePresentationPlayPause() {
+        const playBtn = document.getElementById('pres-btn-play');
+        const stage = document.getElementById('presentation-slide-stage');
+        const embeddedVid = stage ? stage.querySelector('video') : null;
+
+        if (this.presentationIsPlaying) {
+          this.presentationIsPlaying = false;
+          if (playBtn) playBtn.innerText = '▶';
+          if (this.presentationTimeline) this.presentationTimeline.pause();
+          if (this.presentationAudio) this.presentationAudio.pause();
+          if (embeddedVid) embeddedVid.pause();
+        } else {
+          this.presentationIsPlaying = true;
+          if (playBtn) playBtn.innerText = '⏸';
+          if (this.presentationTimeline) {
+            if (this.presentationTimeline.progress() >= 1) {
+              this.presentationTimeline.restart();
+            } else {
+              this.presentationTimeline.play();
+            }
+          }
+          if (this.presentationAudio) this.presentationAudio.play().catch(() => {});
+          if (embeddedVid) embeddedVid.play().catch(() => {});
+          this.resetHudTimer();
+        }
+      }
+
+      nextPresentationSlide() {
+        if (!this.scene?.slides) return;
+        if (this.presentationIndex < this.scene.slides.length - 1) {
+          this.playPresentationSlide(this.presentationIndex + 1, true);
+        } else {
+          alert('🏁 Đã kết thúc bài giảng! Bạn có thể nhấn Esc để quay lại Studio.');
+        }
+      }
+
+      prevPresentationSlide() {
+        if (!this.scene?.slides) return;
+        if (this.presentationIndex > 0) {
+          this.playPresentationSlide(this.presentationIndex - 1, true);
+        }
+      }
+
+      togglePresentationFullscreen() {
+        const modal = document.getElementById('presentation-modal');
+        if (!document.fullscreenElement) {
+          if (modal.requestFullscreen) modal.requestFullscreen();
+          else if (modal.webkitRequestFullscreen) modal.webkitRequestFullscreen();
+        } else {
+          if (document.exitFullscreen) document.exitFullscreen();
         }
       }
     }
