@@ -110,11 +110,15 @@
       ],
       "decor": [],
       "variants": [
-        { "id": "default", "name": "Mặc định (Lưới thẻ ngang/dọc)" },
-        { "id": "stacked-top", "name": "Xếp chồng dọc" }
+        { "id": "default", "name": "Mặc định (Lưới thẻ cơ bản)" },
+        { "id": "tree-hierarchy", "name": "Cây phân cấp logic (Tree Hierarchy)" },
+        { "id": "contour-numbers", "name": "Khung số viền Infographic (Contour Numbers)" },
+        { "id": "skewed-badges", "name": "Khối số 3D nổi bật (Skewed 3D Badges)" },
+        { "id": "visual-anchor", "name": "Neo biểu tượng & Danh mục (Visual Anchor & List)" }
       ],
       "defaultAnimations": [
-        { "target": ".breakdown-card", "preset": "slide-in", "delay": 0.8, "duration": 0.8, "easing": "power2.out" }
+        { "target": ".slide-title, .hf-slide-title", "preset": "slide-in", "delay": 0.2, "duration": 0.8, "easing": "power2.out" },
+        { "target": ".breakdown-card, .tree-node-row, .contour-card, .skewed-item-row, .anchor-micro-item, .anchor-hero-widget", "preset": "slide-in", "delay": 0.5, "duration": 0.8, "easing": "power2.out" }
       ]
     },
     {

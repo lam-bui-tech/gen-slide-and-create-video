@@ -260,7 +260,7 @@
 }
 
 /* ==========================================================================
-   4. TEMPLATE: bullet-breakdown
+   4. TEMPLATE: bullet-breakdown & VARIANTS
    ========================================================================== */
 .hf-template-bullet-breakdown {
   display: flex;
@@ -268,23 +268,38 @@
   height: 100%;
 }
 
+/* 4.0 Default Variant: Cards Grid */
 .cards-breakdown-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
-  gap: 32px;
+  gap: 28px;
   margin-top: 24px;
   align-items: stretch;
+}
+.cards-breakdown-grid.count-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+.cards-breakdown-grid.count-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+.cards-breakdown-grid.count-4 {
+  grid-template-columns: repeat(2, 1fr);
 }
 
 .breakdown-card {
   background: var(--hf-bg-surface);
   border: 1px solid var(--hf-border-card);
   border-radius: var(--hf-radius-md);
-  padding: 36px;
+  padding: 32px 36px;
   box-shadow: var(--hf-shadow-md);
   display: flex;
   flex-direction: column;
   gap: 16px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.breakdown-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--hf-shadow-lg);
 }
 
 .breakdown-card-head {
@@ -304,6 +319,7 @@
   justify-content: center;
   font-size: 22px;
   font-weight: var(--hf-fw-bold);
+  flex-shrink: 0;
 }
 
 .breakdown-title {
@@ -313,6 +329,356 @@
 }
 
 .breakdown-body {
+  font-size: var(--hf-fs-body);
+  color: var(--hf-text-sub);
+  line-height: var(--hf-lh-relaxed);
+}
+
+/* --------------------------------------------------------------------------
+   4.1 Variant: tree-hierarchy (Mẫu 2: Hierarchy List)
+   -------------------------------------------------------------------------- */
+.variant-tree-hierarchy .breakdown-tree-wrap {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 48px;
+  margin-top: 36px;
+  align-items: center;
+  flex: 1;
+}
+
+.variant-tree-hierarchy .tree-root-col {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.variant-tree-hierarchy .tree-root-pill {
+  background: #1E293B;
+  color: #FFFFFF;
+  padding: 24px 36px;
+  border-radius: 9999px;
+  font-size: 22px;
+  font-weight: var(--hf-fw-bold);
+  text-align: center;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+  letter-spacing: 0.5px;
+  max-width: 260px;
+}
+
+.variant-tree-hierarchy .tree-branches-col {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-left: 36px;
+}
+
+.variant-tree-hierarchy .tree-connector-line {
+  position: absolute;
+  left: 0;
+  top: 32px;
+  bottom: 32px;
+  width: 3px;
+  background: #CBD5E1;
+  border-radius: 2px;
+}
+
+.variant-tree-hierarchy .tree-nodes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.variant-tree-hierarchy .tree-node-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  align-items: center;
+  gap: 28px;
+}
+
+.variant-tree-hierarchy .tree-node-branch {
+  position: absolute;
+  left: -36px;
+  top: 50%;
+  width: 36px;
+  height: 3px;
+  background: #CBD5E1;
+}
+
+.variant-tree-hierarchy .tree-node-pill {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 22px;
+  border-radius: 9999px;
+  color: #FFFFFF;
+  font-weight: var(--hf-fw-bold);
+  font-size: 18px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.variant-tree-hierarchy .tree-node-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.variant-tree-hierarchy .tree-node-body {
+  font-size: var(--hf-fs-body);
+  color: var(--hf-text-sub);
+  line-height: var(--hf-lh-relaxed);
+}
+
+/* Palette gradient for tree nodes */
+.variant-tree-hierarchy .tree-node-color-0 .tree-node-pill { background: #1E3A8A; }
+.variant-tree-hierarchy .tree-node-color-1 .tree-node-pill { background: #2563EB; }
+.variant-tree-hierarchy .tree-node-color-2 .tree-node-pill { background: #0D9488; }
+.variant-tree-hierarchy .tree-node-color-3 .tree-node-pill { background: #059669; }
+.variant-tree-hierarchy .tree-node-color-4 .tree-node-pill { background: #D97706; }
+
+/* --------------------------------------------------------------------------
+   4.2 Variant: contour-numbers (Mẫu 3: Infographic Numbered List)
+   -------------------------------------------------------------------------- */
+.variant-contour-numbers .breakdown-contour-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 36px;
+  margin-top: 36px;
+}
+
+.variant-contour-numbers .contour-card {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  background: var(--hf-bg-surface);
+  border: 3px solid #CBD5E1;
+  border-radius: 20px;
+  box-shadow: var(--hf-shadow-md);
+  padding: 24px 32px 24px 20px;
+  gap: 24px;
+}
+
+.variant-contour-numbers .contour-num-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.variant-contour-numbers .contour-num {
+  font-size: 72px;
+  font-weight: 900;
+  line-height: 1;
+  font-family: inherit;
+  color: transparent;
+  -webkit-text-stroke: 3.5px currentColor;
+  letter-spacing: -2px;
+}
+
+.variant-contour-numbers .contour-card-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+}
+
+.variant-contour-numbers .contour-heading {
+  font-size: 22px;
+  font-weight: var(--hf-fw-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--hf-text-main);
+}
+
+.variant-contour-numbers .contour-body {
+  font-size: var(--hf-fs-body);
+  color: var(--hf-text-sub);
+  line-height: var(--hf-lh-relaxed);
+}
+
+/* Palette for contour cards */
+.variant-contour-numbers .contour-color-0 { border-color: #1E3A8A; color: #1E3A8A; }
+.variant-contour-numbers .contour-color-1 { border-color: #EA580C; color: #EA580C; }
+.variant-contour-numbers .contour-color-2 { border-color: #DC2626; color: #DC2626; }
+.variant-contour-numbers .contour-color-3 { border-color: #16A34A; color: #16A34A; }
+
+/* --------------------------------------------------------------------------
+   4.3 Variant: skewed-badges (Mẫu 4: Simple Table of Contents / 3D Blocks)
+   -------------------------------------------------------------------------- */
+.variant-skewed-badges .breakdown-skewed-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: 56px;
+  row-gap: 32px;
+  margin-top: 36px;
+}
+
+.variant-skewed-badges .skewed-item-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.variant-skewed-badges .skewed-badge-box {
+  width: 72px;
+  height: 56px;
+  transform: skewX(-14deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  box-shadow: 4px 5px 0px rgba(0, 0, 0, 0.22);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.variant-skewed-badges .skewed-num {
+  transform: skewX(14deg);
+  color: #FFFFFF;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.variant-skewed-badges .skewed-text-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.variant-skewed-badges .skewed-title {
+  font-size: 22px;
+  font-weight: var(--hf-fw-bold);
+  color: var(--hf-text-main);
+}
+
+.variant-skewed-badges .skewed-desc {
+  font-size: var(--hf-fs-body);
+  color: var(--hf-text-sub);
+  line-height: var(--hf-lh-relaxed);
+}
+
+/* Palette for skewed badges */
+.variant-skewed-badges .skewed-color-0 .skewed-badge-box { background: #1E3A8A; }
+.variant-skewed-badges .skewed-color-1 .skewed-badge-box { background: #D97706; }
+.variant-skewed-badges .skewed-color-2 .skewed-badge-box { background: #0284C7; }
+.variant-skewed-badges .skewed-color-3 .skewed-badge-box { background: #F59E0B; }
+.variant-skewed-badges .skewed-color-4 .skewed-badge-box { background: #DC2626; }
+.variant-skewed-badges .skewed-color-5 .skewed-badge-box { background: #16A34A; }
+
+/* --------------------------------------------------------------------------
+   4.4 Variant: visual-anchor (Mẫu 1: Calculator & List)
+   -------------------------------------------------------------------------- */
+.variant-visual-anchor .breakdown-anchor-layout {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 56px;
+  margin-top: 32px;
+  align-items: center;
+  flex: 1;
+}
+
+.variant-visual-anchor .anchor-hero-widget {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.variant-visual-anchor .anchor-hero-box {
+  width: 100%;
+  max-width: 320px;
+  background: #0D9488;
+  border-radius: 28px;
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  box-shadow: 0 20px 40px -10px rgba(13, 148, 136, 0.35);
+}
+
+.variant-visual-anchor .anchor-hero-screen {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 28px 18px;
+  min-height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.variant-visual-anchor .anchor-screen-label {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0F172A;
+  line-height: 1.3;
+}
+
+.variant-visual-anchor .anchor-keypad-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.variant-visual-anchor .key-dot {
+  width: 100%;
+  aspect-ratio: 1;
+  background: rgba(255, 255, 255, 0.28);
+  border-radius: 12px;
+  display: block;
+}
+.variant-visual-anchor .key-dot.active {
+  background: rgba(255, 255, 255, 0.7);
+}
+.variant-visual-anchor .key-dot.highlight {
+  background: #FEF08A;
+}
+
+.variant-visual-anchor .anchor-items-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 28px;
+}
+
+.variant-visual-anchor .anchor-micro-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.variant-visual-anchor .anchor-squircle-icon {
+  width: 52px;
+  height: 52px;
+  background: #475569;
+  color: #FFFFFF;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(71, 85, 105, 0.25);
+}
+
+.variant-visual-anchor .anchor-item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.variant-visual-anchor .anchor-item-title {
+  font-size: 20px;
+  font-weight: var(--hf-fw-bold);
+  color: var(--hf-text-main);
+}
+
+.variant-visual-anchor .anchor-item-body {
   font-size: var(--hf-fs-body);
   color: var(--hf-text-sub);
   line-height: var(--hf-lh-relaxed);

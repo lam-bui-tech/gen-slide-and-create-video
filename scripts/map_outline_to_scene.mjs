@@ -15,10 +15,24 @@ if (!outlinePath) {
   process.exit(1);
 }
 
+const optionsArg = process.argv[5];
+let userOptions = { projectId: projectId || 'sample' };
+if (optionsArg) {
+  try {
+    if (fs.existsSync(optionsArg)) {
+      userOptions = { ...userOptions, ...JSON.parse(fs.readFileSync(optionsArg, 'utf-8')) };
+    } else {
+      userOptions = { ...userOptions, ...JSON.parse(optionsArg) };
+    }
+  } catch (e) {
+    console.warn('[Mapper] Failed to parse options:', e.message);
+  }
+}
+
 try {
   const outlineRaw = JSON.parse(fs.readFileSync(outlinePath, 'utf-8'));
   validateOutline(outlineRaw);
-  const scene = outlineToScene(outlineRaw, { projectId: projectId || outlineRaw.projectId || 'sample' });
+  const scene = outlineToScene(outlineRaw, userOptions);
   validateScene(scene);
 
   if (outputPath) {

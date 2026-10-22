@@ -320,9 +320,9 @@ class MediaCandidate(BaseModel):
 
 
 class VoiceConfig(BaseModel):
-    narration: str
+    narration: Optional[str] = ""
     provider: TTSProvider = TTSProvider.VIENEU
-    voiceId: Optional[str] = None
+    voiceId: Optional[str] = "BanMai"
     audioUrl: Optional[str] = None
     durationSeconds: Optional[float] = Field(default=None, ge=0.0)
 
@@ -346,8 +346,8 @@ class SlideScene(BaseModel):
     media: List[MediaCandidate] = Field(default_factory=list)
     elements: List[SlideElement] = Field(default_factory=list)
     animations: List[AnimationItem] = Field(default_factory=list)
-    voice: VoiceConfig
-    durationSeconds: float = Field(ge=1.0)
+    voice: Optional[VoiceConfig] = None
+    durationSeconds: float = Field(default=5.0, ge=1.0)
     notes: Optional[str] = None
 
     @model_validator(mode="before")
@@ -371,6 +371,27 @@ class SlideScene(BaseModel):
                 data["variantId"] = layout_var
             elif not layout_var and variant:
                 data["layoutVariant"] = variant
+
+            root_narration = data.get("narration")
+            voice = data.get("voice")
+            if hasattr(voice, "model_dump"):
+                voice = voice.model_dump()
+                data["voice"] = voice
+
+            if not voice or not isinstance(voice, dict):
+                data["voice"] = {
+                    "narration": root_narration or data.get("title") or "Nội dung slide bài giảng",
+                    "provider": "vieneu",
+                    "voiceId": "BanMai",
+                    "durationSeconds": None
+                }
+            else:
+                if "narration" not in voice or not voice["narration"]:
+                    voice["narration"] = root_narration or data.get("title") or "Nội dung slide bài giảng"
+                if "provider" not in voice:
+                    voice["provider"] = "vieneu"
+                if "voiceId" not in voice:
+                    voice["voiceId"] = "BanMai"
         return data
 
 

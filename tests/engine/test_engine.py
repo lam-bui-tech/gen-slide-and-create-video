@@ -115,8 +115,10 @@ class TestEngineAndTemplates(unittest.TestCase):
         """index.html (primary frontend) must include live canvas, contentEditable, image modal, and autosave."""
         target_path = os.path.join(ROOT_DIR, 'index.html')
         if not os.path.exists(target_path):
+            target_path = os.path.join(ROOT_DIR, 'legacy', 'index.html')
+        if not os.path.exists(target_path):
             target_path = os.path.join(ROOT_DIR, 'studio.html')
-        self.assertTrue(os.path.exists(target_path), "Neither index.html nor studio.html exists")
+        self.assertTrue(os.path.exists(target_path), "Neither index.html nor legacy/index.html exists")
         with open(target_path, 'r', encoding='utf-8') as f:
             content = f.read()
 

@@ -111,8 +111,14 @@ function renderTitleSlide(slide) {
 
   const badgeText = slide.slotValues?.badge || badgeEl?.content;
   const badgeHtml = badgeText ? `<div id="${badgeEl?.id || 'badge-course'}" class="hf-badge">${escapeHtml(badgeText)}</div>` : '';
-  const authorText = slide.slotValues?.author || authorEl?.content;
-  const authorHtml = authorText ? `<div id="${authorEl?.id || 'txt-author'}" class="title-hero-author"><span>👨‍🏫</span> ${escapeHtml(authorText)}</div>` : '';
+  let authorText = slide.slotValues?.author || authorEl?.content;
+  if (authorText) {
+    const rawLower = String(authorText).toLowerCase().trim();
+    if (['myduyen', 'banmai', 'hamy', 'leminh', 'naman', 'phuongtrang', 'giảng viên: myduyen', 'giảng viên: banmai', 'giảng viên: hamy'].some(v => rawLower === v || rawLower.endsWith(v))) {
+      authorText = '';
+    }
+  }
+  const authorHtml = authorText ? `<div id="${authorEl?.id || 'txt-author'}" class="title-hero-author"><span style="display:inline-flex;align-items:center;margin-right:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span> ${escapeHtml(authorText)}</div>` : '';
 
   const mediaHtml = hasValidMedia ? renderMediaBlock(slide, imgEl, 'img-hero', 'title-hero-image-wrap') : '';
 
@@ -207,8 +213,15 @@ function renderConceptExplain(slide) {
 
 /**
  * 4. Bullet Breakdown
+ * Supports 5 variants:
+ * - default: Classical elegant cards grid
+ * - tree-hierarchy: Tree branch logic flow with capsule pills
+ * - contour-numbers: 2x2 grid with thick contour outline numbers
+ * - skewed-badges: 2-column list with 3D skewed parallelogram badges
+ * - visual-anchor: Left anchor illustration/concept + right 2-col micro items
  */
 function renderBulletBreakdown(slide) {
+  const variant = slide.layoutVariant || slide.variantId || 'default';
   const title = getSlideTitle(slide, 'Phân Tích Chi Tiết');
   const subtitle = getSlideSubtitle(slide);
 
@@ -224,27 +237,160 @@ function renderBulletBreakdown(slide) {
     }
   }
 
-  const cardsHtml = cardEls.map((c, idx) => {
+  const cards = cardEls.map((c, idx) => {
     const heading = c.content?.heading || `Điểm ${idx + 1}`;
     const body = c.content?.body || (typeof c.content === 'string' ? c.content : '');
+    return {
+      id: c.id || `card-${idx}`,
+      heading,
+      body,
+      index: idx
+    };
+  });
+
+  // Variant 1: Tree Hierarchy (Hierarchy List)
+  if (variant === 'tree-hierarchy') {
     return `
-      <div class="breakdown-card" id="${c.id || `card-${idx}`}">
-        <div class="breakdown-card-head">
-          <div class="breakdown-icon">${idx + 1}</div>
-          <h3 class="breakdown-title">${escapeHtml(heading)}</h3>
+      <div class="hf-template-bullet-breakdown variant-tree-hierarchy">
+        <div class="hf-slide-header">
+          <h2 class="slide-title hf-slide-title">${escapeHtml(title)}</h2>
+          ${subtitle ? `<p class="hf-slide-subtitle">${escapeHtml(subtitle)}</p>` : ''}
         </div>
-        <p class="breakdown-body">${escapeHtml(body)}</p>
+        <div class="breakdown-tree-wrap">
+          <div class="tree-root-col">
+            <div class="tree-root-pill">
+              <span class="tree-root-text">${escapeHtml(title)}</span>
+            </div>
+          </div>
+          <div class="tree-branches-col">
+            <div class="tree-connector-line"></div>
+            <div class="tree-nodes-list">
+              ${cards.map((c, i) => `
+                <div class="tree-node-row tree-node-color-${i % 5}" id="${c.id}">
+                  <div class="tree-node-branch"></div>
+                  <div class="tree-node-pill">
+                    <span class="tree-node-icon">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+                    </span>
+                    <span class="tree-node-title">${escapeHtml(c.heading)}</span>
+                  </div>
+                  <div class="tree-node-body">${escapeHtml(c.body)}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
       </div>
     `;
-  }).join('\n');
+  }
+
+  // Variant 2: Contour Numbers (Infographic Numbered List)
+  if (variant === 'contour-numbers') {
+    return `
+      <div class="hf-template-bullet-breakdown variant-contour-numbers">
+        <div class="hf-slide-header">
+          <h2 class="slide-title hf-slide-title">${escapeHtml(title)}</h2>
+          ${subtitle ? `<p class="hf-slide-subtitle">${escapeHtml(subtitle)}</p>` : ''}
+        </div>
+        <div class="breakdown-contour-grid count-${cards.length}">
+          ${cards.slice(0, 4).map((c, i) => `
+            <div class="contour-card contour-color-${i % 4}" id="${c.id}">
+              <div class="contour-num-box">
+                <span class="contour-num">${i + 1}</span>
+              </div>
+              <div class="contour-card-content">
+                <h3 class="contour-heading">${escapeHtml(c.heading)}</h3>
+                <p class="contour-body">${escapeHtml(c.body)}</p>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  // Variant 3: Skewed Badges (Simple Table of Contents / 3D Blocks)
+  if (variant === 'skewed-badges') {
+    return `
+      <div class="hf-template-bullet-breakdown variant-skewed-badges">
+        <div class="hf-slide-header">
+          <h2 class="slide-title hf-slide-title">${escapeHtml(title)}</h2>
+          ${subtitle ? `<p class="hf-slide-subtitle">${escapeHtml(subtitle)}</p>` : ''}
+        </div>
+        <div class="breakdown-skewed-grid count-${cards.length}">
+          ${cards.map((c, i) => `
+            <div class="skewed-item-row skewed-color-${i % 6}" id="${c.id}">
+              <div class="skewed-badge-box">
+                <span class="skewed-num">${String(i + 1).padStart(2, '0')}</span>
+              </div>
+              <div class="skewed-text-content">
+                <h3 class="skewed-title">${escapeHtml(c.heading)}</h3>
+                <p class="skewed-desc">${escapeHtml(c.body)}</p>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  // Variant 4: Visual Anchor & List (Calculator & List style)
+  if (variant === 'visual-anchor') {
+    return `
+      <div class="hf-template-bullet-breakdown variant-visual-anchor">
+        <div class="hf-slide-header">
+          <h2 class="slide-title hf-slide-title">${escapeHtml(title)}</h2>
+          ${subtitle ? `<p class="hf-slide-subtitle">${escapeHtml(subtitle)}</p>` : ''}
+        </div>
+        <div class="breakdown-anchor-layout">
+          <div class="anchor-hero-widget">
+            <div class="anchor-hero-box">
+              <div class="anchor-hero-screen">
+                <span class="anchor-screen-label">${escapeHtml(title)}</span>
+              </div>
+              <div class="anchor-keypad-grid">
+                <span class="key-dot active"></span><span class="key-dot"></span><span class="key-dot"></span><span class="key-dot"></span>
+                <span class="key-dot"></span><span class="key-dot"></span><span class="key-dot"></span><span class="key-dot"></span>
+                <span class="key-dot"></span><span class="key-dot"></span><span class="key-dot highlight"></span><span class="key-dot"></span>
+              </div>
+            </div>
+          </div>
+          <div class="anchor-items-grid count-${cards.length}">
+            ${cards.map((c, i) => `
+              <div class="anchor-micro-item" id="${c.id}">
+                <div class="anchor-squircle-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </div>
+                <div class="anchor-item-content">
+                  <h4 class="anchor-item-title">${escapeHtml(c.heading)}</h4>
+                  <p class="anchor-item-body">${escapeHtml(c.body)}</p>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Variant 0: Default Grid (Elevated)
+  const cardsHtml = cards.map((c, idx) => `
+    <div class="breakdown-card" id="${c.id}">
+      <div class="breakdown-card-head">
+        <div class="breakdown-icon">${idx + 1}</div>
+        <h3 class="breakdown-title">${escapeHtml(c.heading)}</h3>
+      </div>
+      <p class="breakdown-body">${escapeHtml(c.body)}</p>
+    </div>
+  `).join('\n');
 
   return `
-    <div class="hf-template-bullet-breakdown">
+    <div class="hf-template-bullet-breakdown variant-default">
       <div class="hf-slide-header">
         <h2 class="slide-title hf-slide-title">${escapeHtml(title)}</h2>
         ${subtitle ? `<p class="hf-slide-subtitle">${escapeHtml(subtitle)}</p>` : ''}
       </div>
-      <div class="cards-breakdown-grid">
+      <div class="cards-breakdown-grid count-${cards.length}">
         ${cardsHtml}
       </div>
     </div>
@@ -317,7 +463,7 @@ function renderComparison(slide) {
     return `
       <div class="comparison-col ${sideClass}" id="${c.id || sideClass}">
         <div class="comparison-col-header">
-          <span>${sideClass === 'col-left' ? '⚖️' : '⚡'}</span>
+          <span style="display:inline-flex;align-items:center;color:var(--hf-primary);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5"/><path d="M8 21H3v-5"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg></span>
           <h3>${escapeHtml(colTitle)}</h3>
         </div>
         <ul class="comparison-list">
@@ -438,7 +584,8 @@ function renderQuiz(slide) {
       </div>
       <div class="quiz-container" id="${quizEl?.id || 'quiz-box'}">
         <div class="quiz-question-box question-txt">
-          ❓ ${escapeHtml(question)}
+          <span style="display:inline-flex;align-items:center;margin-right:8px;color:var(--hf-primary);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+          <span>${escapeHtml(question)}</span>
         </div>
         <div class="quiz-options-grid">
           ${optionsHtml}

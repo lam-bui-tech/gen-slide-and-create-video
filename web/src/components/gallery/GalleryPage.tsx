@@ -241,21 +241,56 @@ export function GalleryPage() {
                       }}
                     >
                       <div className="preview-canvas-mock">
-                        <div>
-                          <span
-                            className="mock-badge"
-                            style={{ background: pri, color: 'white' }}
-                          >
-                            {pack.id.toUpperCase()}
-                          </span>
-                          <div className="mock-title" style={{ color: fg }}>
-                            {pack.name}
+                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
+                          <div>
+                            <span
+                              className="mock-badge"
+                              style={{ background: pri, color: 'white' }}
+                            >
+                              {pack.id.toUpperCase()}
+                            </span>
+                            <div className="mock-title" style={{ color: fg }}>
+                              {pack.name}
+                            </div>
                           </div>
+                          {pack.status === 'in-progress' ? (
+                            <span
+                              style={{
+                                background: '#FEF3C7',
+                                color: '#B45309',
+                                border: '1px solid #FCD34D',
+                                padding: '3px 8px',
+                                borderRadius: '4px',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                flexShrink: 0,
+                                letterSpacing: '0.02em',
+                              }}
+                            >
+                              Đang thiết kế
+                            </span>
+                          ) : (
+                            <span
+                              style={{
+                                background: '#ECFDF5',
+                                color: '#047857',
+                                border: '1px solid #A7F3D0',
+                                padding: '3px 8px',
+                                borderRadius: '4px',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                flexShrink: 0,
+                                letterSpacing: '0.02em',
+                              }}
+                            >
+                              Sẵn sàng
+                            </span>
+                          )}
                         </div>
                         <div className="mock-meta" style={{ color: fg }}>
-                          <span>✨ {pack.layouts.length} Bố cục</span>
+                          <span>{pack.layouts.length} Bố cục</span>
                           <span>•</span>
-                          <span>⚡ GSAP Sync</span>
+                          <span>GSAP Sync</span>
                         </div>
                       </div>
                     </div>
@@ -300,18 +335,42 @@ export function GalleryPage() {
                       >
                         Chi tiết pack →
                       </button>
-                      <button
-                        className="btn-use-card"
-                        type="button"
-                        data-use-id={pack.id}
-                        aria-label={`Dùng template ${pack.name}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleUseTemplate(pack.id);
-                        }}
-                      >
-                        Dùng template
-                      </button>
+                      {pack.status === 'in-progress' ? (
+                        <button
+                          className="btn-use-card disabled"
+                          type="button"
+                          data-use-id={pack.id}
+                          aria-label={`Template ${pack.name} đang được thiết kế`}
+                          disabled
+                          style={{
+                            background: '#F1F5F9',
+                            color: '#94A3B8',
+                            border: '1px solid #CBD5E1',
+                            cursor: 'not-allowed',
+                            opacity: 0.85,
+                            fontSize: '12px',
+                            fontWeight: 600,
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                        >
+                          Đang thiết kế
+                        </button>
+                      ) : (
+                        <button
+                          className="btn-use-card"
+                          type="button"
+                          data-use-id={pack.id}
+                          aria-label={`Dùng template ${pack.name}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleUseTemplate(pack.id);
+                          }}
+                        >
+                          Dùng template
+                        </button>
+                      )}
                     </div>
                   </article>
                 );
@@ -546,13 +605,31 @@ export function GalleryPage() {
               >
                 Đóng
               </button>
-              <button
-                className="btn-confirm-use"
-                id="btn-confirm-use"
-                onClick={() => handleUseTemplate(selectedPack.id)}
-              >
-                Sử Dụng Template Này
-              </button>
+              {selectedPack.status === 'in-progress' ? (
+                <button
+                  className="btn-confirm-use disabled"
+                  id="btn-confirm-use"
+                  disabled
+                  style={{
+                    background: '#F1F5F9',
+                    color: '#94A3B8',
+                    border: '1px solid #CBD5E1',
+                    cursor: 'not-allowed',
+                    opacity: 0.85,
+                  }}
+                  title="Template này đang được hoàn thiện, sẽ sớm ra mắt"
+                >
+                  Đang Thiết Kế (Sắp Ra Mắt)
+                </button>
+              ) : (
+                <button
+                  className="btn-confirm-use"
+                  id="btn-confirm-use"
+                  onClick={() => handleUseTemplate(selectedPack.id)}
+                >
+                  Sử Dụng Template Này
+                </button>
+              )}
             </div>
           </div>
         )}

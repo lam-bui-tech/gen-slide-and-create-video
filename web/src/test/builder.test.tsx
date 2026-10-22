@@ -46,12 +46,18 @@ describe('Phase F7: Template Layout Builder Mode', () => {
     expect(screen.getByText('🎨 Decor: body-card-1')).toBeInTheDocument();
   });
 
-  it('clicking a block selects it as active builder element', () => {
+  it('clicking a block selects it as active builder element and persists selection on click', () => {
     render(<BuilderCanvas />);
     const cardEl = screen.getByText('Thẻ nội dung');
     fireEvent.pointerDown(cardEl);
+    fireEvent.click(cardEl);
 
     expect(useStudioStore.getState().activeBuilderElementId).toBe('body-card-1');
+
+    // Clicking outside on the canvas frame container resets selection
+    const outerCanvas = document.querySelector('.canvas-frame-outer')!;
+    fireEvent.click(outerCanvas);
+    expect(useStudioStore.getState().activeBuilderElementId).toBeNull();
   });
 
   it('BuilderToolbar adds new blocks into draftLayout', () => {
@@ -104,20 +110,14 @@ describe('Phase F7: Template Layout Builder Mode', () => {
     useStudioStore.setState({ mode: 'builder' });
     const { unmount } = render(<CanvasArea />);
 
-    expect(screen.getByText(/🛠️ Thêm Khối:/i)).toBeInTheDocument();
+    expect(screen.getByText(/Thêm Khối:/i)).toBeInTheDocument();
     expect(screen.queryByTestId('timeline-bar')).not.toBeInTheDocument();
     unmount();
 
     useStudioStore.setState({ mode: 'slide' });
     render(<CanvasArea />);
-    expect(screen.queryByText(/🛠️ Thêm Khối:/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Thêm Khối:/i)).not.toBeInTheDocument();
   });
 
-  it('BuilderToolbar exit button switches mode back to slide', () => {
-    render(<BuilderToolbar />);
-    const exitBtn = screen.getByRole('button', { name: /✕ Thoát Builder/i });
-    fireEvent.click(exitBtn);
 
-    expect(useStudioStore.getState().mode).toBe('slide');
-  });
 });

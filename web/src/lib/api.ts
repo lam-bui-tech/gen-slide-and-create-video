@@ -20,7 +20,21 @@ export class ApiError extends Error {
 }
 
 let requestCounter = 0;
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE || '';
+
+export function getApiBase(): string {
+  if (process.env.NEXT_PUBLIC_API_BASE) {
+    return process.env.NEXT_PUBLIC_API_BASE;
+  }
+  if (process.env.NODE_ENV === 'test') {
+    return '';
+  }
+  if (typeof window !== 'undefined') {
+    // Trình duyệt gọi trực tiếp FastAPI backend port 8000 để tránh nghẽn buffer/timeout proxy Next.js với tệp lớn
+    const hostname = window.location.hostname || 'localhost';
+    return `http://${hostname}:8000`;
+  }
+  return '';
+}
 
 export interface RequestLogEntry {
   id: number;
@@ -43,7 +57,8 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   const reqId = ++requestCounter;
   const startTime = Date.now();
   const method = options.method || 'GET';
-  const url = `${BASE_URL}${endpoint}`;
+  const baseUrl = getApiBase();
+  const url = `${baseUrl}${endpoint}`;
   const cleanEndpoint = sanitizeEndpoint(endpoint);
 
   let payloadSize = 0;
@@ -161,7 +176,7 @@ export const api = {
     return request<{ success: boolean }>(`/packs/${encodeURIComponent(packId)}/layouts`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ layout }),
+      body: JSON.stringify(layout),
     });
   },
 

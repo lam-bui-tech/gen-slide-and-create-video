@@ -67,6 +67,30 @@ def serve_project_audio(project_id: str, filename: str):
         if os.path.exists(alt_path):
             return FileResponse(alt_path, media_type="audio/wav")
 
+    # On-demand synthesis fallback if audio file does not yet exist on disk
+    scene_path = os.path.join(STORAGE_DIR, project_id, "scene.json")
+    if os.path.exists(scene_path):
+        try:
+            import json
+            with open(scene_path, "r", encoding="utf-8") as f:
+                sdata = json.load(f)
+            slide_id_base = filename.replace(".wav", "")
+            clean_base = slide_id_base.replace("-0", "-")
+            matched_slide = None
+            for s in sdata.get("slides", []):
+                sid = s.get("slideId", "")
+                if sid == slide_id_base or sid.replace("-0", "-") == clean_base:
+                    matched_slide = s
+                    break
+            if matched_slide:
+                narration = matched_slide.get("voice", {}).get("narration") or matched_slide.get("title", "")
+                voice_id = matched_slide.get("voice", {}).get("voiceId", "MyDuyen")
+                active_tts_provider.synthesize(text=narration, voice_id=voice_id, output_path=direct_path)
+                if os.path.exists(direct_path):
+                    return FileResponse(direct_path, media_type="audio/wav")
+        except Exception as e:
+            print(f"[WARN] On-demand TTS synthesis failed for {filename}: {e}")
+
     raise HTTPException(status_code=404, detail="Audio file not found")
 
 @app.get("/storage/projects/{project_id}/images/{filename}")
@@ -238,8 +262,10 @@ def add_layout_to_pack_endpoint(pack_id: str, layout_data: dict):
 
     from schemas.models import Layout
 
+    payload = layout_data.get("layout", layout_data) if isinstance(layout_data, dict) and "layout" in layout_data else layout_data
+
     try:
-        new_layout = Layout.model_validate(layout_data)
+        new_layout = Layout.model_validate(payload)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -307,8 +333,13 @@ async def upload_document(project_id: str, file: UploadFile = File(...)):
     os.makedirs(project_dir, exist_ok=True)
 
     # Save uploaded file temporarily in project folder
-    file_name = file.filename or "uploaded_file"
+    raw_name = file.filename or "uploaded_file"
+    file_name = os.path.basename(raw_name)
+    if not file_name:
+        file_name = "uploaded_file"
     saved_file_path = os.path.join(project_dir, file_name)
+
+    print(f"[API] POST /projects/{project_id}/documents -> receiving '{file_name}'...")
 
     try:
         with open(saved_file_path, "wb") as f_out:
@@ -325,6 +356,7 @@ async def upload_document(project_id: str, file: UploadFile = File(...)):
             )
             conn.commit()
 
+        print(f"[API] Uploaded '{file_name}' successfully for project {project_id}. Sections: {len(doc_context.sections)}")
         return doc_context
     except UnsupportedFormatError as e:
         raise HTTPException(
@@ -337,9 +369,18 @@ async def upload_document(project_id: str, file: UploadFile = File(...)):
             detail={"error": {"code": "FILE_TOO_LARGE", "message": str(e)}},
         )
     except ParseFailureError as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={"error": {"code": "PARSE_FAILED", "message": str(e)}},
+        )
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": {"code": "INGESTION_FAILED", "message": f"Lỗi xử lý tài liệu: {str(e)}"}},
         )
     finally:
         await file.close()
@@ -526,15 +567,24 @@ from scripts.tts_provider import (
     generate_slide_narration,
 )
 
-# Initialize TTS Provider: Use VieNeuProvider for authentic Vietnamese speech
-try:
-    if os.environ.get("TEST_MODE") == "1":
-        active_tts_provider = FakeTTSProvider()
-    else:
-        active_tts_provider = VieNeuProvider(mode="v3turbo")
-except Exception as e:
-    print(f"[WARN] Cannot initialize VieNeuProvider ({e}), falling back to FakeTTS")
-    active_tts_provider = FakeTTSProvider()
+# Lazy TTS Provider Proxy: Defers heavy HuggingFace/model loading until first use,
+# and dynamically routes to FakeTTSProvider when running in TEST_MODE.
+class LazyTTSProxy:
+    def __init__(self):
+        self._provider = None
+
+    def synthesize(self, text: str, voice_id: str, output_path: str) -> float:
+        if os.environ.get("TEST_MODE") == "1" or os.environ.get("PYTEST_CURRENT_TEST"):
+            return FakeTTSProvider().synthesize(text=text, voice_id=voice_id, output_path=output_path)
+        if self._provider is None:
+            try:
+                self._provider = VieNeuProvider(mode="v3turbo")
+            except Exception as e:
+                print(f"[WARN] Cannot initialize VieNeuProvider ({e}), falling back to FakeTTS")
+                self._provider = FakeTTSProvider()
+        return self._provider.synthesize(text=text, voice_id=voice_id, output_path=output_path)
+
+active_tts_provider = LazyTTSProxy()
 
 
 
@@ -569,31 +619,70 @@ def generate_scene_endpoint(project_id: str):
     scene_data = None
     doc_json_path = os.path.join(STORAGE_DIR, project_id, "document_context.json")
 
-    # 1. v2 SlotFillerEngine path (when document_context exists)
+    # 1. Read clarification answers with accurate path fallback
+    clarify_path = os.path.join(STORAGE_DIR, project_id, "clarification_answers.json")
+    if not os.path.exists(clarify_path):
+        clarify_path = os.path.join(STORAGE_DIR, project_id, "clarification.json")
+
+    clarify_answers = {}
+    if os.path.exists(clarify_path):
+        with open(clarify_path, "r", encoding="utf-8") as f:
+            clarify_answers = json.load(f)
+
+    pack_id = "basic"
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT pack_id FROM projects WHERE id = ?", (project_id,))
+        row = cursor.fetchone()
+        if row and row[0]:
+            pack_id = row[0]
+
+    doc_context = None
     if os.path.exists(doc_json_path):
         try:
             doc_context = get_document_context(project_id)
-            pack_id = "basic"
-            with sqlite3.connect(DB_PATH) as conn:
-                cursor = conn.cursor()
-                cursor.execute("SELECT pack_id FROM projects WHERE id = ?", (project_id,))
-                row = cursor.fetchone()
-                if row and row[0]:
-                    pack_id = row[0]
+        except Exception as e:
+            print(f"[WARN] Failed to load doc_context: {e}")
 
+    # Build options payload for accurate slide count, timing, voice, and theme
+    mapper_options = {
+        "projectId": project_id,
+        "packId": pack_id,
+        "durationMinutes": clarify_answers.get("durationMinutes", 15),
+        "targetAudience": clarify_answers.get("targetAudience", "Sinh viên"),
+        "voiceId": clarify_answers.get("voiceOver") or clarify_answers.get("voiceId") or "BanMai",
+        "author": (doc_context.author if doc_context and doc_context.author else "") or clarify_answers.get("author", ""),
+    }
+
+    # 2. ƯU TIÊN HÀNG ĐẦU (Q1: A): Map 1:1 từ Dàn bài (outline) đã duyệt sang Scene
+    if outline and os.path.exists(outline_path) and os.path.exists(mapper_script):
+        try:
+            print(f"[API] Mapping approved outline ({len(outline.slides)} slides) 1:1 to scene for project {project_id}...")
+            res = subprocess.run(
+                ["node", mapper_script, outline_path, scene_path, project_id, json.dumps(mapper_options)],
+                cwd=BASE_DIR,
+                capture_output=True,
+                text=True,
+                timeout=25,
+            )
+            if res.returncode == 0 and os.path.exists(scene_path):
+                with open(scene_path, "r", encoding="utf-8") as f:
+                    scene_data = json.load(f)
+                print(f"[API] Successfully mapped {len(scene_data.get('slides', []))} slides to scene.json!")
+            else:
+                print(f"[WARN] Node mapper failed (code {res.returncode}): {res.stderr}")
+        except Exception as e:
+            print(f"[WARN] Failed to invoke Node mapper: {e}")
+
+    # 3. Fallback: v2 SlotFillerEngine path (chỉ dùng nếu chưa có outline)
+    if not scene_data and doc_context:
+        try:
             try:
                 pack = load_pack(pack_id)
             except Exception:
                 pack = load_pack("basic")
 
-            clarify_path = os.path.join(STORAGE_DIR, project_id, "clarification.json")
-            clarify_answers = {}
-            if os.path.exists(clarify_path):
-                with open(clarify_path, "r", encoding="utf-8") as f:
-                    clarify_answers = json.load(f)
-
-            # Determine LLM provider
-            from scripts.llm_provider import GeminiProvider, FakeProvider
+            from scripts.llm_provider import GeminiProvider
             api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
             if api_key:
                 try:
@@ -617,25 +706,7 @@ def generate_scene_endpoint(project_id: str):
                 f.write(scene_v2.model_dump_json(indent=2))
             scene_data = scene_v2.model_dump(by_alias=True)
         except Exception as e:
-            print(f"[WARN] SlotFillerEngine failed ({e}), trying fallback mapper...")
-
-    # 2. Fallback to Node mapper (v1 compatibility)
-    if not scene_data and outline and os.path.exists(outline_path) and os.path.exists(mapper_script):
-        try:
-            res = subprocess.run(
-                ["node", mapper_script, outline_path, scene_path, project_id],
-                cwd=BASE_DIR,
-                capture_output=True,
-                text=True,
-                timeout=15,
-            )
-            if res.returncode == 0 and os.path.exists(scene_path):
-                with open(scene_path, "r", encoding="utf-8") as f:
-                    scene_data = json.load(f)
-            else:
-                print(f"[WARN] Node mapper failed (code {res.returncode}): {res.stderr}")
-        except Exception as e:
-            print(f"[WARN] Failed to invoke Node mapper: {e}")
+            print(f"[WARN] SlotFillerEngine failed ({e})")
 
     # Fallback to sample fixture only if mapping failed or no outline
     if not scene_data:
@@ -648,10 +719,10 @@ def generate_scene_endpoint(project_id: str):
         with open(scene_path, "w", encoding="utf-8") as f:
             json.dump(scene_data, f, ensure_ascii=False, indent=2)
 
-    # Synthesize initial audio files for each slide so they exist on disk and don't 404
+    # Synthesize initial audio file for the first slide so preview doesn't 404 (subsequent slides synthesized on-demand)
     audio_dir = os.path.join(STORAGE_DIR, project_id, "audio")
     os.makedirs(audio_dir, exist_ok=True)
-    for slide in scene_data.get("slides", []):
+    for slide in scene_data.get("slides", [])[:1]:
         slide_id = slide.get("slideId", "slide-01")
         narration = slide.get("voice", {}).get("narration") or slide.get("title", "")
         voice_id = slide.get("voice", {}).get("voiceId", "MyDuyen")

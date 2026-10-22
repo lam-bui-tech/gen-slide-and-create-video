@@ -34,6 +34,7 @@ export interface GalleryTemplatePack {
   };
   tokens: PackTokens;
   layouts: PackLayoutItem[];
+  status?: 'ready' | 'in-progress';
 }
 
 export const TAG_LABELS: Record<string, string> = {
@@ -84,6 +85,7 @@ export const GALLERY_PACKS: GalleryTemplatePack[] = [
     description: 'Bộ template học thuật kinh điển gồm 10 bố cục sư phạm chuẩn mực, hỗ trợ bảng màu Academic Ocean & Amber, phù hợp giảng đường và khóa học trực tuyến.',
     aspectRatio: '16:9',
     previewVideoUrl: 'renders/preview_basic.mp4',
+    status: 'ready',
     tags: {
       subject: ['tong-hop', 'xa-hoi-nhan-van', 'toan-tin'],
       style: ['hoc-thuat-nghiem-tuc'],
@@ -118,6 +120,7 @@ export const GALLERY_PACKS: GalleryTemplatePack[] = [
     description: 'Bộ mẫu bài giảng sinh động tối ưu cho nhiều nội dung chữ, thẻ ghi nhớ, sơ đồ vector và hiệu ứng hoạt họa GSAP mượt mà.',
     aspectRatio: '16:9',
     previewVideoUrl: 'renders/preview_pedagogy.mp4',
+    status: 'in-progress',
     tags: {
       subject: ['toan-tin', 'khoa-hoc-tu-nhien', 'tong-hop'],
       style: ['sinh-dong-tre-trung', 'hien-dai-toi-gian'],
@@ -147,6 +150,7 @@ export const GALLERY_PACKS: GalleryTemplatePack[] = [
     description: 'Thiết kế vị lai mang âm hưởng IDE tối màu, phù hợp giảng dạy Lập trình, Trí tuệ Nhân tạo, Khoa học Dữ liệu và Kỹ thuật Phần mềm.',
     aspectRatio: '16:9',
     previewVideoUrl: 'renders/preview_tech.mp4',
+    status: 'in-progress',
     tags: {
       subject: ['toan-tin', 'khoa-hoc-tu-nhien'],
       style: ['cong-nghe-tuong-lai'],
@@ -175,6 +179,7 @@ export const GALLERY_PACKS: GalleryTemplatePack[] = [
     description: 'Bảng màu Emerald & Amber tràn đầy năng lượng, tối ưu cho bài giảng Sinh học, Hóa học, Y dược học và Địa lý trực quan.',
     aspectRatio: '16:9',
     previewVideoUrl: 'renders/preview_science.mp4',
+    status: 'in-progress',
     tags: {
       subject: ['khoa-hoc-tu-nhien'],
       style: ['sinh-dong-tre-trung'],
@@ -202,6 +207,7 @@ export const GALLERY_PACKS: GalleryTemplatePack[] = [
     description: 'Bố cục thoáng đạt với tỷ lệ vàng typography Thụy Sĩ, tập trung tối đa vào thông điệp và luận điểm kinh tế - quản trị kinh doanh.',
     aspectRatio: '16:9',
     previewVideoUrl: 'renders/preview_minimal.mp4',
+    status: 'in-progress',
     tags: {
       subject: ['kinh-te-quan-tri', 'ngoai-ngu'],
       style: ['hien-dai-toi-gian'],

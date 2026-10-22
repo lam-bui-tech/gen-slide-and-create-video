@@ -137,6 +137,49 @@ export function validateScene(scene) {
 }
 
 /**
+ * Quyết định Variant thông minh cho slide dựa theo ngữ cảnh và số lượng điểm
+ */
+function resolveSmartVariantForSlide(templateId, slide, elements) {
+  // Nếu đã được gán thủ công cụ thể trong outline/payload khác 'default' thì ưu tiên giữ nguyên
+  if (slide.variantId && slide.variantId !== 'default') return slide.variantId;
+  if (slide.layoutVariant && slide.layoutVariant !== 'default') return slide.layoutVariant;
+  if (slide.contentPayload?.layoutVariant && slide.contentPayload?.layoutVariant !== 'default') {
+    return slide.contentPayload.layoutVariant;
+  }
+
+  if (templateId === 'bullet-breakdown') {
+    const title = (slide.title || '').toLowerCase();
+    const count = elements.filter(e => e.type === 'card').length;
+
+    // Rule 1: Từ khóa thứ bậc / quá trình / tiến trình / hệ thống -> tree-hierarchy (Mẫu 2)
+    const hierarchyKeywords = ['nguồn gốc', 'bước', 'giai đoạn', 'tiến trình', 'thứ bậc', 'phân cấp', 'quy trình', 'cấp độ', 'hệ thống', 'hình thành'];
+    if (hierarchyKeywords.some(kw => title.includes(kw))) {
+      return 'tree-hierarchy';
+    }
+
+    // Rule 2: Đúng 4 điểm phân tích -> contour-numbers (Mẫu 3: 2x2 grid viền contour)
+    if (count === 4) {
+      return 'contour-numbers';
+    }
+
+    // Rule 3: 5 hoặc 6 điểm -> skewed-badges (Mẫu 4: Khối số 3D nổi bật)
+    if (count >= 5) {
+      return 'skewed-badges';
+    }
+
+    // Rule 4: Có từ khóa công cụ / dụng cụ / đo lường -> visual-anchor (Mẫu 1)
+    const anchorKeywords = ['dụng cụ', 'công cụ', 'khái niệm', 'thước đo', 'máy tính', 'phương tiện', 'thiết bị'];
+    if (anchorKeywords.some(kw => title.includes(kw))) {
+      return 'visual-anchor';
+    }
+
+    return 'default';
+  }
+
+  return 'default';
+}
+
+/**
  * Step 1: Map LessonOutline to LessonSceneJSON using template registry
  * Pure Function: returns a new, fully validated LessonSceneJSON object.
  * 
@@ -149,14 +192,48 @@ export function outlineToScene(outline, options = {}) {
   validateOutline(outline);
 
   const projectId = options.projectId || `proj-${Date.now().toString(36)}`;
+  
+  // 1. Tính toán thời lượng bài giảng chính xác theo yêu cầu người dùng
+  const targetDurationMinutes = parseFloat(options.durationMinutes || outline.estimatedDurationMinutes || 15.0);
+  const totalTargetSeconds = Math.max(60.0, targetDurationMinutes * 60.0);
+  const slidesCount = Math.max(1, outline.slides.length);
+  const defaultSlideDuration = Math.round((totalTargetSeconds / slidesCount) * 10) / 10;
+
+  // 2. Tách bạch Giảng viên thật và Voice AI
+  const selectedVoiceId = options.voiceId || options.voiceOver || 'BanMai';
+  const rawAuthor = String(options.author || outline.author || '').trim();
+  const KNOWN_VOICES = ['myduyen', 'banmai', 'hamy', 'leminh', 'naman', 'phuongtrang'];
+  const isVoiceName = KNOWN_VOICES.includes(rawAuthor.toLowerCase());
+  const authorName = (rawAuthor && !isVoiceName) ? rawAuthor : 'Bộ môn / Giảng viên chuyên môn';
+
+  // 3. Thích ứng phong cách và chủ đề theo Đối tượng người học (Target Audience)
+  const targetAudience = String(options.targetAudience || outline.targetAudience || '').toLowerCase();
+  let colorScheme = options.colorScheme || 'academic-ocean';
+  let audienceType = 'academic';
+
+  if (targetAudience.includes('tiểu học') || targetAudience.includes('thcs') || targetAudience.includes('trẻ em') || targetAudience.includes('học sinh')) {
+    colorScheme = 'vibrant-warm';
+    audienceType = 'school';
+  } else if (targetAudience.includes('người đi làm') || targetAudience.includes('chuyên gia') || targetAudience.includes('doanh nghiệp')) {
+    colorScheme = 'minimal-modern';
+    audienceType = 'professional';
+  } else {
+    colorScheme = 'academic-ocean';
+    audienceType = 'academic';
+  }
+
   let cumulativeDuration = 0;
 
   const slides = outline.slides.map((s, idx) => {
     const templateId = s.suggestedTemplateId;
-    const duration = s.durationSeconds || (s.contentPayload?.durationSeconds) || 16.0;
+    const duration = s.durationSeconds || defaultSlideDuration;
     
-    // Map elements from outline contentPayload and keyTakeaways
-    const elements = buildElementsForTemplate(templateId, s);
+    // Map elements from outline contentPayload and keyTakeaways with enhanced context
+    const elements = buildElementsForTemplate(templateId, s, {
+      author: authorName,
+      audienceType: audienceType,
+      slideIndex: idx
+    });
 
     // Build default GSAP animation presets
     const animations = buildDefaultAnimations(templateId, elements);
@@ -166,7 +243,13 @@ export function outlineToScene(outline, options = {}) {
     const voiceDuration = Math.max(duration - 1.0, 4.0);
 
     const resolvedSlideId = s.slideId || `slide-${idx + 1}`;
-    const variantId = s.variantId || s.layoutVariant || s.contentPayload?.layoutVariant || 'default';
+    const variantId = resolveSmartVariantForSlide(templateId, s, elements);
+
+    // Tạo slotValues tương thích cả 2 chế độ template render
+    const slotValues = buildSlotValuesForSlide(templateId, s, elements, {
+      author: authorName,
+      badge: outline.topic || 'Bài Giảng'
+    });
 
     const slideObj = {
       slideId: resolvedSlideId,
@@ -177,12 +260,13 @@ export function outlineToScene(outline, options = {}) {
       packId: options.packId || 'basic',
       title: s.title,
       subtitle: s.subtitle || (outline.sections?.[0]?.sectionTitle || ''),
+      slotValues: slotValues,
       elements: elements,
       animations: animations,
       voice: {
         narration: narrationText,
         provider: 'vieneu',
-        voiceId: 'MyDuyen',
+        voiceId: selectedVoiceId,
         audioUrl: `storage/projects/${projectId}/audio/${resolvedSlideId}.wav`,
         durationSeconds: voiceDuration
       },
@@ -200,9 +284,10 @@ export function outlineToScene(outline, options = {}) {
     projectId: projectId,
     title: outline.topic,
     theme: {
-      colorScheme: options.colorScheme || 'academic-ocean',
+      colorScheme: colorScheme,
       fontFamily: 'Be Vietnam Pro, sans-serif',
-      aspectRatio: '16:9'
+      aspectRatio: '16:9',
+      audience: audienceType
     },
     totalDurationSeconds: Math.round(cumulativeDuration * 100) / 100,
     slides: slides
@@ -496,75 +581,129 @@ export function sceneToHyperFramesHtml(scene, options = {}) {
 /**
  * Elements mapping strategy based on templateId
  */
-function buildElementsForTemplate(templateId, slide) {
+/**
+ * Phân tích takeaway thành heading và body chi tiết, tránh thẻ rỗng
+ */
+function parseBulletTakeaway(t, idx) {
+  const str = String(t || '').trim();
+  if (!str) return { heading: `Luận điểm ${idx + 1}`, body: 'Nội dung phân tích chi tiết trọng tâm bài học.' };
+  
+  // Tách theo dấu ":", "–", hoặc "-"
+  const sepMatch = str.match(/^(.*?)(?:\s*[:–-]\s+)(.+)$/);
+  if (sepMatch && sepMatch[1].length <= 60) {
+    return { heading: sepMatch[1].trim(), body: sepMatch[2].trim() };
+  }
+  
+  // Tách theo cụm từ đầu nếu câu dài
+  const words = str.split(/\s+/);
+  if (words.length > 4) {
+    return { heading: words.slice(0, 3).join(' '), body: str };
+  }
+  return { heading: `Điểm ${idx + 1}: ${str}`, body: str };
+}
+
+/**
+ * Elements mapping strategy based on templateId
+ */
+function buildElementsForTemplate(templateId, slide, context = {}) {
   const payload = slide.contentPayload || {};
   const takeaways = slide.keyTakeaways || [];
+  const authorName = context.author || 'Bộ môn / Giảng viên chuyên môn';
 
   switch (templateId) {
     case 'title-slide': {
       const elements = [
-        { id: 'badge-course', type: 'badge', content: payload.badge || 'Bài Học' },
-        { id: 'txt-author', type: 'text', content: payload.author || takeaways[0] || 'Giảng viên' }
+        { id: 'badge-course', type: 'badge', content: payload.badge || context.badge || 'Bài Giảng Chuẩn' },
+        { id: 'txt-author', type: 'text', content: authorName }
       ];
-      if (payload.image) {
-        elements.push({ id: 'img-hero', type: 'image', content: payload.image });
+      // Chỉ gán ảnh bìa nếu payload có ảnh rõ ràng, không bốc bừa ảnh rác
+      if (payload.image && typeof payload.image === 'string' && payload.image.trim()) {
+        elements.push({ id: 'img-hero', type: 'image', content: payload.image.trim() });
       }
       return elements;
     }
 
     case 'learning-objectives':
       return [
-        { id: 'obj-list', type: 'bullet-list', content: takeaways.length ? takeaways : ['Mục tiêu 1', 'Mục tiêu 2', 'Mục tiêu 3'] }
+        { id: 'obj-list', type: 'bullet-list', content: takeaways.length ? takeaways : ['Nắm vững khái niệm cốt lõi', 'Hiểu rõ nguyên lý vận hành', 'Thực hành vận dụng thực tế'] }
       ];
 
     case 'concept-explain': {
+      const bodyContent = payload.quote || (takeaways.length ? takeaways.join('. ') : slide.speakerNotesDraft || 'Nội dung định nghĩa chuyên môn của bài học.');
       const elements = [
-        { id: 'txt-def', type: 'card', content: payload.quote || takeaways[0] || slide.speakerNotesDraft || '' }
+        { id: 'txt-def', type: 'card', content: bodyContent }
       ];
-      if (payload.image) {
-        elements.push({ id: 'img-concept', type: 'image', content: payload.image });
+      if (payload.image && typeof payload.image === 'string' && payload.image.trim()) {
+        elements.push({ id: 'img-concept', type: 'image', content: payload.image.trim() });
       }
       return elements;
     }
 
-    case 'bullet-breakdown':
-      return takeaways.map((t, idx) => ({
-        id: `card-${idx}`,
-        type: 'card',
-        content: { heading: `Luận điểm ${idx + 1}`, body: t }
-      }));
+    case 'bullet-breakdown': {
+      const rawPoints = takeaways.length ? takeaways : ['Luận điểm trọng tâm thứ nhất', 'Luận điểm trọng tâm thứ hai', 'Luận điểm trọng tâm thứ ba'];
+      return rawPoints.map((t, idx) => {
+        const parsed = parseBulletTakeaway(t, idx);
+        return {
+          id: `card-${idx}`,
+          type: 'card',
+          content: { heading: parsed.heading, body: parsed.body }
+        };
+      });
+    }
 
     case 'image-explain': {
       const elements = [
-        { id: 'txt-side', type: 'text', content: takeaways[0] || slide.speakerNotesDraft || '' }
+        { id: 'txt-side', type: 'text', content: takeaways[0] || slide.speakerNotesDraft || 'Phân tích trực quan thông qua sơ đồ cấu trúc.' }
       ];
-      if (payload.image) {
-        elements.unshift({ id: 'img-diagram', type: 'image', content: payload.image });
+      if (payload.image && typeof payload.image === 'string' && payload.image.trim()) {
+        elements.unshift({ id: 'img-diagram', type: 'image', content: payload.image.trim() });
       }
       return elements;
     }
 
-    case 'comparison':
+    case 'comparison': {
+      // Phân bổ nội dung đều cho 2 vế
+      let leftItems = [];
+      let rightItems = [];
+      let leftTitle = payload.leftTitle || 'Vế Thứ Nhất';
+      let rightTitle = payload.rightTitle || 'Vế Thứ Hai';
+
+      if (takeaways.length >= 2) {
+        const mid = Math.ceil(takeaways.length / 2);
+        leftItems = takeaways.slice(0, mid);
+        rightItems = takeaways.slice(mid);
+      } else if (takeaways.length === 1) {
+        const parsed = parseBulletTakeaway(takeaways[0], 0);
+        leftTitle = parsed.heading;
+        leftItems = [parsed.body || parsed.heading];
+        rightTitle = 'Đặc điểm đối chiếu';
+        rightItems = ['Các yếu tố khác biệt cần lưu ý trong thực tiễn'];
+      } else {
+        leftItems = ['Đặc trưng lý thuyết và quy chuẩn'];
+        rightItems = ['Đặc trưng thực hành và áp dụng'];
+      }
+
       return [
         {
           id: 'col-left',
           type: 'card',
-          content: { title: payload.leftTitle || 'Vế Thứ Nhất', items: takeaways.slice(0, 3) }
+          content: { title: leftTitle, items: leftItems }
         },
         {
           id: 'col-right',
           type: 'card',
-          content: { title: payload.rightTitle || 'Vế Thứ Hai', items: takeaways.slice(3, 6) }
+          content: { title: rightTitle, items: rightItems }
         }
       ];
+    }
 
     case 'timeline':
       return [
         {
           id: 'timeline-track',
           type: 'timeline-step',
-          content: takeaways.map((t, idx) => ({
-            time: `Giai đoạn ${idx + 1}`,
+          content: (takeaways.length ? takeaways : ['Giai đoạn khởi đầu', 'Giai đoạn phát triển', 'Giai đoạn hoàn thiện']).map((t, idx) => ({
+            time: `Bước ${idx + 1}`,
             event: t,
             highlight: idx === 0
           }))
@@ -573,28 +712,128 @@ function buildElementsForTemplate(templateId, slide) {
 
     case 'formula-explain':
       return [
-        { id: 'formula-box', type: 'formula', content: payload.formula || 'A ⟷ B = Phát triển' },
-        { id: 'formula-note', type: 'text', content: takeaways[0] || '' }
+        { id: 'formula-box', type: 'formula', content: payload.formula || 'A ⟷ B = Phát Triển & Ứng Dụng' },
+        { id: 'formula-note', type: 'text', content: takeaways[0] || slide.speakerNotesDraft || 'Ý nghĩa và mối tương quan giữa các thành tố' }
       ];
 
-    case 'quiz':
+    case 'quiz': {
+      // Trích xuất câu hỏi và các phương án từ payload hoặc takeaways
+      let question = payload.question || slide.title || 'Câu hỏi củng cố kiến thức:';
+      let options = [];
+      let correctIndex = payload.correctIndex ?? 0;
+
+      if (Array.isArray(payload.options) && payload.options.length >= 2) {
+        options = payload.options;
+      } else {
+        // Tìm trong takeaways xem có câu hỏi và các phương án A, B, C, D không
+        for (const t of takeaways) {
+          const trimmed = String(t).trim();
+          if (trimmed.startsWith('Câu hỏi:') || trimmed.startsWith('Q:')) {
+            question = trimmed.replace(/^(Câu hỏi:|Q:)\s*/, '');
+          } else if (/^[A-D][\.\)]\s*/.test(trimmed)) {
+            options.push(trimmed);
+          } else if (trimmed.startsWith('Đáp án đúng:')) {
+            const m = trimmed.match(/([A-D])/);
+            if (m) correctIndex = m[1].charCodeAt(0) - 65;
+          }
+        }
+        if (options.length < 2) {
+          options = ['Phương án A: Nắm vững kiến thức cốt lõi', 'Phương án B: Áp dụng trong tình huống thực tế', 'Phương án C: Cả hai phương án trên đều đúng', 'Phương án D: Cần kiểm chứng thêm'];
+          correctIndex = 2;
+        }
+      }
+
       return [
         {
           id: 'quiz-box',
           type: 'quiz-block',
           content: {
-            question: slide.title,
-            options: takeaways.length >= 2 ? takeaways : ['Đáp án A', 'Đáp án B', 'Đáp án C', 'Đáp án D'],
-            correctIndex: 0
+            question: question,
+            options: options,
+            correctIndex: correctIndex
           }
         }
       ];
+    }
 
     case 'summary':
     default:
       return [
-        { id: 'summary-points', type: 'bullet-list', content: takeaways }
+        { id: 'summary-points', type: 'bullet-list', content: takeaways.length ? takeaways : ['Đã hoàn thành các mục tiêu bài giảng', 'Vận dụng kiến thức vào thực tế'] }
       ];
+  }
+}
+
+/**
+ * Sinh slotValues tương ứng với template để tương thích cả v1 và v2
+ */
+function buildSlotValuesForSlide(templateId, slide, elements, context = {}) {
+  const payload = slide.contentPayload || {};
+  const takeaways = slide.keyTakeaways || [];
+  const authorName = context.author || 'Bộ môn / Giảng viên chuyên môn';
+
+  const baseValues = {
+    title: slide.title,
+    subtitle: slide.subtitle || ''
+  };
+
+  switch (templateId) {
+    case 'title-slide':
+      return {
+        ...baseValues,
+        badge: payload.badge || context.badge || 'Bài Giảng',
+        author: authorName,
+        media: payload.image ? { type: 'image', url: payload.image } : null
+      };
+
+    case 'learning-objectives':
+      return {
+        ...baseValues,
+        bullets: takeaways.length ? takeaways : ['Mục tiêu 1', 'Mục tiêu 2', 'Mục tiêu 3']
+      };
+
+    case 'concept-explain':
+      return {
+        ...baseValues,
+        body: payload.quote || (takeaways.length ? takeaways.join('. ') : slide.speakerNotesDraft || ''),
+        media: payload.image ? { type: 'image', url: payload.image } : null
+      };
+
+    case 'bullet-breakdown': {
+      const cards = (elements.filter(e => e.type === 'card')).map(e => e.content);
+      return {
+        ...baseValues,
+        cards: cards,
+        bullets: takeaways
+      };
+    }
+
+    case 'comparison': {
+      const colLeft = elements.find(e => e.id === 'col-left')?.content || { title: 'Vế Thứ Nhất', items: [] };
+      const colRight = elements.find(e => e.id === 'col-right')?.content || { title: 'Vế Thứ Hai', items: [] };
+      return {
+        ...baseValues,
+        leftColumn: colLeft,
+        rightColumn: colRight
+      };
+    }
+
+    case 'quiz': {
+      const qBlock = elements.find(e => e.type === 'quiz-block')?.content || {};
+      return {
+        ...baseValues,
+        question: qBlock.question || slide.title,
+        options: qBlock.options || [],
+        correctIndex: qBlock.correctIndex ?? 0
+      };
+    }
+
+    case 'summary':
+    default:
+      return {
+        ...baseValues,
+        bullets: takeaways
+      };
   }
 }
 
@@ -632,8 +871,12 @@ function escapeHtml(str) {
 import fs from 'fs';
 import path from 'path';
 
-// CLI Execution support
-if (process.argv[2]) {
+// CLI Execution support (only when invoked directly from CLI)
+const isDirectCli = typeof process !== 'undefined' && process.argv[1] && (
+  process.argv[1].endsWith('outline_to_hyperframes.js') || 
+  process.argv[1].endsWith('outline_to_hyperframes.mjs')
+);
+if (isDirectCli && process.argv[2]) {
   try {
     const mode = process.argv[2];
     if (mode === '--scene-to-html') {

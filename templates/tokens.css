@@ -1,67 +1,67 @@
 /**
  * templates/tokens.css
  * Academic Pro Design System Tokens for HyperFrames Lecture Studio
- * 1920x1080 16:9 Canvas, WCAG AA Compliant
+ * 1920x1080 16:9 Canvas, Sleek Corporate SaaS & Vivid Gradient Dark Aesthetic
  */
 
 :root {
   /* ==========================================================================
-     1. COLOR PALETTE: Academic Ocean & Amber
+     1. COLOR PALETTE: Deep Indigo & Electric Cyan & Emerald (SaaS Vivid Dark)
      ========================================================================== */
   /* Canvas & Background */
-  --hf-bg-main: #F5FAFF;
-  --hf-bg-surface: #FFFFFF;
-  --hf-bg-surface-glass: rgba(255, 255, 255, 0.88);
-  --hf-bg-surface-hover: #F0F9FF;
-  --hf-bg-header: rgba(255, 255, 255, 0.92);
-  --hf-bg-footer: rgba(255, 255, 255, 0.95);
+  --hf-bg-main: #090D16;
+  --hf-bg-surface: rgba(17, 24, 39, 0.85);
+  --hf-bg-surface-glass: rgba(17, 24, 39, 0.75);
+  --hf-bg-surface-hover: rgba(30, 41, 59, 0.9);
+  --hf-bg-header: rgba(9, 13, 22, 0.88);
+  --hf-bg-footer: rgba(9, 13, 22, 0.92);
 
-  /* Primary Brand: Academic Ocean */
-  --hf-primary: #0369A1;          /* Sky 700 - AAA on white */
-  --hf-primary-hover: #075985;    /* Sky 800 */
-  --hf-primary-vibrant: #0284C7;  /* Sky 600 */
-  --hf-primary-glow: #0EA5E9;     /* Sky 500 */
-  --hf-primary-subtle: #E0F2FE;   /* Sky 100 */
-  --hf-primary-border: #BAE6FD;   /* Sky 200 */
+  /* Primary Brand: Electric Cyan & Indigo */
+  --hf-primary: #38BDF8;          /* Sky 400 */
+  --hf-primary-hover: #7DD3FC;    /* Sky 300 */
+  --hf-primary-vibrant: #0EA5E9;  /* Sky 500 */
+  --hf-primary-glow: rgba(56, 189, 248, 0.45);
+  --hf-primary-subtle: rgba(14, 165, 233, 0.15);
+  --hf-primary-border: rgba(56, 189, 248, 0.3);
 
   /* Semantic Accents */
-  --hf-accent-amber: #D97706;     /* Amber 600 - Highlights / Quotes */
-  --hf-accent-amber-subtle: #FEF3C7;
-  --hf-accent-amber-border: #FDE68A;
+  --hf-accent-amber: #F59E0B;     /* Amber 500 */
+  --hf-accent-amber-subtle: rgba(245, 158, 11, 0.15);
+  --hf-accent-amber-border: rgba(245, 158, 11, 0.3);
 
-  --hf-accent-emerald: #059669;   /* Emerald 600 - Materialism / Success */
-  --hf-accent-emerald-subtle: #D1FAE5;
-  --hf-accent-emerald-border: #A7F3D0;
+  --hf-accent-emerald: #34D399;   /* Emerald 400 */
+  --hf-accent-emerald-subtle: rgba(52, 211, 153, 0.15);
+  --hf-accent-emerald-border: rgba(52, 211, 153, 0.3);
 
-  --hf-accent-rose: #E11D48;      /* Rose 600 - Idealism / Check-in */
-  --hf-accent-rose-subtle: #FFE4E6;
-  --hf-accent-rose-border: #FECDD3;
+  --hf-accent-rose: #FB7185;      /* Rose 400 */
+  --hf-accent-rose-subtle: rgba(251, 113, 133, 0.15);
+  --hf-accent-rose-border: rgba(251, 113, 133, 0.3);
 
-  --hf-accent-indigo: #4F46E5;    /* Indigo 600 - Synthesis / Objectives */
-  --hf-accent-indigo-subtle: #EEF2FF;
-  --hf-accent-indigo-border: #C7D2FE;
+  --hf-accent-indigo: #818CF8;    /* Indigo 400 */
+  --hf-accent-indigo-subtle: rgba(129, 140, 248, 0.15);
+  --hf-accent-indigo-border: rgba(129, 140, 248, 0.3);
 
-  /* Typography Colors - 100% WCAG AA / AAA Verified */
-  --hf-text-main: #0F172A;        /* Slate 900 - 15.8:1 contrast on white */
-  --hf-text-sub: #334155;         /* Slate 700 - 9.1:1 contrast on white */
-  --hf-text-muted: #64748B;       /* Slate 500 - 4.6:1 contrast on white */
-  --hf-text-inverse: #FFFFFF;
+  /* Typography Colors - High Contrast Dark Mode */
+  --hf-text-main: #F8FAFC;        /* Slate 50 */
+  --hf-text-sub: #94A3B8;         /* Slate 400 */
+  --hf-text-muted: #64748B;       /* Slate 500 */
+  --hf-text-inverse: #0F172A;
 
   /* Borders & Dividers */
-  --hf-border-card: #BAE6FD;
-  --hf-border-subtle: rgba(186, 230, 253, 0.7);
-  --hf-border-strong: #7DD3FC;
+  --hf-border-card: rgba(56, 189, 248, 0.2);
+  --hf-border-subtle: rgba(56, 189, 248, 0.1);
+  --hf-border-strong: rgba(56, 189, 248, 0.5);
 
-  /* Shadows (Multi-layered elevation for 1080p canvas) */
-  --hf-shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(3, 105, 161, 0.06);
-  --hf-shadow-md: 0 6px 18px rgba(14, 165, 233, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04);
-  --hf-shadow-lg: 0 14px 34px rgba(3, 105, 161, 0.12), 0 4px 12px rgba(15, 23, 42, 0.06);
-  --hf-shadow-glow: 0 0 24px rgba(14, 165, 233, 0.35);
+  /* Shadows (Multi-layered elevation & neon glow for 1080p canvas) */
+  --hf-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --hf-shadow-md: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 16px rgba(14, 165, 233, 0.1);
+  --hf-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 28px rgba(56, 189, 248, 0.2);
+  --hf-shadow-glow: 0 0 35px rgba(56, 189, 248, 0.45);
 
   /* Radius */
-  --hf-radius-sm: 8px;
-  --hf-radius-md: 14px;
-  --hf-radius-lg: 20px;
+  --hf-radius-sm: 10px;
+  --hf-radius-md: 16px;
+  --hf-radius-lg: 24px;
   --hf-radius-full: 9999px;
 
   /* ==========================================================================
@@ -71,13 +71,13 @@
   --hf-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
   /* Font Sizes for 1920x1080 Canvas */
-  --hf-fs-title-hero: 56px;
-  --hf-fs-title-slide: 42px;
-  --hf-fs-subtitle: 22px;
-  --hf-fs-h2: 32px;
-  --hf-fs-h3: 24px;
-  --hf-fs-body-lg: 22px;
-  --hf-fs-body: 19px;
+  --hf-fs-title-hero: 60px;
+  --hf-fs-title-slide: 44px;
+  --hf-fs-subtitle: 24px;
+  --hf-fs-h2: 34px;
+  --hf-fs-h3: 26px;
+  --hf-fs-body-lg: 24px;
+  --hf-fs-body: 20px;
   --hf-fs-body-sm: 16px;
   --hf-fs-meta: 14px;
 
@@ -114,8 +114,8 @@
   width: var(--hf-canvas-width);
   height: var(--hf-canvas-height);
   overflow: hidden;
-  background: radial-gradient(circle at 10% 15%, rgba(14, 165, 233, 0.08) 0%, transparent 45%),
-              radial-gradient(circle at 90% 85%, rgba(3, 105, 161, 0.06) 0%, transparent 50%),
+  background: radial-gradient(circle at 15% 20%, rgba(56, 189, 248, 0.12) 0%, transparent 50%),
+              radial-gradient(circle at 85% 80%, rgba(129, 140, 248, 0.1) 0%, transparent 55%),
               var(--hf-bg-main);
   font-family: var(--hf-font-sans);
   color: var(--hf-text-main);
@@ -123,13 +123,13 @@
   flex-direction: column;
 }
 
-/* Grid overlay background */
+/* Grid overlay background with gradient glow */
 .hf-bg-grid {
   position: absolute;
   inset: 0;
-  background-image: linear-gradient(rgba(14, 165, 233, 0.06) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(14, 165, 233, 0.06) 1px, transparent 1px);
-  background-size: 48px 48px;
+  background-image: linear-gradient(rgba(56, 189, 248, 0.05) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(56, 189, 248, 0.05) 1px, transparent 1px);
+  background-size: 56px 56px;
   pointer-events: none;
   z-index: 0;
 }
@@ -154,19 +154,20 @@
   z-index: 2;
 }
 
-/* Base Card */
+/* Base Card (Glassmorphism) */
 .hf-card {
   background: var(--hf-bg-surface);
+  backdrop-filter: blur(16px);
   border: 1px solid var(--hf-border-card);
   border-radius: var(--hf-radius-md);
   box-shadow: var(--hf-shadow-md);
-  padding: 32px;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  padding: 36px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
 }
 
 .hf-card-glass {
   background: var(--hf-bg-surface-glass);
-  backdrop-filter: blur(16px);
+  backdrop-filter: blur(20px);
   border: 1px solid var(--hf-border-card);
   border-radius: var(--hf-radius-md);
   box-shadow: var(--hf-shadow-lg);
@@ -176,14 +177,15 @@
 .hf-card:hover {
   border-color: var(--hf-border-strong);
   box-shadow: var(--hf-shadow-glow), var(--hf-shadow-lg);
+  transform: translateY(-2px);
 }
 
 /* Kinetic Badges */
 .hf-badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 18px;
+  gap: 10px;
+  padding: 8px 20px;
   border-radius: var(--hf-radius-full);
   font-size: var(--hf-fs-meta);
   font-weight: var(--hf-fw-bold);
@@ -192,40 +194,47 @@
   background: var(--hf-primary-subtle);
   border: 1px solid var(--hf-primary-border);
   color: var(--hf-primary);
+  box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
 }
 
 .hf-badge-amber {
   background: var(--hf-accent-amber-subtle);
   border-color: var(--hf-accent-amber-border);
   color: var(--hf-accent-amber);
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
 }
 
 .hf-badge-emerald {
   background: var(--hf-accent-emerald-subtle);
   border-color: var(--hf-accent-emerald-border);
   color: var(--hf-accent-emerald);
+  box-shadow: 0 0 15px rgba(52, 211, 153, 0.2);
 }
 
 .hf-badge-rose {
   background: var(--hf-accent-rose-subtle);
   border-color: var(--hf-accent-rose-border);
   color: var(--hf-accent-rose);
+  box-shadow: 0 0 15px rgba(251, 113, 133, 0.2);
 }
 
 /* Slide Header Bar Inside Slide */
 .hf-slide-header {
-  margin-bottom: 28px;
+  margin-bottom: 32px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .hf-slide-title {
   font-size: var(--hf-fs-title-slide);
   font-weight: var(--hf-fw-extrabold);
-  color: var(--hf-primary-hover);
+  color: var(--hf-text-main);
   line-height: var(--hf-lh-tight);
   letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #F8FAFC 0%, #38BDF8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .hf-slide-subtitle {

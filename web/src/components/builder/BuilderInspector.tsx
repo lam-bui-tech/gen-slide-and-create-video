@@ -19,7 +19,7 @@ export function BuilderInspector() {
     return (
       <div>
         <div className="props-header" style={{ color: '#0369A1', background: '#E0F2FE' }}>
-          🛠️ Builder: Thuộc Tính Khối
+          Builder: Thuộc Tính Khối
         </div>
         <div style={{ padding: '20px', color: 'var(--text-sub)', fontSize: '13px', textAlign: 'center' }}>
           Nhấp vào một khối trên canvas để chỉnh sửa thuộc tính.
@@ -106,7 +106,7 @@ export function BuilderInspector() {
   return (
     <div>
       <div className="props-header" style={{ color: '#0369A1', background: '#E0F2FE' }}>
-        🛠️ Builder: Thuộc Tính Khối (<code>{el.id}</code>)
+        Builder: Thuộc Tính Khối (<code>{el.id}</code>)
       </div>
 
       {/* 1. Coordinates */}

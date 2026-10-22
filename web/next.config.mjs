@@ -5,6 +5,8 @@ const nextConfig = {
   transpilePackages: ['../studio', '../templates', '../schemas'],
   experimental: {
     externalDir: true,
+    proxyClientMaxBodySize: '100mb',
+    proxyTimeout: 120000,
   },
   async rewrites() {
     return [

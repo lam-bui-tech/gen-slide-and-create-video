@@ -82,16 +82,35 @@ export function CanvasPaneFrame({
             id="btn-toggle-builder-mode"
             onClick={() => toggleBuilderMode()}
             style={{
-              padding: '6px 12px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '5px 12px',
               minHeight: '28px',
               fontSize: '12px',
-              fontWeight: 700,
+              fontWeight: 600,
               background: mode === 'builder' ? '#E0F2FE' : '#FFFFFF',
-              borderColor: mode === 'builder' ? 'var(--primary)' : 'var(--border-color)',
-              color: mode === 'builder' ? 'var(--primary)' : 'inherit',
+              borderColor: mode === 'builder' ? '#0284C7' : 'var(--border-color)',
+              color: mode === 'builder' ? '#0369A1' : 'inherit',
+              borderRadius: '6px',
+              cursor: 'pointer',
             }}
           >
-            {mode === 'builder' ? '✓ Thoát Builder' : '🛠️ Chế Độ Builder'}
+            {mode === 'builder' ? (
+              <>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <span>Thoát Builder</span>
+              </>
+            ) : (
+              <>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/>
+                </svg>
+                <span>Chế Độ Builder</span>
+              </>
+            )}
           </button>
           <span>Độ phân giải: <strong>1920 × 1080 (16:9)</strong></span>
         </div>

@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Khái luận về Triết học và Triết học Mác - Lênin | Academic Premium</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+        <style>
+    /* ==========================================================================
+       CLEAN LIGHT MINIMALIST DESIGN SYSTEM (Academic Edition)
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --acad-bg: #F8FAFC;
+      --acad-surface: #FFFFFF;
+      --acad-card-bg: #FFFFFF;
+      --acad-card-border: #E2E8F0;
+      --acad-text-main: #0F172A;
+      --acad-text-sub: #475569;
+      --acad-text-muted: #94A3B8;
+      --acad-primary: #1E3A8A; /* Deep academic navy */
+      --acad-accent: #2563EB;  /* Vibrant blue */
+      --acad-gold: #D97706;    /* Warm amber gold */
+      --acad-gold-bg: #FEF3C7;
+      --acad-border: #CBD5E1;
+      --acad-shadow: 0 10px 30px -5px rgba(30, 58, 138, 0.08), 0 4px 6px -4px rgba(30, 58, 138, 0.04);
+    }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: var(--acad-bg);
+      font-family: 'Be Vietnam Pro', sans-serif;
+      color: var(--acad-text-main);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .viewport-wrapper {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 50% 10%, #FFFFFF 0%, #F1F5F9 100%);
+    }
+
+    .stage {
+      position: absolute;
+      width: 1920px;
+      height: 1080px;
+      transform-origin: center center;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+      border: 1px solid var(--acad-border);
+      background: var(--acad-surface);
+      background-image:
+        linear-gradient(to right, rgba(30, 58, 138, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(30, 58, 138, 0.02) 1px, transparent 1px);
+      background-size: 60px 60px;
+      border-radius: 4px;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      padding: 72px 96px;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      transform: translateY(20px) scale(0.99);
+    }
+
+    .slide.active {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translateY(0) scale(1);
+    }
+
+    h1, h2, h3, .serif-title {
+      font-family: 'Playfair Display', serif;
+    }
+
+    .slide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-bottom: 2px solid var(--acad-border);
+      padding-bottom: 20px;
+      margin-bottom: 40px;
+      flex-shrink: 0;
+    }
+
+    .slide-category {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--acad-accent);
+      margin-bottom: 6px;
+      display: inline-block;
+    }
+
+    .slide-title-text {
+      font-size: 40px;
+      font-weight: 700;
+      color: var(--acad-primary);
+      line-height: 1.2;
+    }
+
+    .slide-badge-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--acad-primary);
+      background: rgba(37, 99, 235, 0.08);
+      padding: 6px 20px;
+      border-radius: 8px;
+      border: 1px solid rgba(37, 99, 235, 0.2);
+    }
+
+    .slide-footer {
+      position: absolute;
+      bottom: 40px;
+      left: 96px;
+      right: 96px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 15px;
+      color: var(--acad-text-sub);
+      border-top: 1px solid var(--acad-card-border);
+      padding-top: 16px;
+      flex-shrink: 0;
+    }
+
+    .slide-content-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      overflow: hidden;
+    }
+
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      align-content: start;
+    }
+
+    .grid-3col {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      align-content: start;
+    }
+
+    .grid-4col {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      align-content: start;
+    }
+
+    .acad-card {
+      background: var(--acad-card-bg);
+      border: 1px solid var(--acad-card-border);
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: var(--acad-shadow);
+      transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .acad-card:hover {
+      border-color: var(--acad-accent);
+      transform: translateY(-3px);
+      box-shadow: 0 20px 35px -10px rgba(37, 99, 235, 0.12);
+    }
+
+    .acad-card h3 {
+      font-size: 22px;
+      color: var(--acad-primary);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .acad-card p, .acad-card li {
+      font-size: 17px;
+      line-height: 1.6;
+      color: var(--acad-text-sub);
+    }
+
+    .bullet-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .bullet-list li {
+      position: relative;
+      padding-left: 28px;
+      font-size: 18px;
+      line-height: 1.55;
+      color: var(--acad-text-main);
+    }
+
+    .bullet-list li::before {
+      content: "▪";
+      position: absolute;
+      left: 0;
+      color: var(--acad-accent);
+      font-size: 18px;
+      top: -1px;
+    }
+
+    .title-slide-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      height: 100%;
+      padding: 0 120px;
+      position: relative;
+    }
+
+    .title-slide-container::before {
+      content: "";
+      position: absolute;
+      inset: 20px;
+      border: 2px dashed rgba(37, 99, 235, 0.2);
+      border-radius: 24px;
+      pointer-events: none;
+    }
+
+    .title-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: var(--acad-primary);
+      background: rgba(30, 58, 138, 0.08);
+      padding: 10px 28px;
+      border-radius: 50px;
+      margin-bottom: 32px;
+      border: 1px solid rgba(30, 58, 138, 0.2);
+    }
+
+    .title-main {
+      font-size: 60px;
+      font-weight: 700;
+      color: var(--acad-primary);
+      line-height: 1.15;
+      margin-bottom: 24px;
+    }
+
+    .title-sub {
+      font-size: 22px;
+      color: var(--acad-text-sub);
+      max-width: 950px;
+      line-height: 1.5;
+    }
+
+    .visual-diagram-card {
+      background: linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%);
+      border: 1px solid var(--acad-card-border);
+      border-radius: 16px;
+      padding: 36px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      gap: 18px;
+      box-shadow: var(--acad-shadow);
+    }
+
+    /* Media Placeholder Frame for Images */
+    .media-placeholder {
+      width: 100%;
+      height: 100%;
+      min-height: 240px;
+      background: #F8FAFC;
+      border: 2px dashed var(--acad-border);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 32px;
+      color: var(--acad-text-sub);
+      gap: 14px;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .media-placeholder:hover {
+      background: #F1F5F9;
+      border-color: var(--acad-accent);
+      color: var(--acad-accent);
+    }
+
+    .media-placeholder svg {
+      width: 52px;
+      height: 52px;
+      stroke: currentColor;
+      stroke-width: 1.5;
+      fill: none;
+    }
+
+    .media-placeholder span {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .media-placeholder p {
+      font-size: 14px;
+      color: var(--acad-text-muted);
+    }
+
+    .deck-nav {
+      position: fixed;
+      bottom: 20px;
+      right: 30px;
+      display: flex;
+      gap: 12px;
+      z-index: 1000;
+    }
+
+    .nav-btn {
+      background: var(--acad-surface);
+      border: 1px solid var(--acad-border);
+      color: var(--acad-primary);
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+      transition: all 0.2s;
+    }
+
+    .nav-btn:hover {
+      background: var(--acad-primary);
+      color: #FFFFFF;
+      border-color: var(--acad-primary);
+    }
+
+    .progress-bar-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: #E2E8F0;
+      z-index: 1000;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--acad-accent);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .edit-banner {
+      position: fixed;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--acad-primary);
+      color: #FFFFFF;
+      padding: 6px 20px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 14px;
+      display: none;
+      z-index: 2000;
+      box-shadow: 0 4px 16px rgba(30, 58, 138, 0.2);
+    }
+    </style>
+</head>
+<body>
+    <div class="progress-bar-container">
+        <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+    <div class="edit-banner" id="editBanner">CHẾ ĐỘ CHỈNH SỬA BẬT (Nhấn Ctrl+S để lưu)</div>
+
+    <div class="viewport-wrapper">
+        <div class="stage" id="presentationStage">
+        <!-- SLIDE 01 -->
+        <div class="slide active" data-slide="01">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">Môn Triết học Mác - Lênin</span>
+                    <h2 class="slide-title-text">CHƯƠNG 1: KHÁI LUẬN VỀ TRIẾT HỌC VÀ TRIẾT HỌC MÁC - LÊNIN</h2>
+                </div>
+                <div class="slide-badge-num">01</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="title-slide-container">
+                    <div class="title-badge">HỌC PHẦN LÝ LUẬN CHÍNH TRỊ • 40 SLIDE CHUYÊN SÂU</div>
+                    <h1 class="title-main gold-text">KHÁI LUẬN VỀ TRIẾT HỌC VÀ TRIẾT HỌC MÁC - LÊNIN</h1>
+                    <p class="title-sub">Hệ thống tri thức lý luận vĩ đại, thế giới quan và phương pháp luận khoa học của giai cấp công nhân và nhân loại tiến bộ.</p>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 01 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 02 -->
+        <div class="slide" data-slide="02">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">Mở đầu bài giảng</span>
+                    <h2 class="slide-title-text">Mục tiêu và Mạch Nội dung Chương 1</h2>
+                </div>
+                <div class="slide-badge-num">02</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-2col">
+                    <div class="acad-card">
+                        <h3>🎯 Mục tiêu học tập</h3>
+                        <ul class="bullet-list">
+                            <li>Nắm vững những nét khái quát về triết học và vấn đề cơ bản của triết học.</li>
+                            <li>Hiểu rõ sự ra đời, các giai đoạn phát triển và thực chất cuộc cách mạng trong triết học do C. Mác và Ph. Ăngghen thực hiện.</li>
+                            <li>Nhận diện sâu sắc vai trò của triết học Mác - Lênin trong đời sống xã hội và thời đại ngày nay.</li>
+                            <li>Biết vận dụng thế giới quan và phương pháp luận duy vật biện chứng vào nhận thức.</li>
+                        </ul>
+                    </div>
+                    <div class="visual-diagram-card">
+                        <h3 class="gold-text" style="font-size: 26px; font-family: 'Playfair Display', serif;">📚 Mạch Bài Giảng 3 Phần</h3>
+                        <p style="font-size: 18px; line-height: 1.6; color: var(--acad-parchment);">
+                            <strong>1. Triết học và vấn đề cơ bản của triết học</strong><br>
+                            <span style="color: var(--acad-text-sub);">Nguồn gốc, khái niệm và vấn đề lớn nhất của triết học.</span>
+                        </p>
+                        <p style="font-size: 18px; line-height: 1.6; color: var(--acad-parchment);">
+                            <strong>2. Triết học Mác - Lênin và quá trình phát triển</strong><br>
+                            <span style="color: var(--acad-text-sub);">Điều kiện ra đời, bước ngoặt vĩ đại và đóng góp của V.I. Lênin.</span>
+                        </p>
+                        <p style="font-size: 18px; line-height: 1.6; color: var(--acad-parchment);">
+                            <strong>3. Vai trò của triết học Mác - Lênin trong đời sống</strong><br>
+                            <span style="color: var(--acad-text-sub);">Thế giới quan, phương pháp luận và thực tiễn đổi mới ở Việt Nam.</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 02 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 03 -->
+        <div class="slide" data-slide="03">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">1. Triết học và vấn đề cơ bản</span>
+                    <h2 class="slide-title-text">Sự ra đời của Triết học</h2>
+                </div>
+                <div class="slide-badge-num">03</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-2col">
+<div class="acad-card">
+                        <h3>🌟 Thời gian và Không gian</h3>
+                        <ul class="bullet-list">
+                            <li>Triết học xuất hiện gần như đồng thời ở cả phương Đông và phương Tây cổ đại.</li>
+                            <li>Khoảng thế kỷ VIII đến thế kỷ VI trước Công nguyên.</li>
+                            <li>Gắn liền với các trung tâm văn minh lớn của nhân loại thời cổ đại (Hy Lạp, Trung Hoa, Ấn Độ...).</li>
+                        </ul>
+                    </div>
+
+                    <div class="media-placeholder">
+                        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                        <span>Chèn hình ảnh / Sơ đồ minh họa vào đây</span>
+                        <p>Khu vực chờ chèn hình ảnh từ bản PowerPoint gốc</p>
+                    </div>
+</div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 03 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 04 -->
+        <div class="slide" data-slide="04">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">1.1. Khái lược về triết học</span>
+                    <h2 class="slide-title-text">Nguồn gốc nhận thức của Triết học</h2>
+                </div>
+                <div class="slide-badge-num">04</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-3col">
+                    <div class="acad-card">
+                        <h3>1. Kinh nghiệm thực tiễn</h3>
+                        <p>Con người tích lũy những hiểu biết cụ thể, riêng lẻ, rời rạc về thế giới thông qua hoạt động sống hàng ngày.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>2. Tư duy khái quát</h3>
+                        <p>Năng lực trừu tượng hóa, khái quát hóa phát triển đạt trình độ cao, kết nối các tri thức rời rạc thành hệ thống chung.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>3. Luận thuyết triết học</h3>
+                        <p>Hình thành các phạm trù, quy luật phổ biến giải thích toàn bộ thế giới như một chỉnh thể thống nhất.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 04 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 05 -->
+        <div class="slide" data-slide="05">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">1.1. Khái lược về triết học</span>
+                    <h2 class="slide-title-text">Nguồn gốc xã hội của Triết học</h2>
+                </div>
+                <div class="slide-badge-num">05</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-2col">
+<div class="acad-card">
+                        <h3>🏛️ Phân công lao động xã hội</h3>
+                        <ul class="bullet-list">
+                            <li>Sản xuất phát triển dẫn đến phân công lao động xã hội giữa lao động chân tay và lao động trí óc.</li>
+                            <li>Tầng lớp trí thức chuyên nghiệp ra đời, có thời gian nghiên cứu và hệ thống hóa tri thức.</li>
+                            <li>Xã hội xuất hiện chế độ tư hữu và giai cấp.</li>
+                        </ul>
+                    </div>
+
+                    <div class="media-placeholder">
+                        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                        <span>Chèn hình ảnh / Sơ đồ minh họa vào đây</span>
+                        <p>Khu vực chờ chèn hình ảnh từ bản PowerPoint gốc</p>
+                    </div>
+</div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 05 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 06 -->
+        <div class="slide" data-slide="06">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">1.1. Khái lược về triết học</span>
+                    <h2 class="slide-title-text">Khái niệm Triết học</h2>
+                </div>
+                <div class="slide-badge-num">06</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-2col">
+                    <div class="acad-card">
+                        <h3>💡 Định nghĩa chuẩn mực</h3>
+                        <p>Triết học là hệ thống tri thức lý luận chung nhất của con người về thế giới, về bản thân con người và vị trí của con người trong thế giới đó.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>⚙️ Các đặc trưng cơ bản</h3>
+                        <ul class="bullet-list">
+                            <li>Là hình thái ý thức xã hội đặc thù.</li>
+                            <li>Sử dụng hệ thống phạm trù và quy luật mang tính phổ quát cao nhất.</li>
+                            <li>Khác biệt với các khoa học cụ thể ở tầm khái quát triết lý toàn diện.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 06 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 07 -->
+        <div class="slide" data-slide="07">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">1.1. Khái lược về triết học</span>
+                    <h2 class="slide-title-text">Đối tượng nghiên cứu trong Lịch sử</h2>
+                </div>
+                <div class="slide-badge-num">07</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-2col">
+                    <div class="acad-card">
+                        <h3>⏳ Thời cổ đại (Triết học tự nhiên)</h3>
+                        <ul class="bullet-list">
+                            <li>Triết học bao quát gần như toàn bộ tri thức nhân loại thời bấy giờ.</li>
+                            <li>Các khoa học chuyên ngành chưa tách ra thành các bộ môn độc lập.</li>
+                            <li>Được mệnh danh là 'khoa học của mọi khoa học'.</li>
+                        </ul>
+                    </div>
+                    <div class="acad-card">
+                        <h3>🔬 Triết học hiện đại</h3>
+                        <ul class="bullet-list">
+                            <li>Khoa học cụ thể phát triển mạnh mẽ, tách khỏi triết học.</li>
+                            <li>Triết học tập trung nghiên cứu những quy luật chung nhất của tự nhiên, xã hội và tư duy.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 07 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 08 -->
+        <div class="slide" data-slide="08">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">1.1. Khái lược về triết học</span>
+                    <h2 class="slide-title-text">Triết học và Thế giới quan</h2>
+                </div>
+                <div class="slide-badge-num">08</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-2col">
+                    <div class="acad-card">
+                        <h3>🌍 Thế giới quan là gì?</h3>
+                        <p>Thế giới quan là hệ thống các quan điểm, tri thức, niềm tin, cảm xúc và lý tưởng của con người về thế giới khách quan và vị trí của chính mình trong thế giới đó.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>⚓ Hạt nhân lý luận</h3>
+                        <p>Triết học đóng vai trò là hạt nhân lý luận của thế giới quan, định hướng toàn bộ hệ thống tri thức và niềm tin của con người.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 08 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 09 -->
+        <div class="slide" data-slide="09">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">1.1. Khái lược về triết học</span>
+                    <h2 class="slide-title-text">Triết học - Hạt nhân lý luận của Thế giới quan</h2>
+                </div>
+                <div class="slide-badge-num">09</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="acad-card" style="padding: 36px 48px;">
+                    <ul class="bullet-list">
+                        <li>Bản thân mọi triết học đều là thế giới quan, nhưng không phải mọi thế giới quan đều là triết học (thế giới quan huyền thoại, tôn giáo, kinh nghiệm...).</li>
+                        <li>Triết học là thế giới quan ở trình độ lý luận, có hệ thống và tính khái quát cao nhất.</li>
+                        <li>Thế giới quan duy vật biện chứng là đỉnh cao của thế giới quan triết học, giúp con người nhận thức đúng đắn và cải tạo hiện thực khách quan.</li>
+                        <li>Chi phối toàn bộ hành động, lập trường chính trị và đạo đức của con người.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 09 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 10 -->
+        <div class="slide" data-slide="10">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">1.2. Vấn đề cơ bản của triết học</span>
+                    <h2 class="slide-title-text">Vấn đề Cơ bản của Triết học</h2>
+                </div>
+                <div class="slide-badge-num">10</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-2col">
+<div class="acad-card">
+                        <h3>⚖️ Mối quan hệ giữa Tư duy và Tồn tại</h3>
+                        <ul class="bullet-list">
+                            <li>Ph. Ăngghen khẳng định: 'Vấn đề cơ bản lớn của mọi triết học, đặc biệt là của triết học hiện đại, là vấn đề quan hệ giữa tư duy với tồn tại'.</li>
+                            <li>Gồm hai mặt gắn kết chặt chẽ với nhau.</li>
+                            <li>Là tiêu chuẩn tối cao để phân định các trường phái triết học trong lịch sử.</li>
+                        </ul>
+                    </div>
+
+                    <div class="media-placeholder">
+                        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                        <span>Chèn hình ảnh / Sơ đồ minh họa vào đây</span>
+                        <p>Khu vực chờ chèn hình ảnh từ bản PowerPoint gốc</p>
+                    </div>
+</div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 10 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 11 -->
+        <div class="slide" data-slide="11">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">1.2. Vấn đề cơ bản của triết học</span>
+                    <h2 class="slide-title-text">Hai Mặt của Vấn đề Cơ bản Triết học</h2>
+                </div>
+                <div class="slide-badge-num">11</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-2col">
+                    <div class="acad-card">
+                        <h3>🏛️ Mặt thứ nhất (Bản thể luận)</h3>
+                        <p><strong>Giữa vật chất và ý thức, cái nào có trước, cái nào có sau? Cái nào quyết định cái nào?</strong><br><br>Trả lời câu hỏi này phân chia triết học thành Chủ nghĩa duy vật và Chủ nghĩa duy tâm.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>👁️ Mặt thứ hai (Nhận thức luận)</h3>
+                        <p><strong>Con người có khả năng nhận thức được thế giới khách quan hay không?</strong><br><br>Trả lời câu hỏi này phân chia triết học thành Thuyết khả tri và Thuyết bất khả tri.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 11 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 12 -->
+        <div class="slide" data-slide="12">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">1.2. Vấn đề cơ bản của triết học</span>
+                    <h2 class="slide-title-text">Chủ nghĩa Duy vật và Chủ nghĩa Duy tâm</h2>
+                </div>
+                <div class="slide-badge-num">12</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-2col">
+                    <div class="acad-card">
+                        <h3>🌍 Chủ nghĩa Duy vật (Materialism)</h3>
+                        <p>Khẳng định rằng vật chất là tính thứ nhất, ý thức là tính thứ hai. Vật chất sinh ra ý thức, quyết định ý thức; ý thức là sự phản ánh hiện thực khách quan vào bộ óc con người.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>☁️ Chủ nghĩa Duy tâm (Idealism)</h3>
+                        <p>Khẳng định rằng ý thức, tinh thần là tính thứ nhất, giới tự nhiên là tính thứ hai. Tinh thần sinh ra thế giới vật chất, quyết định sự tồn tại và phát triển của vạn vật.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 12 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 13 -->
+        <div class="slide" data-slide="13">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">1.2. Vấn đề cơ bản của triết học</span>
+                    <h2 class="slide-title-text">Ba Hình thức Cơ bản của Chủ nghĩa Duy vật</h2>
+                </div>
+                <div class="slide-badge-num">13</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-3col">
+                    <div class="acad-card">
+                        <h3>🌱 1. Duy vật chất phác</h3>
+                        <p>Đồng nhất vật chất với một hay một số chất cụ thể của tự nhiên (nước, lửa, đất, không khí...). Mang tính trực quan, ngây thơ nhưng đúng định hướng cơ bản.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>⚙️ 2. Duy vật siêu hình</h3>
+                        <p>Xem thế giới như một cỗ máy khổng lồ, các bộ phận đứng im và tách rời nhau. Khắc phục được tính chất chất phác nhưng còn hạn chế phương pháp luận.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>🔬 3. Duy vật biện chứng</h3>
+                        <p>Do C. Mác và Ph. Ăngghen sáng lập, V.I. Lênin phát triển. Thống nhất hữu cơ giữa chủ nghĩa duy vật và phép biện chứng.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 13 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 14 -->
+        <div class="slide" data-slide="14">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">1.2. Vấn đề cơ bản của triết học</span>
+                    <h2 class="slide-title-text">Các Dạng của Chủ nghĩa Duy tâm</h2>
+                </div>
+                <div class="slide-badge-num">14</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-2col">
+                    <div class="acad-card">
+                        <h3>👤 Chủ nghĩa Duy tâm chủ quan</h3>
+                        <p>Thừa nhận tính thứ nhất của ý thức cá nhân, cảm giác của chủ thể. Phủ nhận sự tồn tại khách quan của hiện thực, coi sự vật chỉ là phức hợp cảm giác của con người.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>🌐 Chủ nghĩa Duy tâm khách quan</h3>
+                        <p>Thừa nhận tính thứ nhất của ý thức, nhưng coi đó là 'tinh thần khách quan', 'ý niệm tuyệt đối' có trước và tồn tại độc lập với con người (như quan điểm của Platon, Hegel).</p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 14 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 15 -->
+        <div class="slide" data-slide="15">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">1.2. Vấn đề cơ bản của triết học</span>
+                    <h2 class="slide-title-text">Nhất nguyên luận và Nhị nguyên luận</h2>
+                </div>
+                <div class="slide-badge-num">15</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-2col">
+                    <div class="acad-card">
+                        <h3>⚛️ Nhất nguyên luận</h3>
+                        <p>Chỉ thừa nhận một bản nguyên duy nhất là nền tảng của thế giới: hoặc là vật chất (chủ nghĩa duy vật) hoặc là tinh thần (chủ nghĩa duy tâm). Giải thích thế giới từ một gốc.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>⚖️ Nhị nguyên luận</h3>
+                        <p>Thừa nhận cả vật chất và tinh thần là hai bản nguyên cùng tồn tại song song, ngang hàng nhau, cùng quyết định nguồn gốc và sự vận động của thế giới (Descartes).</p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 15 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 16 -->
+        <div class="slide" data-slide="16">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">1.2. Vấn đề cơ bản của triết học</span>
+                    <h2 class="slide-title-text">Thuyết Khả tri và Thuyết Bất khả tri</h2>
+                </div>
+                <div class="slide-badge-num">16</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-2col">
+                    <div class="acad-card">
+                        <h3>🔬 Thuyết Khả tri (Gnosticism)</h3>
+                        <p>Khẳng định con người hoàn toàn có khả năng nhận thức được bản chất của thế giới khách quan. Tri thức của con người qua thực tiễn ngày càng phản ánh đúng đắn hiện thực.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>❓ Thuyết Bất khả tri (Agnosticism)</h3>
+                        <p>Phủ nhận khả năng nhận thức bản chất của đối tượng; cho rằng con người chỉ nắm được hiện tượng bên ngoài, hữu hạn, không thể vươn tới bản chất cùng đích của vạn vật.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 16 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 17 -->
+        <div class="slide" data-slide="17">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">1.3. Biện chứng và siêu hình</span>
+                    <h2 class="slide-title-text">Phương pháp Siêu hình</h2>
+                </div>
+                <div class="slide-badge-num">17</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="acad-card" style="padding: 36px 48px;">
+                    <ul class="bullet-list">
+                        <li>Nhận thức đối tượng trong trạng thái cô lập, tách rời khỏi các mối liên hệ phổ biến và tuyệt đối hóa ranh giới giữa các sự vật, hiện tượng.</li>
+                        <li>Thừa nhận sự biến đổi chủ yếu là sự thay đổi về số lượng hoặc tăng giảm thuần túy về lượng; phủ nhận bước nhảy vọt về chất.</li>
+                        <li>Nguyên nhân của mọi sự biến đổi nằm ở bên ngoài sự vật (do lực lượng siêu tự nhiên hoặc tác động ngoại tại).</li>
+                        <li>Có ưu điểm trong việc nghiên cứu từng mặt riêng lẻ ở giai đoạn đầu, nhưng bất lực trước các hệ thống vận động phức tạp.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 17 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 18 -->
+        <div class="slide" data-slide="18">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">1.3. Biện chứng và siêu hình</span>
+                    <h2 class="slide-title-text">Phương pháp Biện chứng</h2>
+                </div>
+                <div class="slide-badge-num">18</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-3col">
+                    <div class="acad-card">
+                        <h3>🔗 Mối liên hệ phổ biến</h3>
+                        <p>Xem xét sự vật trong sự tác động qua lại, ràng buộc, quy định và chuyển hóa lẫn nhau trong một chỉnh thể thống nhất.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>🌊 Sự phát triển</h3>
+                        <p>Xem xét sự vật trong trạng thái vận động không ngừng, phát triển từ thấp đến cao thông qua đấu tranh giữa các mặt đối lập.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>🎯 Công cụ khoa học</h3>
+                        <p>Là phương pháp phản ánh đúng hiện thực khách quan, là công cụ vĩ đại để con người nhận thức và cải tạo thế giới.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 18 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 19 -->
+        <div class="slide" data-slide="19">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">1.3. Biện chứng và siêu hình</span>
+                    <h2 class="slide-title-text">Ba Hình thức Lịch sử của Phép Biện chứng</h2>
+                </div>
+                <div class="slide-badge-num">19</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-3col">
+                    <div class="acad-card">
+                        <h3>🏛️ 1. Biện chứng tự phát</h3>
+                        <p>Thời cổ đại (Hy Lạp, Trung Hoa, Ấn Độ): Thấy thế giới vận động trực quan sinh thành nhưng chưa có cơ sở khoa học chứng minh.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>💭 2. Biện chứng duy tâm</h3>
+                        <p>Đạt đỉnh cao trong triết học cổ điển Đức (Kant, Hegel): Biện chứng của ý niệm tuyệt đối, bắt đầu và kết thúc ở tinh thần.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>⚒️ 3. Biện chứng duy vật</h3>
+                        <p>C. Mác và Ph. Ăngghen kế thừa hạt nhân hợp lý, thống nhất hữu cơ phép biện chứng với chủ nghĩa duy vật.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 19 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 20 -->
+        <div class="slide" data-slide="20">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">2.1. Sự ra đời và phát triển</span>
+                    <h2 class="slide-title-text">Điều kiện Kinh tế - Xã hội</h2>
+                </div>
+                <div class="slide-badge-num">20</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-2col">
+<div class="acad-card">
+                        <h3>🏭 Sự phát triển PTSX TBCN</h3>
+                        <ul class="bullet-list">
+                            <li>Cách mạng công nghiệp phát triển mạnh mẽ, lực lượng sản xuất mang tính xã hội hóa cao.</li>
+                            <li>Mâu thuẫn cơ bản của chủ nghĩa tư bản lộ rõ giữa lực lượng sản xuất xã hội hóa và quan hệ sản xuất tư nhân tư bản chủ nghĩa.</li>
+                            <li>Khủng hoảng kinh tế chu kỳ xuất hiện thường xuyên hơn.</li>
+                        </ul>
+                    </div>
+
+                    <div class="media-placeholder">
+                        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                        <span>Chèn hình ảnh / Sơ đồ minh họa vào đây</span>
+                        <p>Khu vực chờ chèn hình ảnh từ bản PowerPoint gốc</p>
+                    </div>
+</div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 20 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 21 -->
+        <div class="slide" data-slide="21">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">2.1. Sự ra đời và phát triển</span>
+                    <h2 class="slide-title-text">Nguồn gốc Lý luận của Triết học Mác</h2>
+                </div>
+                <div class="slide-badge-num">21</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-3col">
+                    <div class="acad-card">
+                        <h3>🧠 Triết học cổ điển Đức</h3>
+                        <p>Kế thừa phép biện chứng của Hegel (hạt nhân hợp lý) và chủ nghĩa duy vật nhân bản của Feuerbach để xây dựng chủ nghĩa duy vật biện chứng.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>💷 KTCT cổ điển Anh</h3>
+                        <p>Kế thừa học thuyết giá trị thặng dư của Adam Smith và David Ricardo làm cơ sở kinh tế cho quan điểm duy vật lịch sử.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>🚩 CNXH không tưởng Pháp</h3>
+                        <p>Kế thừa tư tưởng phê phán xã hội tư bản của Saint-Simon và Fourier để phát triển thành chủ nghĩa xã hội khoa học.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 21 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 22 -->
+        <div class="slide" data-slide="22">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">2.1. Sự ra đời và phát triển</span>
+                    <h2 class="slide-title-text">Tiền đề Khoa học Tự nhiên</h2>
+                </div>
+                <div class="slide-badge-num">22</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-3col">
+                    <div class="acad-card">
+                        <h3>⚡ Định luật bảo toàn năng lượng</h3>
+                        <p>Chứng minh sự chuyển hóa lẫn nhau giữa các dạng vận động khác nhau của thế giới vật chất, bác bỏ quan điểm siêu hình.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>🧬 Thuyết tế bào</h3>
+                        <p>Khẳng định tính thống nhất về mặt cấu tạo sinh học của toàn bộ thế giới thực vật và động vật.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>🐒 Thuyết tiến hóa của Darwin</h3>
+                        <p>Làm rõ tính lịch sử, sự phát triển từ thấp đến cao của thế giới hữu cơ, bác bỏ quan điểm sáng thế luận.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 22 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 23 -->
+        <div class="slide" data-slide="23">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">2.1. Sự ra đời và phát triển</span>
+                    <h2 class="slide-title-text">Nhân tố Chủ quan: C. Mác và Ph. Ăngghen</h2>
+                </div>
+                <div class="slide-badge-num">23</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="acad-card" style="padding: 36px 48px;">
+                    <ul class="bullet-list">
+                        <li>Đội ngũ thiên tài với năng lực tư duy lý luận uyên bác, ý chí cách mạng sắt đá và tầm nhìn thời đại.</li>
+                        <li>Sớm gắn hoạt động lý luận khoa học với thực tiễn đấu tranh của phong trào công nhân quốc tế.</li>
+                        <li>Chuyển dứt khoát từ lập trường dân chủ cách mạng sang lập trường giai cấp công nhân và chủ nghĩa cộng sản.</li>
+                        <li>Sự kết hợp vĩ đại giữa tình bạn chiến đấu và trí tuệ kiệt xuất tạo nên bước ngoặt lịch sử nhân loại.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 23 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 24 -->
+        <div class="slide" data-slide="24">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">2.2. Các thời kỳ chủ yếu</span>
+                    <h2 class="slide-title-text">Giai đoạn Hình thành Tư tưởng Triết học</h2>
+                </div>
+                <div class="slide-badge-num">24</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-4col">
+                    <div class="acad-card">
+                        <h3>🎓 1841</h3>
+                        <p>Mác nhận bằng tiến sĩ triết học, nghiên cứu sâu sắc triết học Hegel và Feuerbach.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>✍️ 1842</h3>
+                        <p>Làm biên tập viên Báo Sông Ranh, gắn tư tưởng dân chủ với lợi ích quần chúng lao động.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>⚖️ 1843</h3>
+                        <p>Phê phán triết học pháp quyền của Hegel, chuyển dần sang lập trường duy vật.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>🚩 1844</h3>
+                        <p>Tại Paris, chính thức chuyển hẳn sang chủ nghĩa duy vật và chủ nghĩa cộng sản.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 24 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 25 -->
+        <div class="slide" data-slide="25">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">2.2. Các thời kỳ chủ yếu</span>
+                    <h2 class="slide-title-text">Giai đoạn Đề xuất Nguyên lý Nền tảng</h2>
+                </div>
+                <div class="slide-badge-num">25</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-2col">
+<div class="acad-card">
+                        <h3>📜 Các tác phẩm kinh điển</h3>
+                        <p>• Bản thảo kinh tế - triết học (1844): Phân tích lao động tha hóa.<br>• Luận cương về Feuerbach (1845): Vai trò của thực tiễn.<br>• Hệ tư tưởng Đức (1845-1846): Đặt nền móng duy vật lịch sử.</p>
+                    </div>
+
+                    <div class="media-placeholder">
+                        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                        <span>Chèn hình ảnh / Sơ đồ minh họa vào đây</span>
+                        <p>Khu vực chờ chèn hình ảnh từ bản PowerPoint gốc</p>
+                    </div>
+</div>
+</div>
+</div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 25 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 26 -->
+        <div class="slide" data-slide="26">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">2.2. Các thời kỳ chủ yếu</span>
+                    <h2 class="slide-title-text">Giai đoạn Phát triển Toàn diện</h2>
+                </div>
+                <div class="slide-badge-num">26</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="acad-card" style="padding: 36px 48px;">
+                    <ul class="bullet-list">
+                        <li>Tiếp tục tổng kết thực tiễn phong trào cách mạng và sự phát triển khoa học tự nhiên.</li>
+                        <li>Hoàn thành bộ 'Tư bản' - kiệt tác kinh tế chính trị học và là kho tàng triết học sâu sắc.</li>
+                        <li>Ph. Ăngghen viết các tác phẩm vĩ đại: 'Biện chứng của tự nhiên', 'Chống Đuyrinh', 'Nguồn gốc gia đình...' để bảo vệ học thuyết.</li>
+                        <li>Lãnh đạo phong trào công nhân quốc tế qua các Quốc tế I và II.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 26 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 27 -->
+        <div class="slide" data-slide="27">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">2.3. Ý nghĩa cuộc cách mạng</span>
+                    <h2 class="slide-title-text">Thực chất Cuộc Cách mạng trong Triết học</h2>
+                </div>
+                <div class="slide-badge-num">27</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-3col">
+                    <div class="acad-card">
+                        <h3>🌍 Khắc phục duy vật cũ</h3>
+                        <p>Vượt qua tính chất trực quan, máy móc, siêu hình của chủ nghĩa duy vật trước Mác, gắn liền với thực tiễn xã hội.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>✨ Khắc phục duy tâm</h3>
+                        <p>Giải phóng phép biện chứng khỏi lớp vỏ thần bí, duy tâm của triết học Hegel, đưa phép biện chứng đứng trên nền tảng duy vật.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>🛠️ Thống nhất lý luận</h3>
+                        <p>Tuyên bố sứ mệnh lịch sử của triết học không chỉ là giải thích thế giới mà còn là cải tạo thế giới.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 27 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 28 -->
+        <div class="slide" data-slide="28">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">2.3. Ý nghĩa cuộc cách mạng</span>
+                    <h2 class="slide-title-text">Sáng tạo ra Chủ nghĩa Duy vật Lịch sử</h2>
+                </div>
+                <div class="slide-badge-num">28</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-2col">
+                    <div class="acad-card">
+                        <h3>📜 Bước ngoặt vĩ đại</h3>
+                        <ul class="bullet-list">
+                            <li>Vận dụng chủ nghĩa duy vật biện chứng vào việc nghiên cứu đời sống xã hội và lịch sử loài người.</li>
+                            <li>Khẳng định sản xuất vật chất là nền tảng của đời sống xã hội.</li>
+                            <li>Xác định quần chúng nhân dân là chủ thể chân chính sáng tạo ra lịch sử.</li>
+                        </ul>
+                    </div>
+                    <div class="acad-card">
+                        <h3>⚙️ Ý nghĩa phương pháp luận</h3>
+                        <ul class="bullet-list">
+                            <li>Giúp giải thích các hiện tượng xã hội từ cơ sở kinh tế - vật chất thay vì ý muốn chủ quan.</li>
+                            <li>Cung cấp phương pháp luận khoa học để phân tích các hình thái kinh tế - xã hội.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 28 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 29 -->
+        <div class="slide" data-slide="29">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">2.4. Giai đoạn Lênin</span>
+                    <h2 class="slide-title-text">Hoàn cảnh Lịch sử Giai đoạn Lênin</h2>
+                </div>
+                <div class="slide-badge-num">29</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="acad-card" style="padding: 36px 48px;">
+                    <ul class="bullet-list">
+                        <li>Chủ nghĩa tư bản chuyển sang giai đoạn đế quốc chủ nghĩa, trung tâm cách mạng thế giới chuyển dịch sang nước Nga.</li>
+                        <li>Những phát minh vĩ đại của vật lý học cuối thế kỷ XIX đầu thế kỷ XX làm đảo lộn quan niệm siêu hình cũ về vật chất.</li>
+                        <li>Các trào lưu duy tâm, xét lại và cơ hội tấn công mãnh liệt vào nền tảng triết học Mác.</li>
+                        <li>Đặt ra yêu cầu cấp thiết phải bảo vệ, bổ sung và phát triển toàn diện chủ nghĩa Mác trong thời đại mới.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 29 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 30 -->
+        <div class="slide" data-slide="30">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">2.4. Giai đoạn Lênin</span>
+                    <h2 class="slide-title-text">Đóng góp Toàn diện của V.I. Lênin</h2>
+                </div>
+                <div class="slide-badge-num">30</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-3col">
+                    <div class="acad-card">
+                        <h3>🛡️ Bảo vệ chủ nghĩa duy vật</h3>
+                        <p>Tác phẩm 'Chủ nghĩa duy vật và chủ nghĩa kinh nghiệm phê phán' (1908) định nghĩa kinh điển về vật chất.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>🌊 Phát triển phép biện chứng</h3>
+                        <p>Tác phẩm 'Bút ký triết học' (1914-1916) làm sâu sắc thêm bản chất của phép biện chứng duy vật.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>🚩 Phân tích chủ nghĩa đế quốc</h3>
+                        <p>Làm rõ bản chất tột cùng của chủ nghĩa tư bản và quy luật phát triển không đều trong thời đại mới.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 30 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 31 -->
+        <div class="slide" data-slide="31">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">2.4. Giai đoạn Lênin</span>
+                    <h2 class="slide-title-text">Giai đoạn 1917 - 1924 và từ 1924 đến nay</h2>
+                </div>
+                <div class="slide-badge-num">31</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-2col">
+<div class="acad-card">
+                        <h3>🇷🇺 Giai đoạn 1917 - 1924</h3>
+                        <p>• Tổng kết sâu sắc kinh nghiệm Cách mạng Tháng Mười.<br>• Phát triển lý luận về xây dựng chủ nghĩa xã hội, nhà nước chuyên chính vô sản.<br>• Vai trò lãnh đạo của Đảng Cộng sản.</p>
+                    </div>
+
+                    <div class="media-placeholder">
+                        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                        <span>Chèn hình ảnh / Sơ đồ minh họa vào đây</span>
+                        <p>Khu vực chờ chèn hình ảnh từ bản PowerPoint gốc</p>
+                    </div>
+</div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 31 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 32 -->
+        <div class="slide" data-slide="32">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">2.4. Giai đoạn Lênin</span>
+                    <h2 class="slide-title-text">Sự Vận dụng và Phát triển ở Việt Nam</h2>
+                </div>
+                <div class="slide-badge-num">32</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="acad-card" style="padding: 36px 48px;">
+                    <ul class="bullet-list">
+                        <li>Chủ tịch Hồ Chí Minh và Đảng ta vận dụng sáng tạo chủ nghĩa Mác - Lênin vào điều kiện cụ thể của cách mạng Việt Nam.</li>
+                        <li>Tư duy biện chứng thể hiện rõ trong đường lối chiến tranh nhân dân, kết hợp dân tộc với chủ nghĩa xã hội.</li>
+                        <li>Trong thời kỳ đổi mới, tư duy lý luận tiếp tục được phát triển qua thực tiễn xây dựng nền kinh tế thị trường định hướng XHCN.</li>
+                        <li>Kiên định nền tảng tư tưởng, đồng thời chống giáo điều, bảo thủ, chủ quan, duy ý chí.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 32 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 33 -->
+        <div class="slide" data-slide="33">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">2.5. Đối tượng và chức năng</span>
+                    <h2 class="slide-title-text">Triết học và các Khoa học Cụ thể</h2>
+                </div>
+                <div class="slide-badge-num">33</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-2col">
+                    <div class="acad-card">
+                        <h3>🔬 Khoa học cụ thể</h3>
+                        <ul class="bullet-list">
+                            <li>Nghiên cứu những quy luật trong từng lĩnh vực riêng biệt của thế giới (toán, vật lý, sinh học, kinh tế...).</li>
+                            <li>Cung cấp tri thức chuyên ngành cụ thể.</li>
+                            <li>Cơ sở thực tiễn phong phú cho khái quát triết học.</li>
+                        </ul>
+                    </div>
+                    <div class="acad-card">
+                        <h3>🏛️ Triết học Mác - Lênin</h3>
+                        <ul class="bullet-list">
+                            <li>Nghiên cứu những quy luật chung nhất của tự nhiên, xã hội và tư duy.</li>
+                            <li>Cung cấp thế giới quan và phương pháp luận chung.</li>
+                            <li>Mối quan hệ giữa triết học và khoa học cụ thể là quan hệ giữa cái chung và cái riêng.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 33 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 34 -->
+        <div class="slide" data-slide="34">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">2.5. Đối tượng và chức năng</span>
+                    <h2 class="slide-title-text">Khái niệm Triết học Mác - Lênin</h2>
+                </div>
+                <div class="slide-badge-num">34</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-2col">
+                    <div class="acad-card">
+                        <h3>📖 Định nghĩa chuẩn</h3>
+                        <p>Triết học Mác - Lênin là hệ thống quan điểm duy vật biện chứng về tự nhiên, xã hội và tư duy; là thế giới quan và phương pháp luận khoa học, cách mạng trong nhận thức và cải tạo thế giới.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>⚙️ Bản chất thống nhất</h3>
+                        <p>• Thống nhất giữa chủ nghĩa duy vật và phép biện chứng.<br>• Thống nhất giữa duy vật biện chứng và duy vật lịch sử.<br>• Thống nhất giữa tính khoa học và tính cách mạng.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 34 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 35 -->
+        <div class="slide" data-slide="35">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">2.5. Đối tượng và chức năng</span>
+                    <h2 class="slide-title-text">Đối tượng của Triết học Mác - Lênin</h2>
+                </div>
+                <div class="slide-badge-num">35</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="acad-card" style="padding: 36px 48px;">
+                    <ul class="bullet-list">
+                        <li>Giải quyết mối quan hệ giữa vật chất và ý thức trên lập trường duy vật biện chứng.</li>
+                        <li>Nghiên cứu những quy luật vận động, phát triển chung nhất của tự nhiên, xã hội và tư duy loài người.</li>
+                        <li>Phân định rõ ràng đối tượng của triết học với các khoa học cụ thể theo nguyên tắc cái chung - cái riêng.</li>
+                        <li>Cung cấp lăng kính khoa học để khái quát tri thức từ các lĩnh vực chuyên ngành.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 35 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 36 -->
+        <div class="slide" data-slide="36">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">2.5. Đối tượng và chức năng</span>
+                    <h2 class="slide-title-text">Chức năng Thế giới quan Duy vật Biện chứng</h2>
+                </div>
+                <div class="slide-badge-num">36</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-3col">
+                    <div class="acad-card">
+                        <h3>👁️ Nhận thức đúng hiện thực</h3>
+                        <p>Cung cấp hệ thống quan điểm khoa học để nhìn nhận thế giới đúng như nó vốn có, tránh các quan điểm mù quáng.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>🧭 Định hướng hành động</h3>
+                        <p>Giúp con người xác định thái độ sống tích cực, lập trường kiên định và phương hướng hành động đúng đắn.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>⚔️ Đấu tranh tư tưởng</h3>
+                        <p>Là vũ khí lý luận sắc bén để phê phán các quan điểm phản khoa học, duy tâm, tôn giáo cực đoan.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 36 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 37 -->
+        <div class="slide" data-slide="37">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">2.5. Đối tượng và chức năng</span>
+                    <h2 class="slide-title-text">Chức năng Phương pháp luận Duy vật Biện chứng</h2>
+                </div>
+                <div class="slide-badge-num">37</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="acad-card" style="padding: 36px 48px;">
+                    <ul class="bullet-list">
+                        <li>Trang bị hệ thống các nguyên tắc phương pháp luận chung nhất cho nhận thức và hoạt động thực tiễn.</li>
+                        <li>Cung cấp các công cụ sắc bén (các nguyên lý, quy luật, phạm trù) để phân tích và giải quyết vấn đề.</li>
+                        <li>Giúp tránh bệnh chủ quan, duy ý chí, phương pháp tư duy siêu hình, cứng nhắc.</li>
+                        <li>Lưu ý: Phương pháp luận triết học không phải là 'đơn thuốc vạn năng', cần kết hợp chặt chẽ với tri thức chuyên ngành.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 37 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 38 -->
+        <div class="slide" data-slide="38">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">3. Vai trò trong đời sống xã hội</span>
+                    <h2 class="slide-title-text">Vai trò trong Nhận thức và Thực tiễn</h2>
+                </div>
+                <div class="slide-badge-num">38</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="grid-3col">
+                    <div class="acad-card">
+                        <h3>🎯 Xác định điểm xuất phát</h3>
+                        <p>Giúp chủ thể đứng trên lập trường khoa học vững chắc, không mò mẫm hay dựa vào cảm tính.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>📈 Thấy rõ phương hướng</h3>
+                        <p>Nhận ra xu hướng vận động, các mối liên hệ nhân quả và triển vọng phát triển của sự vật.</p>
+                    </div>
+                    <div class="acad-card">
+                        <h3>🛠️ Gắn lý luận với thực tiễn</h3>
+                        <p>Đưa các nguyên lý chung vào giải quyết các bài toán cụ thể của đời sống xã hội.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 38 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 39 -->
+        <div class="slide" data-slide="39">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">3. Vai trò trong đời sống xã hội</span>
+                    <h2 class="slide-title-text">Vai trò trong Sự nghiệp Đổi mới ở Việt Nam</h2>
+                </div>
+                <div class="slide-badge-num">39</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="acad-card" style="padding: 36px 48px;">
+                    <ul class="bullet-list">
+                        <li>Xuất phát từ lập trường duy vật biện chứng để đánh giá đúng đắn thực trạng và điều kiện khách quan của đất nước.</li>
+                        <li>Kết hợp nhuần nhuyễn giữa đổi mới kinh tế với đổi mới chính trị, phát huy tối đa nội lực và hội nhập quốc tế.</li>
+                        <li>Thường xuyên tổng kết thực tiễn đổi mới để không ngừng bổ sung, phát triển tư duy lý luận của Đảng.</li>
+                        <li>Kiên định nền tảng tư tưởng Mác - Lênin, đồng thời kiên quyết khắc phục bệnh giáo điều, chủ quan, duy ý chí.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 39 / 40</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 40 -->
+        <div class="slide" data-slide="40">
+            <div class="slide-header">
+                <div>
+                    <span class="slide-category">Ôn tập chương</span>
+                    <h2 class="slide-title-text">Tổng kết Chương 1: Triết học Mác - Lênin</h2>
+                </div>
+                <div class="slide-badge-num">40</div>
+            </div>
+            <div class="slide-content-area">
+                <div class="acad-card" style="padding: 36px 48px;">
+                    <ul class="bullet-list">
+                        <li>Triết học ra đời từ nguồn gốc nhận thức và xã hội, là hạt nhân lý luận của thế giới quan.</li>
+                        <li>Vấn đề cơ bản của triết học giải quyết quan hệ giữa vật chất và ý thức, khả năng nhận thức thế giới.</li>
+                        <li>Triết học Mác - Lênin là sự thống nhất hữu cơ giữa chủ nghĩa duy vật và phép biện chứng.</li>
+                        <li>Lênin bảo vệ và phát triển toàn diện chủ nghĩa Mác trong thời đại mới.</li>
+                        <li>Hai chức năng cốt lõi: Thế giới quan duy vật biện chứng và phương pháp luận duy vật biện chứng.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="slide-footer">
+                <span>Triết học Mác - Lênin | Bộ môn Triết học</span>
+                <span>Slide 40 / 40</span>
+            </div>
+        </div>
+
+        </div>
+    </div>
+
+    <div class="deck-nav">
+        <button class="nav-btn" id="prevBtn">‹ Trước</button>
+        <button class="nav-btn" id="nextBtn">Tiếp ›</button>
+    </div>
+
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        let currentIndex = 0;
+        const progressBar = document.getElementById('progressBar');
+        const editBanner = document.getElementById('editBanner');
+
+        function updateStageScale() {
+            const stage = document.getElementById('presentationStage');
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            const scale = Math.min(w / 1920, h / 1080);
+            stage.style.transform = `scale(${scale}) translate(-50%, -50%)`;
+            stage.style.left = '50%';
+            stage.style.top = '50%';
+            stage.style.position = 'absolute';
+        }
+
+        window.addEventListener('resize', updateStageScale);
+        updateStageScale();
+
+        function showSlide(index) {
+            if (index < 0) index = 0;
+            if (index >= totalSlides) index = totalSlides - 1;
+            currentIndex = index;
+
+            slides.forEach((slide, idx) => {
+                if (idx === currentIndex) {
+                    slide.classList.add('active');
+                } else {
+                    slide.classList.remove('active');
+                }
+            });
+
+            const progress = ((currentIndex + 1) / totalSlides) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        document.getElementById('nextBtn').addEventListener('click', () => showSlide(currentIndex + 1));
+        document.getElementById('prevBtn').addEventListener('click', () => showSlide(currentIndex - 1));
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+                e.preventDefault();
+                showSlide(currentIndex + 1);
+            } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                e.preventDefault();
+                showSlide(currentIndex - 1);
+            }
+        });
+
+        let isEditing = false;
+        document.addEventListener('keydown', (e) => {
+            if ((e.key === 'e' || e.key === 'E') && !isEditing && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                isEditing = true;
+                document.querySelectorAll('.slide-title-text, .acad-card p, .acad-card h3, .bullet-list li, .visual-diagram-card p').forEach(el => {
+                    el.setAttribute('contenteditable', 'true');
+                    el.style.outline = '1px dashed #C5A059';
+                });
+                editBanner.style.display = 'block';
+                e.preventDefault();
+            }
+            if (e.ctrlKey && e.key === 's' && isEditing) {
+                e.preventDefault();
+                isEditing = false;
+                document.querySelectorAll('[contenteditable]').forEach(el => {
+                    el.removeAttribute('contenteditable');
+                    el.style.outline = 'none';
+                });
+                editBanner.style.background = '#10B981';
+                editBanner.textContent = 'Đã lưu thay đổi thành công!';
+                setTimeout(() => {
+                    editBanner.style.display = 'none';
+                    editBanner.style.background = '#C5A059';
+                    editBanner.textContent = 'CHẾ ĐỘ CHỈNH SỬA BẬT (Nhấn Ctrl+S để lưu)';
+                }, 2000);
+            }
+        });
+
+        showSlide(0);
+    </script>
+</body>
+</html>

@@ -87,7 +87,9 @@ const server = http.createServer(async (req, res) => {
 
   // Serve index.html directly at root /
   if (pathname === '/' || pathname === '/index.html') {
-    const indexPath = path.join(__dirname, 'index.html');
+    const indexPath = fs.existsSync(path.join(__dirname, 'index.html'))
+      ? path.join(__dirname, 'index.html')
+      : path.join(__dirname, 'legacy', 'index.html');
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
     fs.createReadStream(indexPath).pipe(res);
     return;
@@ -411,7 +413,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
   if (cleanPath === '/' || cleanPath === '/index.html') {
-    filePath = 'index.html';
+    filePath = fs.existsSync(path.join(__dirname, 'index.html')) ? 'index.html' : path.join('legacy', 'index.html');
   } else {
     filePath = cleanPath.replace(/^\//, '');
   }

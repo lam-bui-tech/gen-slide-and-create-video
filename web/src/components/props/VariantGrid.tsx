@@ -5,6 +5,10 @@ import { useStudioStore } from '@/store/useStudioStore';
 
 export const VARIANT_OPTIONS = [
   { value: 'default', label: 'Mặc định' },
+  { value: 'tree-hierarchy', label: 'Cây Phân Cấp (Tree Hierarchy)' },
+  { value: 'contour-numbers', label: 'Số Viền Đồ Họa (Contour Numbers)' },
+  { value: 'skewed-badges', label: 'Khối Số 3D (Skewed Badges)' },
+  { value: 'visual-anchor', label: 'Neo Biểu Tượng & Danh Mục' },
   { value: 'text-left-image-right', label: 'Chữ Trái - Ảnh Phải' },
   { value: 'text-right-image-left', label: 'Ảnh Trái - Chữ Phải' },
   { value: 'stacked-top', label: 'Banner Trên' },

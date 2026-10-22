@@ -13,12 +13,32 @@ export function snapToGrid(value, gridSize = 8) {
   return Math.round(value / gridSize) * gridSize;
 }
 
-export function createDraftLayout(id, name, purpose = 'academic', category = 'lecture') {
+export function createDraftLayout(idOrOptions, name, purpose = 'concept-explain', category = 'lecture') {
+  let id = idOrOptions;
+  let layoutName = name;
+  let layoutPurpose = purpose;
+  let layoutCategory = category;
+
+  if (typeof idOrOptions === 'object' && idOrOptions !== null) {
+    id = idOrOptions.id;
+    layoutName = idOrOptions.name;
+    layoutPurpose = idOrOptions.purpose || 'concept-explain';
+    layoutCategory = idOrOptions.category || 'lecture';
+  }
+
+  const generatedId =
+    typeof id === 'string' && id.trim()
+      ? id.trim().toLowerCase().replace(/[^a-z0-9-_]/g, '-')
+      : `custom-layout-${Date.now().toString().slice(-4)}`;
+
+  const finalPurpose =
+    layoutPurpose === 'academic' || !layoutPurpose ? 'concept-explain' : layoutPurpose;
+
   return {
-    id: id || `custom-layout-${Date.now().toString().slice(-4)}`,
-    name: name || 'Bố Cục Tùy Biến',
-    purpose: purpose || 'academic',
-    category: category || 'lecture',
+    id: generatedId,
+    name: layoutName || 'Bố Cục Tùy Biến',
+    purpose: finalPurpose,
+    category: layoutCategory || 'lecture',
     variants: [
       { id: 'default', name: 'Mặc định' },
       { id: 'no-image', name: 'Không Có Ảnh' }
@@ -159,13 +179,18 @@ export function exportLayoutForSave(draft) {
     .filter(e => !draft.slots?.some(s => s.targetElementId === e.id))
     .map(e => ({ id: e.id, type: e.type, content: e.content }));
 
+  const rawPurpose = draft.purpose;
+  const validPurpose =
+    rawPurpose === 'academic' || !rawPurpose ? 'concept-explain' : rawPurpose;
+
   return {
     id: draft.id,
     name: draft.name,
-    purpose: draft.purpose || 'concept-explain',
+    purpose: validPurpose,
     slots,
     decor,
-    variants: draft.variants || [{ id: 'default', name: 'Mặc định' }]
+    variants: draft.variants || [{ id: 'default', name: 'Mặc định' }],
+    defaultAnimations: draft.defaultAnimations || []
   };
 }
 
